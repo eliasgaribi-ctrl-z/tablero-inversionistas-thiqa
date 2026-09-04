@@ -2089,7 +2089,11 @@ function pintarFiltros(){
   const cua = [...new Set(S.todas.map(r => valor(r,'CUADRILLA')).filter(Boolean))].sort();
   const antesCua = $('filtroCuadrilla').value;
   $('filtroCuadrilla').innerHTML = '<option value="">Todas</option>' +
-    cua.map(v => '<option>'+esc(v)+'</option>').join('');
+    /* Con value explícito: sin él el navegador toma el texto del <option>, y el
+       texto colapsa los espacios dobles que a veces trae el nombre de la
+       cuadrilla. Entonces el value guardado no empataba con ninguna opción y el
+       desplegable se regresaba solo a "Todas" en cada repintado. */
+    cua.map(v => '<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');
   if (cua.indexOf(antesCua) >= 0) $('filtroCuadrilla').value = antesCua;
 
   pintarChips();
@@ -2768,7 +2772,12 @@ function cifrasCuenta(t, prox){
     c('Monto de convenio', sumaT(t.convenio, t.sinConvenio, t.n), t.sinConvenio ? t.sinConvenio + ' sin capturar' : 'completo') +
     c('Honorarios + bono', sumaT(t.hb, t.sinHB, t.n), t.sinHB ? t.sinHB + ' sin capturar' : 'completo') +
     c('Costo de materiales', sumaT(t.mat, t.sinMat, t.n), t.sinMat ? t.sinMat + ' sin capturar' : 'completo') +
-    c('Inversión total', fmtCorto(t.inversion), 'de lo que sí está capturado', true) +
+    /* La misma guardia que las otras tres cifras y que el KPI del tablero: con
+       nada capturado esto imprimía $0, que se lee como "no costó nada" en una
+       hoja que se manda a un inversionista. */
+    c('Inversión total',
+      t.n && (t.sinConvenio + t.sinHB + t.sinMat) === t.n * 3 ? 'sin capturar' : fmtCorto(t.inversion),
+      'de lo que sí está capturado', true) +
     '</div>' +
     (prox.n
       ? '<div class="nota" style="flex:none">Aparte de éstas hay <b>' + prox.n +
