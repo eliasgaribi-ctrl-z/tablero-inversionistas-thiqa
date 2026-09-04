@@ -1,0 +1,2633 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="claro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>thiqa · Tablero de inversionistas</title>
+<meta name="description" content="Estatus de las casas recuperadas del Programa RMV de THIQA, por cartera, directo desde el Excel del maestro.">
+
+<style>
+/* ============================================================
+   Fuentes de la casa. Van dentro del repositorio y no colgadas de
+   Google Fonts: el tablero se abre en juntas donde el internet no
+   siempre coopera, y una hoja que se imprime con la tipografía
+   equivocada no es la misma hoja.
+   ============================================================ */
+@font-face{font-family:'Outfit';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url("fuentes/outfit-latin-ext.woff2") format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Outfit';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url("fuentes/outfit-latin.woff2") format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Figtree';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url("fuentes/figtree-latin-ext.woff2") format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Figtree';font-style:normal;font-weight:400 700;font-display:swap;
+  src:url("fuentes/figtree-latin.woff2") format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+/* ============================================================
+   Paleta THIQA — la misma del generador de fichas, para que los dos
+   proyectos se vean como lo que son: el mismo programa.
+   ============================================================ */
+:root{
+  --ttl:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --txt:'Figtree',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --side:252px;
+  --bg:#EDF2F8; --surf:#FFFFFF; --surf2:#F5F8FC; --brd:#E3EAF2; --brd2:#CFDAE7;
+  --tx:#12222E; --tx2:#4B5C6B; --tx3:#8496A6;
+  --azul:#1E4A72; --azul2:#2F6C9E; --azulL:#E9F1F9;
+  --nar:#F07E22; --nar2:#D96A12; --narL:#FDEEDF;
+  --ok:#1F7A5A; --okL:#E3F2EB;
+  --al:#B3261E; --alL:#FBEAE8;
+  --sideA:#22537E; --sideB:#143453; --sideTx:rgba(255,255,255,.78);
+  --sh1:0 1px 2px rgba(16,38,56,.05), 0 6px 18px rgba(16,38,56,.06);
+  --sh2:0 2px 6px rgba(16,38,56,.08), 0 18px 44px rgba(16,38,56,.13);
+  --pad:20px;
+}
+html[data-theme="oscuro"]{
+  --bg:#0B131B; --surf:#131F2A; --surf2:#192734; --brd:#243544; --brd2:#33485D;
+  --tx:#E8F0F7; --tx2:#A4B7C7; --tx3:#788DA0;
+  --azul:#5FA3DA; --azul2:#84BEEC; --azulL:#16283A;
+  --nar:#F7994B; --nar2:#F07E22; --narL:#2E1E12;
+  --ok:#4FC195; --okL:#112A21;
+  --al:#F2857C; --alL:#2C1513;
+  --sideA:#152B3F; --sideB:#0A141D; --sideTx:rgba(226,238,248,.72);
+  --sh1:0 1px 2px rgba(0,0,0,.45), 0 6px 18px rgba(0,0,0,.35);
+  --sh2:0 2px 8px rgba(0,0,0,.5), 0 18px 44px rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:400 14px/1.55 var(--txt);-webkit-font-smoothing:antialiased;
+  transition:background .35s ease,color .35s ease}
+a{color:var(--nar2);text-decoration:none;font-weight:600}
+a:hover{color:var(--nar);text-decoration:underline}
+button,input,select,textarea{font-family:inherit;font-size:inherit}
+::placeholder{color:var(--tx3)}
+::selection{background:var(--narL);color:var(--nar2)}
+h1,h2,h3,h4{font-family:var(--ttl);margin:0;font-weight:700;letter-spacing:-.01em}
+.num{font-family:var(--ttl);font-variant-numeric:tabular-nums}
+
+input[type=text],input[type=number],input[type=date],select{
+  width:100%;padding:10px 13px;min-height:42px;border:1px solid var(--brd2);border-radius:11px;
+  background:var(--surf);color:var(--tx);outline:none;
+  transition:border-color .16s,box-shadow .16s}
+input:focus,select:focus{border-color:var(--nar);box-shadow:0 0 0 3px var(--narL)}
+
+/* ---------- estructura ---------- */
+#app{display:flex;min-height:100vh}
+#lado{width:var(--side);flex:0 0 var(--side);position:fixed;top:0;bottom:0;left:0;z-index:80;
+  display:flex;flex-direction:column;overflow:hidden;
+  background:linear-gradient(168deg,var(--sideA) 0%,var(--sideB) 100%)}
+#ladoMarca{padding:24px 22px 18px;position:relative}
+#ladoMarca img{width:152px;height:auto;display:block}
+#ladoMarca .sub{display:flex;align-items:center;gap:7px;margin-top:14px}
+#ladoMarca .sub i{width:16px;height:2px;border-radius:2px;background:var(--nar);display:block}
+#ladoMarca .sub span{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:rgba(255,255,255,.6);font-weight:600}
+#ladoFondo{position:absolute;inset:0;pointer-events:none;opacity:.09;overflow:hidden}
+#ladoFondo img{position:absolute;right:-96px;bottom:52px;width:330px;height:auto}
+
+#nav{padding:6px 0;flex:1;overflow-y:auto;position:relative}
+#navPill{position:absolute;left:0;top:0;width:4px;height:46px;border-radius:0 4px 4px 0;
+  background:var(--nar);box-shadow:0 0 16px rgba(240,126,34,.75);opacity:0;
+  transition:transform .36s cubic-bezier(.34,1.3,.5,1),opacity .25s}
+.navlink{display:flex;align-items:center;gap:11px;width:100%;padding:13px 22px;border:0;
+  background:transparent;color:var(--sideTx);font-size:14.5px;text-align:left;cursor:pointer;
+  font-family:inherit;transition:background .18s,color .18s,padding-left .22s}
+.navlink:hover:not(:disabled){background:rgba(255,255,255,.08);color:#fff;padding-left:26px}
+.navlink[data-on="1"]{background:rgba(255,255,255,.11);color:#fff}
+.navlink:disabled{opacity:.34;cursor:not-allowed}
+.navlink svg{flex:none;opacity:.85}
+.navlink .ct{margin-left:auto;font-family:var(--ttl);font-weight:700;font-size:11px;
+  background:rgba(255,255,255,.15);color:#fff;padding:2px 8px;border-radius:999px;
+  min-width:24px;text-align:center;font-variant-numeric:tabular-nums}
+#ladoPie{padding:14px 22px 18px;border-top:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;gap:10px}
+#temaBtn{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);color:#fff;
+  border-radius:9px;padding:7px 11px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:7px}
+#temaBtn:hover{background:rgba(255,255,255,.16)}
+
+main{margin-left:var(--side);flex:1;min-width:0;padding:34px 40px 96px}
+.vista{display:none;animation:sube .34s cubic-bezier(.2,.7,.3,1) both}
+.vista[data-on="1"]{display:block}
+@keyframes sube{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+.tit{margin-bottom:22px}
+.tit h1{font-size:27px}
+.tit p{margin:6px 0 0;color:var(--tx2);font-size:14px;max-width:74ch;text-wrap:pretty}
+
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:16px;
+  box-shadow:var(--sh1);padding:var(--pad);margin-bottom:18px}
+.card > h3{font-size:16px;margin-bottom:4px}
+.card > h3 + p{margin:0 0 15px;color:var(--tx2);font-size:13px;line-height:1.6;text-wrap:pretty}
+.rot{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.11em;
+  color:var(--tx3);margin-bottom:6px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;
+  padding:10px 18px;border-radius:11px;border:1px solid var(--brd2);background:var(--surf);
+  color:var(--tx);font-size:13.5px;font-weight:600;cursor:pointer;transition:.18s}
+.btn:hover{border-color:var(--nar);color:var(--nar2)}
+.btn:disabled{opacity:.4;cursor:not-allowed;border-color:var(--brd)}
+.btn:disabled:hover{color:var(--tx)}
+.btn.pri{background:var(--nar);border-color:var(--nar);color:#fff;box-shadow:0 8px 24px rgba(240,126,34,.34)}
+.btn.pri:hover{background:var(--nar2);border-color:var(--nar2);color:#fff}
+.btn.pri:disabled{background:var(--brd2);border-color:var(--brd2);box-shadow:none;color:var(--tx3)}
+.btn.gh{background:transparent}
+
+.aviso{border:1px solid var(--brd);border-left:4px solid var(--azul);background:var(--azulL);
+  border-radius:12px;padding:14px 17px;font-size:13px;line-height:1.65;color:var(--tx2)}
+.aviso b{color:var(--tx)}
+.aviso.ok{border-left-color:var(--ok);background:var(--okL)}
+.aviso.ojo{border-left-color:var(--nar);background:var(--narL)}
+.aviso.mal{border-left-color:var(--al);background:var(--alL)}
+.aviso + .aviso{margin-top:12px}
+
+#suelta{border:2px dashed var(--brd2);border-radius:14px;background:var(--surf2);
+  padding:30px 24px;text-align:center;cursor:pointer;transition:.2s}
+#suelta:hover,#suelta.on{border-color:var(--nar);background:var(--narL)}
+#suelta b{display:block;font-family:var(--ttl);font-size:16px;color:var(--tx)}
+#suelta span{display:block;margin-top:5px;font-size:13px;color:var(--tx2)}
+
+/* ---------- KPIs ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:var(--surf);border:1px solid var(--brd);border-radius:16px;padding:16px 18px;
+  box-shadow:var(--sh1);position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--azul2)}
+.kpi.oro::before{background:var(--nar)}
+.kpi.verde::before{background:var(--ok)}
+.kpi .r{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3)}
+.kpi .v{font-family:var(--ttl);font-size:26px;font-weight:700;margin-top:5px;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.1}
+.kpi .n{margin-top:5px;font-size:11.5px;color:var(--tx2);line-height:1.45}
+.kpi.oro .v{color:var(--nar2)}
+
+/* ---------- tablas ---------- */
+.tablaBox{overflow-x:auto;border:1px solid var(--brd);border-radius:14px;background:var(--surf)}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{background:var(--surf2);text-align:left;padding:11px 13px;font-size:10.5px;
+  font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);
+  border-bottom:1px solid var(--brd);white-space:nowrap;position:sticky;top:0;z-index:2}
+table.t th.ord{cursor:pointer;user-select:none}
+table.t th.ord:hover{color:var(--nar2)}
+table.t th.ord[data-dir]::after{content:" ▲";color:var(--nar2)}
+table.t th.ord[data-dir="desc"]::after{content:" ▼"}
+table.t td{padding:10px 13px;border-bottom:1px solid var(--brd);vertical-align:top;line-height:1.5}
+table.t tbody tr:last-child td{border-bottom:0}
+table.t tbody tr:hover{background:var(--surf2)}
+table.t td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+table.t tfoot td{padding:12px 13px;background:var(--surf2);border-top:2px solid var(--brd2);
+  font-weight:700;font-family:var(--ttl);font-variant-numeric:tabular-nums}
+.falta{color:var(--tx3);font-style:italic;font-weight:400}
+
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--brd2);background:var(--surf);
+  color:var(--tx2);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;
+  cursor:pointer;transition:.16s}
+.chip:hover{border-color:var(--nar);color:var(--nar2)}
+.chip i{width:9px;height:9px;border-radius:50%;background:var(--ok);display:block}
+.chip b{font-family:var(--ttl);font-size:11px;background:var(--surf2);border-radius:999px;
+  padding:1px 7px;color:var(--tx2)}
+.chip.off{opacity:.5}
+.chip.off i{background:var(--brd2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+
+.etq{display:inline-block;border-radius:999px;padding:2px 9px;font-size:10.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.etq.rec{background:var(--okL);color:var(--ok)}
+.etq.prox{background:var(--narL);color:var(--nar2)}
+.etq.fuera{background:var(--surf2);color:var(--tx3)}
+
+/* Los pasos del avance: un punto por paso, verde sólo con evidencia. */
+.pasos{display:flex;gap:4px;align-items:center}
+.pasos i{width:11px;height:11px;border-radius:3px;background:var(--brd2);display:block}
+.pasos i.on{background:var(--ok)}
+.pasos b{margin-left:5px;font-family:var(--ttl);font-size:11px;color:var(--tx2);font-weight:700}
+
+.carp{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--brd2);border-radius:8px;
+  padding:3px 8px;font-size:11.5px;font-weight:600;color:var(--azul2);background:var(--azulL);
+  margin:2px 3px 2px 0}
+.carp:hover{border-color:var(--nar);color:var(--nar2);text-decoration:none}
+.carp.no{background:var(--surf2);color:var(--tx3);border-style:dashed;cursor:default}
+
+/* ---------- casas (fichas de pantalla) ---------- */
+.casas{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.casa{background:var(--surf);border:1px solid var(--brd);border-radius:16px;box-shadow:var(--sh1);
+  padding:17px 19px;display:flex;flex-direction:column;gap:11px}
+.casa .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.casa .fol{font-family:var(--ttl);font-size:15px;font-weight:700;letter-spacing:-.01em}
+.casa .dir{font-size:13.5px;color:var(--tx2);line-height:1.5}
+.casa .dinero{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px;
+  border-top:1px solid var(--brd);border-bottom:1px solid var(--brd);padding:11px 0}
+.casa .dinero .r{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--tx3)}
+.casa .dinero .v{font-family:var(--ttl);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.casa .mats{font-size:12.5px;color:var(--tx2);line-height:1.6}
+.casa .mats b{color:var(--tx);font-weight:600}
+.casa .qrs{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+.casa .qrs figure{margin:0;width:78px;text-align:center}
+.casa .qrs svg{width:78px;height:78px;display:block;border:1px solid var(--brd);border-radius:6px}
+.casa .qrs figcaption{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--tx3);margin-top:3px;line-height:1.3}
+
+.fotoBox{border:2px dashed var(--brd2);border-radius:11px;background:var(--surf2);height:132px;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;
+  transition:.18s;text-align:center;padding:10px}
+.fotoBox:hover,.fotoBox.on{border-color:var(--nar);background:var(--narL)}
+.fotoBox.activa{border-color:var(--nar);border-style:solid;box-shadow:0 0 0 3px var(--narL)}
+.fotoBox img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.fotoBox span{font-size:12px;color:var(--tx3);line-height:1.5}
+.fotoBar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:11.5px;color:var(--tx3)}
+.fotoBar button{border:1px solid var(--brd2);background:var(--surf);color:var(--tx2);border-radius:8px;
+  padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer}
+.fotoBar button:hover{border-color:var(--nar);color:var(--nar2)}
+
+.vacio{text-align:center;padding:54px 20px;color:var(--tx2)}
+.vacio b{display:block;font-family:var(--ttl);font-size:17px;color:var(--tx);margin-bottom:6px}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:1100px){.g3,.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){
+  #lado{position:static;width:100%;flex-basis:auto}
+  #app{flex-direction:column}
+  main{margin-left:0;padding:22px 18px 70px}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+}
+
+/* La barra de abajo: lo que se aprieta para imprimir, siempre a la vista. */
+#barra{position:fixed;left:var(--side);right:0;bottom:0;z-index:70;
+  background:var(--surf);border-top:1px solid var(--brd);box-shadow:0 -6px 22px rgba(16,38,56,.09);
+  padding:11px 40px;display:none;align-items:center;gap:14px}
+#barra[data-on="1"]{display:flex}
+#barra .info{font-size:13px;color:var(--tx2);line-height:1.45}
+#barra .info b{color:var(--tx)}
+#barra .der{margin-left:auto;display:flex;gap:10px;align-items:center}
+@media(max-width:720px){#barra{left:0;padding:11px 18px}}
+
+#toasts{position:fixed;right:20px;bottom:78px;z-index:120;display:flex;flex-direction:column;gap:9px}
+#toasts div{background:var(--surf);border:1px solid var(--brd);border-left:4px solid var(--ok);
+  border-radius:11px;box-shadow:var(--sh2);padding:11px 16px;font-size:13px;color:var(--tx);max-width:340px}
+#toasts div.mal{border-left-color:var(--al)}
+</style>
+
+<style>
+/* ============================================================
+   LOS DOCUMENTOS · hoja carta 816 x 1056 px
+   Dos documentos salen de la misma selección:
+   · Estado de casas recuperadas — el resumen por cartera con su tabla.
+   · Ficha de casa recuperada — una hoja por casa.
+   Todo lo de aquí va acotado a .hoja para que sus clases genéricas no
+   se salgan a la interfaz.
+   ============================================================ */
+.hoja,.hoja *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.hoja{width:816px;height:1056px;padding:26px 30px;margin:0 auto 18px;overflow:hidden;
+  background:#FFFFFF;color:#1B3A5C;font-family:Arial,Helvetica,sans-serif;
+  display:flex;flex-direction:column;gap:9px;box-shadow:0 2px 6px rgba(16,38,56,.08),0 18px 44px rgba(16,38,56,.13)}
+/* Nada de la hoja se estira ni se encoge, salvo los dos bloques que sí deben
+   ocupar lo que sobre: la zona de la tabla y el hueco de la foto. Sin esta
+   regla, una foto de 800 px de alto se reparte su exceso entre todos los demás
+   bloques y les come renglones al texto en lugar de encogerse ella. Y por eso
+   los dos van con base cero: así su contenido no cuenta para el reparto. */
+.hoja > *{flex:0 0 auto}
+.hoja .enc{display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:2px solid #1B3A5C;padding-bottom:8px;flex:none}
+.hoja .enc .marca{display:flex;align-items:center;gap:11px}
+.hoja .enc .marca img{height:32px;width:auto;object-fit:contain}
+.hoja .enc .t{font-size:15px;font-weight:700;letter-spacing:.3px}
+.hoja .enc .s{font-size:9px;color:#5B6670;margin-top:2px}
+.hoja .enc .s b{color:#1B3A5C}
+.hoja .enc .der{text-align:right;font-size:9px;color:#5B6670;line-height:1.5}
+.hoja .enc .der b{display:block;font-size:11.5px;color:#1B3A5C}
+.hoja .sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  border-bottom:2px solid #E8892B;padding-bottom:4px;flex:none}
+.hoja .rot{font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#8B96A1;
+  margin:0;display:block}
+.hoja .dato{border-bottom:1.5px solid #C9D2DB;min-height:17px;font-size:11.5px;font-weight:700;
+  color:#1B3A5C;overflow-wrap:anywhere}
+.hoja .dato.oro{border-bottom-color:#E8892B}
+.hoja .dato.vacio::after{content:"—";color:#B9C3CE;font-weight:400}
+.hoja .campo{display:flex;flex-direction:column;gap:2px}
+.hoja .caja{background:#F4F6F8;border-radius:6px;padding:10px 14px;display:flex;flex-direction:column;gap:8px;flex:none}
+.hoja .r2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hoja .r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.hoja .r4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:13px}
+.hoja .pie{margin-top:auto;flex:none;border-top:1px solid #D5DAE0;padding-top:6px;
+  display:flex;justify-content:space-between;gap:14px;font-size:7.5px;color:#8B96A1;line-height:1.5}
+.hoja .pie b{color:#5B6670}
+
+/* --- cifras del encabezado del estado de cuenta --- */
+.hoja .cifras{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;flex:none}
+.hoja .cifra{border:1px solid #E3E8ED;border-radius:7px;padding:9px 11px;border-left:3px solid #1B3A5C}
+.hoja .cifra.oro{border-left-color:#E8892B}
+.hoja .cifra .r{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#8B96A1;
+  line-height:1.3}
+.hoja .cifra .v{font-size:15px;font-weight:700;margin-top:3px;color:#1B3A5C}
+.hoja .cifra.oro .v{color:#D96A12}
+.hoja .cifra .n{font-size:7px;color:#8B96A1;margin-top:2px;line-height:1.3}
+
+/* --- la tabla del estado de cuenta --- */
+.hoja table.doc{width:100%;border-collapse:collapse;font-size:8.5px;table-layout:fixed}
+.hoja table.doc th{background:#1B3A5C;color:#fff;text-align:left;padding:5px 6px;font-size:7px;
+  font-weight:700;text-transform:uppercase;letter-spacing:.05em;line-height:1.25}
+.hoja table.doc td{padding:5px 6px;border-bottom:1px solid #E3E8ED;vertical-align:top;line-height:1.35;
+  overflow-wrap:anywhere}
+.hoja table.doc tr:nth-child(even) td{background:#F8FAFC}
+.hoja table.doc td.n{text-align:right;white-space:nowrap;font-weight:700}
+.hoja table.doc td.fol{font-weight:700;white-space:nowrap}
+.hoja table.doc .sinDato{color:#B9C3CE}
+.hoja table.doc tfoot td{background:#EDF2F8;border-top:2px solid #1B3A5C;border-bottom:0;
+  font-weight:700;font-size:9px;padding:7px 6px}
+.hoja .tablaZona{flex:1 1 0;min-height:0;overflow:hidden}
+
+/* --- ficha de una casa --- */
+.hoja .qrFila{display:flex;gap:12px;align-items:flex-start;flex:none}
+.hoja .qrCaja{width:104px;flex:none;text-align:center}
+.hoja .qrCaja svg{display:block;width:104px;height:104px}
+.hoja .qrCaja .cap{font-size:6.8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:#8B96A1;margin-top:2px;line-height:1.3}
+.hoja .listaMat{margin:0;padding:0;list-style:none;columns:2;column-gap:20px;font-size:10px;line-height:1.7}
+.hoja .listaMat li{break-inside:avoid;border-bottom:1px dotted #D5DAE0;display:flex;justify-content:space-between;gap:10px}
+.hoja .listaMat li b{font-weight:700}
+.hoja .nota{font-size:8.5px;font-style:italic;color:#5B6670;line-height:1.5}
+.hoja .avance{display:flex;gap:7px;flex:none}
+.hoja .paso{flex:1;border:1px solid #E3E8ED;border-radius:6px;padding:7px 9px;background:#FAFBFC}
+.hoja .paso.si{border-color:#1F7A5A;background:#F2F9F6}
+.hoja .paso .p{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#8B96A1}
+.hoja .paso .q{font-size:10px;font-weight:700;color:#B9C3CE;margin-top:2px}
+.hoja .paso.si .q{color:#1F7A5A}
+.hoja .paso .e{font-size:7px;color:#8B96A1;margin-top:2px;line-height:1.3}
+.hoja .foto{border:1.5px dashed #B9C3CE;border-radius:6px;flex:1 1 0;min-height:0;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;background:#FBFCFD}
+.hoja .foto span{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#A6B0BB}
+.hoja .foto img{width:100%;height:100%;object-fit:cover}
+.hoja .cbs{display:grid;grid-template-columns:max-content max-content;gap:3px 14px;justify-content:start}
+.hoja .cbs > div{display:flex;align-items:center;gap:4px}
+.hoja .cbs span{font-size:8.5px;font-weight:700}
+.hoja .cb{width:11px;height:11px;border-radius:2px;border:1.5px solid #1B3A5C;background:#fff;
+  display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;
+  color:#fff;flex:none}
+.hoja .cb.on{background:#1B3A5C}
+.hoja .cb.on::after{content:"\2713"}
+
+/* ============================================================
+   Impresión. Márgenes en cero porque la hoja ya trae los suyos: si
+   el navegador pone los de fábrica, la hoja de 816 px no cabe y se
+   parte en dos, y sale una página en blanco por cada documento.
+   ============================================================ */
+#impresion{display:none}
+@page{size:letter portrait;margin:0}
+@media print{
+  html,body{background:#fff}
+  #app,#barra,#toasts{display:none!important}
+  #impresion{display:block!important}
+  #impresion .hoja{margin:0;box-shadow:none;break-after:page;page-break-after:always}
+  #impresion .hoja:last-child{break-after:auto;page-break-after:auto}
+}
+/* En pantalla la vista previa se ve reducida, pero al imprimir va a tamaño real. */
+#previa{transform-origin:top left}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<aside id="lado">
+  <div id="ladoFondo"><img src="img/thiqa-marca.png" alt="" aria-hidden="true" width="1390" height="704"></div>
+  <div id="ladoMarca">
+    <img src="img/thiqa-marca.png" alt="THIQA" width="1390" height="704">
+    <div class="sub"><i></i><span>Casas recuperadas</span></div>
+  </div>
+
+  <nav id="nav">
+    <div id="navPill"></div>
+    <button class="navlink" data-v="datos">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v5H4z"/><path d="M4 13h16v7H4z"/><path d="M8 4v5"/></svg>
+      <span>Datos</span><span class="ct" id="ctFilas">0</span>
+    </button>
+    <button class="navlink" data-v="tablero" disabled>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 9v9"/><path d="M17 5v13"/></svg>
+      <span>Tablero</span><span class="ct" id="ctRec">0</span>
+    </button>
+    <button class="navlink" data-v="casas" disabled>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>
+      <span>Casas</span><span class="ct" id="ctSel">0</span>
+    </button>
+    <button class="navlink" data-v="reporte" disabled>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/><path d="M9.5 13h6"/><path d="M9.5 17h6"/></svg>
+      <span>Reporte</span>
+    </button>
+    <button class="navlink" data-v="ajustes">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+      <span>Ajustes</span>
+    </button>
+  </nav>
+
+  <div id="ladoPie">
+    <button id="temaBtn" type="button">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg>
+      <span id="temaTxt">Oscuro</span>
+    </button>
+  </div>
+</aside>
+
+<main>
+
+<!-- ══════════════════ DATOS ══════════════════ -->
+<section class="vista" id="vDatos" data-on="1">
+  <div class="tit">
+    <h1>Los datos</h1>
+    <p>Sube el Excel del maestro y, si lo tienes a mano, el de tapeados. Todo se queda en tu
+      navegador: ni el archivo ni las cifras salen de esta computadora.</p>
+  </div>
+
+  <div class="card">
+    <h3>1 · El maestro de remates</h3>
+    <p>Bájalo del Sheet con <i>Archivo → Descargar → Microsoft Excel (.xlsx)</i>. Descárgalo, no lo
+      copies a mano: es la descarga la que trae las ligas de las carpetas de Drive colgadas de cada
+      celda, y de ahí sale el expediente de cada casa.</p>
+    <div id="suelta">
+      <b>Suelta aquí el Excel del maestro</b>
+      <span>o haz clic para buscarlo · .xlsx o .csv</span>
+    </div>
+    <input type="file" id="archivo" accept=".xlsx,.csv,.txt" hidden>
+    <div id="estadoArchivo" style="margin-top:12px;font-size:13px;color:var(--tx3)"></div>
+    <div id="avisoCarga"></div>
+
+    <div id="cajaHoja" style="display:none;margin-top:16px" class="g2">
+      <label><span class="rot">Hoja del libro</span><select id="selHoja"></select></label>
+      <label><span class="rot">Fila de encabezados</span><input type="number" id="filaEnc" min="1" value="1"></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>2 · El control de obra (tapeados)</h3>
+    <p>Es el Excel del área de obras, el de los tapeos. De ahí salen los
+      <b>materiales utilizados</b> y el <b>costo de materiales</b>: el maestro no los trae. Es
+      opcional — sin él el tablero sirve igual, nada más que esas dos columnas salen en blanco y
+      el tablero te dice de cuántas casas.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+      <button class="btn" id="obraBtn" type="button">Elegir el de tapeados</button>
+      <button class="btn gh" id="obraQuita" type="button" style="display:none">Quitarlo</button>
+      <input type="file" id="obraArchivo" accept=".xlsx,.csv,.txt" hidden>
+    </div>
+    <div id="estadoObra" style="margin-top:11px;font-size:13px;color:var(--tx3);line-height:1.6"></div>
+  </div>
+
+  <div class="card" id="cajaColumnas" style="display:none">
+    <h3>3 · Revisar columnas</h3>
+    <p>La app busca sola la hoja, la fila de encabezados y a qué campo va cada columna. Corrige nada
+      más lo que no acertó; se recuerda para la próxima vez que subas un archivo.</p>
+    <div id="avisoColumnas"></div>
+    <div id="columnas" class="g2" style="margin-top:6px"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn pri" id="guardarEmpate" type="button">Guardar este empate</button>
+      <button class="btn gh" id="olvidarEmpate" type="button">Olvidar lo guardado</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ TABLERO ══════════════════ -->
+<section class="vista" id="vTablero">
+  <div class="tit">
+    <h1>Casas recuperadas</h1>
+    <p id="tabSub">El estatus de la recuperación, casa por casa y por cartera.</p>
+  </div>
+
+  <div class="card" style="padding:15px 18px">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+      <div style="flex:1 1 240px">
+        <span class="rot">Buscar</span>
+        <input type="text" id="busca" placeholder="folio, calle, colonia, cuadrilla…">
+      </div>
+      <div style="flex:0 1 210px">
+        <span class="rot">Cartera</span>
+        <select id="filtroCartera"><option value="">Todas</option></select>
+      </div>
+      <div style="flex:0 1 210px">
+        <span class="rot">Cuadrilla</span>
+        <select id="filtroCuadrilla"><option value="">Todas</option></select>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <span class="rot">Qué entra en el tablero</span>
+      <div class="chips" id="filtroEtapa"></div>
+    </div>
+  </div>
+
+  <div id="kpisRec" class="kpis"></div>
+  <div id="cajaProximas"></div>
+  <div id="cajaFuera"></div>
+  <div id="cajaFalta"></div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:16px 20px 13px;display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+      <div style="flex:1 1 auto">
+        <h3 style="margin:0">Detalle por casa</h3>
+        <p style="margin:4px 0 0;font-size:12.5px;color:var(--tx2)" id="detSub"></p>
+      </div>
+      <button class="btn gh" id="copiaTabla" type="button">Copiar la tabla</button>
+      <button class="btn gh" id="bajaCsv" type="button">Bajar CSV</button>
+    </div>
+    <div class="tablaBox" style="border:0;border-top:1px solid var(--brd);border-radius:0;max-height:70vh">
+      <table class="t" id="tabla">
+        <thead><tr id="tablaEnc"></tr></thead>
+        <tbody id="tablaCuerpo"></tbody>
+        <tfoot id="tablaPie"></tfoot>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ CASAS ══════════════════ -->
+<section class="vista" id="vCasas">
+  <div class="tit">
+    <h1>Casa por casa</h1>
+    <p>Lo mismo del tablero pero en fichas, con las carpetas y sus códigos para escanear.
+      Palomea las que quieres imprimir.</p>
+  </div>
+  <div class="card" style="padding:14px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+    <button class="btn gh" id="selTodas" type="button">Elegir todas</button>
+    <button class="btn gh" id="selNinguna" type="button">Ninguna</button>
+    <span id="selInfo" style="font-size:13px;color:var(--tx2);margin-left:auto"></span>
+  </div>
+  <div id="casas" class="casas"></div>
+  <input type="file" id="fotoArchivo" accept="image/*" hidden>
+</section>
+
+<!-- ══════════════════ REPORTE ══════════════════ -->
+<section class="vista" id="vReporte">
+  <div class="tit">
+    <h1>El reporte</h1>
+    <p>Dos documentos salen de la misma selección. Se eligen aquí y se imprimen o se guardan como
+      PDF desde el navegador.</p>
+  </div>
+
+  <div class="g2">
+    <button class="card" id="docCuenta" type="button"
+      style="text-align:left;cursor:pointer;border-width:2px;font-family:inherit;font-size:inherit;color:inherit">
+      <h3>Estado de casas recuperadas</h3>
+      <p style="margin-bottom:0">El resumen por cartera con sus cifras arriba y la tabla de casas
+        abajo. Es el que se le entrega al inversionista: cuántas casas, cuánto se pagó de convenio,
+        cuánto de honorarios y bono, y cuánto de materiales. Se pagina solo según lo que quepa.</p>
+    </button>
+    <button class="card" id="docFicha" type="button"
+      style="text-align:left;cursor:pointer;border-width:2px;font-family:inherit;font-size:inherit;color:inherit">
+      <h3>Ficha de casa recuperada</h3>
+      <p style="margin-bottom:0">Una hoja por casa, con el domicilio, la fecha de desalojo, el
+        dinero, los materiales y las carpetas con su código para escanear. Es la que se anexa
+        cuando piden ver el detalle de una casa.</p>
+    </button>
+  </div>
+
+  <div class="card">
+    <h3>Vista previa</h3>
+    <p id="previaSub"></p>
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <label style="flex:0 1 220px"><span class="rot">Tamaño de la vista</span>
+        <input type="range" id="zoom" min="35" max="100" value="62" style="width:100%"></label>
+      <div id="previaInfo" style="font-size:13px;color:var(--tx2)"></div>
+    </div>
+    <div style="overflow:auto;background:var(--surf2);border:1px solid var(--brd);border-radius:12px;padding:18px">
+      <div id="previa"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ AJUSTES ══════════════════ -->
+<section class="vista" id="vAjustes">
+  <div class="tit">
+    <h1>Ajustes</h1>
+    <p>Las reglas con las que se calcula el dinero y a qué cartera pertenece cada fuente. Se guardan
+      en este navegador.</p>
+  </div>
+
+  <div class="card">
+    <h3>Honorarios y bono</h3>
+    <p>Si el Excel trae las columnas de honorarios y de bono, esas mandan y esto no se usa: el
+      tablero dice de dónde salió cada cifra. Esto es para cuando el archivo no las trae y hay que
+      calcularlas — que es como está el maestro hoy.</p>
+    <div class="g3">
+      <label><span class="rot">Tope por casa</span><input type="number" id="ajTope" step="0.01"></label>
+      <label><span class="rot">Tope con carta poder</span><input type="number" id="ajTopeCP" step="0.01"></label>
+      <label><span class="rot">Bono sobre el ahorro (%)</span><input type="number" id="ajBono" step="0.1"></label>
+    </div>
+    <div class="g3" style="margin-top:14px">
+      <label><span class="rot">Honorario fijo por casa recuperada</span>
+        <input type="number" id="ajHonorario" step="0.01" placeholder="sin capturar"></label>
+    </div>
+    <div id="avisoHonorario" style="margin-top:14px"></div>
+  </div>
+
+  <div class="card">
+    <h3>A qué cartera va cada fuente</h3>
+    <p>El maestro escribe la cartera en la columna de fuente, con nombres como
+      <code>PIC_QNO-TLAJO</code> o <code>PRV_INFVT-_TLAJO</code>. Aquí se agrupan para el reporte.
+      Cuando llegue una cartera nueva va a aparecer sola en esta lista, sin quedarse fuera de las
+      cuentas sin avisar.</p>
+    <div id="grupos"></div>
+  </div>
+
+  <div class="card">
+    <h3>Qué no se lee, a propósito</h3>
+    <p style="margin-bottom:0">El nombre del acreditado, el número de crédito y el expediente
+      judicial <b>no se leen</b> de tu archivo. No es que se oculten en el reporte: no hay campo
+      para ellos, así que no pueden salir impresos por accidente. Un inversionista mira casas y
+      cifras, no personas.</p>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div id="barra">
+  <div class="info" id="barraInfo"></div>
+  <div class="der">
+    <button class="btn gh" id="verPrevia" type="button">Ver la vista previa</button>
+    <button class="btn pri" id="imprimir" type="button">Imprimir o guardar PDF</button>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<div id="impresion"></div>
+
+<script src="nucleo-xlsx.js"></script>
+<script src="qr.js"></script>
+<script>
+/* ============================================================
+   thiqa · Tablero de inversionistas — lógica
+   1 Herramientas · 2 Campos · 3 Estado y ajustes · 4 Estatus y carteras
+   5 Control de obra · 6 Dinero y avance · 7 Carga · 8 Columnas
+   9 Tablero · 10 Casas · 11 Documentos · 12 Navegación
+   ============================================================ */
+(function(){
+'use strict';
+
+/* ============================================================
+   1 · Herramientas
+   ============================================================ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  .toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const pad = n => String(n).padStart(2,'0');
+const fmtFecha = d => pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear();
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto',
+               'septiembre','octubre','noviembre','diciembre'];
+const fechaLarga = d => d.getDate() + ' de ' + MESES[d.getMonth()] + ' de ' + d.getFullYear();
+const fmtMoney = n => '$' + Number(n).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+/* Para las cifras de arriba: $1,284,500 se lee de un golpe, $1,284,500.00 no. */
+const fmtCorto = n => '$' + Math.round(Number(n)).toLocaleString('es-MX');
+const esUrl = s => /^https?:\/\//i.test(String(s ?? '').trim());
+
+function toNumber(v){
+  if (typeof v === 'number') return v;
+  if (v instanceof Date) return NaN;
+  const s = String(v ?? '').replace(/[^0-9.,\-]/g,'').replace(/,/g,'');
+  const n = parseFloat(s);
+  return isNaN(n) ? NaN : n;
+}
+/* "SÍ", "sí", "1", "TRUE", "x" — el maestro guarda la carta poder como booleano
+   y el lector la trae ya convertida a SÍ/NO, pero un CSV puede traer cualquiera. */
+const esSi = v => /^(si|s|1|true|verdadero|x|ok)$/.test(norm(v));
+
+function toast(msg, mal){
+  const box = $('toasts');
+  const el = document.createElement('div');
+  if (mal) el.className = 'mal';
+  el.textContent = msg;
+  box.appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .3s,transform .3s';
+    el.style.opacity = '0'; el.style.transform = 'translateX(24px)';
+    setTimeout(() => el.remove(), 320); }, 3400);
+}
+function aviso(caja, clase, html){
+  $(caja).innerHTML = '<div class="aviso ' + clase + '" style="margin-top:14px">' + html + '</div>';
+}
+const limpiaAviso = caja => { $(caja).innerHTML = ''; };
+
+/* ============================================================
+   2 · Campos de interés
+   ------------------------------------------------------------
+   El orden importa: el empate reparte primero todos los nombres que
+   coinciden exactos y sólo después intenta el parecido, y en esa
+   segunda pasada gana el que va antes. Por eso "Costo de materiales"
+   va antes que "Materiales utilizados" (si no, el alias corto
+   "materiales" se robaría la columna del costo) y "Honorarios + bono"
+   antes que "Honorarios".
+
+   Lo que NO está aquí no se lee: no hay campo para el nombre del
+   acreditado, el número de crédito ni el expediente judicial, así que
+   no pueden salir impresos por accidente.
+   ============================================================ */
+const GRUPOS = [
+  { t:'Identificación', f:[
+    ['FOLIO','Folio THIQA','t',['folio thiqa','folio','no folio','numero de folio','id']],
+    ['CARTERA','Cartera / Fuente','t',['fuente','cartera','proyecto','origen','base']],
+    ['ESTATUS','Estatus de ruta','t',['estatus ruta','estatus de ruta','estatus recuperacion','estatus recup','estatus','status']],
+    ['CUADRILLA','Cuadrilla','t',['cuadrilla','lider de cuadrilla','lider','equipo','brigada']],
+    ['RUTA','Ruta','t',['no ruta','no. ruta','num ruta','numero de ruta','ruta']],
+  ]},
+  { t:'Domicilio', f:[
+    ['MAPA','Domicilio (liga de Maps)','t',['link','liga','domicilio liga','link mapa','google maps','maps','mapa','ubicacion maps']],
+    ['DOMICILIO','Domicilio','t',['direccion','domicilio','calle','ubicacion','direccion completa']],
+    ['COLONIA','Colonia','t',['colonia','fraccionamiento','fracc','col']],
+    ['CP','C.P.','t',['cp','c.p.','codigo postal']],
+    ['MUNICIPIO','Municipio','t',['municipio','delegacion']],
+    ['ENTIDAD','Entidad','t',['entidad','entidad federativa','estado']],
+  ]},
+  { t:'Fechas', f:[
+    ['F_DESALOJO','Fecha de desalojo','f',['f desalojo acordada','fecha de desalojo','fecha desalojo','f desalojo','desalojo acordada','fecha de desocupacion','desocupacion','desalojo']],
+    ['F_CONVENIO','Fecha de convenio','f',['f convenio firmado','fecha de convenio','fecha convenio','f convenio','convenio firmado']],
+    ['F_RECUPERACION','Fecha de recuperación','f',['f recuperacion','fecha de recuperacion','fecha recuperacion']],
+  ]},
+  { t:'Dinero', f:[
+    ['MONTO_MAXIMO','Tope por casa','n',['monto maximo por casa','monto maximo','tope por casa','maximo por casa']],
+    ['MONTO_CONVENIO','Monto de convenio','n',['monto de convenio','monto convenio','monto acordado','monto convenido','convenio','monto de recuperacion','monto recuperacion','monto','importe']],
+    ['CARTA_PODER','Carta poder','t',['carta poder','poder']],
+    ['HON_BONO','Honorarios + bono','n',['honorarios mas bono','honorarios y bono','honorarios bono','total honorarios','total a pagar','total pagar']],
+    ['HONORARIO_FIJO','Honorarios','n',['monto honorarios','honorario fijo','honorarios','honorario']],
+    ['BONO','Bono','n',['bono','bonos','incentivo']],
+  ]},
+  { t:'Carpetas del expediente', f:[
+    ['CARPETA_EXP','Carpeta del expediente digital','t',['exp digital','exp. digital','expediente digital','carpeta del expediente digital','carpeta del expediente','carpeta expediente','carpeta digital']],
+    ['CARPETA_MATERIALES','Carpeta de materiales de tapeo','t',['carpeta materiales de tapeo','carpeta de materiales de tapeo','carpeta de materiales','carpeta materiales','materiales de tapeo','carpeta de tapeos','carpeta tapeos','tapeos materiales']],
+    ['CARPETA_EVIDENCIAS','Carpeta de evidencias','t',['carpeta de evidencias de tapeo','carpeta de evidencias','carpeta evidencias','evidencias de tapeo','evidencia fotografica','fotos de tapeo','carpeta de fotos','evidencias']],
+  ]},
+  { t:'Materiales de los tapeos', f:[
+    ['COSTO_MATERIALES','Costo de materiales','n',['costo de materiales','costo materiales','total materiales','importe materiales','gasto de material','gasto material','gasto de materiales']],
+    ['MATERIALES','Materiales utilizados','t',['materiales utilizados','material utilizado','materiales','material']],
+    ['ELEMENTOS','Elementos tapeados','t',['elementos a tapear','elementos tapeados','elementos','tapear','medidas de tapeo','medida de tapeo']],
+  ]},
+];
+const CAMPOS = GRUPOS.flatMap(g => g.f.map(x => x[0]));
+const ROTULO = Object.fromEntries(GRUPOS.flatMap(g => g.f.map(x => [x[0], x[1]])));
+const TIPO   = Object.fromEntries(GRUPOS.flatMap(g => g.f.map(x => [x[0], x[2]])));
+const CAMPOS_MONEY = new Set(CAMPOS.filter(k => TIPO[k] === 'n'));
+const CAMPOS_CARPETA = ['CARPETA_EXP','CARPETA_MATERIALES','CARPETA_EVIDENCIAS'];
+/* El nombre corto de cada carpeta, para las etiquetas y los pies de los códigos.
+   Recortar el rótulo largo con una expresión regular dejaba "expediente digital"
+   en minúscula a media tabla. */
+const ROT_CARPETA = { CARPETA_EXP:'Expediente digital',
+                      CARPETA_MATERIALES:'Materiales de tapeo',
+                      CARPETA_EVIDENCIAS:'Evidencias de tapeo' };
+
+/* Dos pasadas globales: primero se reparten TODOS los nombres que coinciden
+   exactos y hasta después se intenta el parecido. Si fuera una sola pasada por
+   campo, un alias corto como "monto" se robaría "MONTO MAXIMO POR CASA" antes de
+   que le tocara su turno al tope. */
+function adivinar(headers){
+  const H = headers.map(norm), map = {}, usadas = new Set();
+  const AL = GRUPOS.flatMap(g => g.f.map(x => [x[0], x[3].map(norm)]));
+  for (const [key, alias] of AL){
+    for (const na of alias){
+      const i = H.findIndex((h,ix) => h === na && !usadas.has(ix));
+      if (i >= 0){ map[key] = i; usadas.add(i); break; }
+    }
+  }
+  for (const [key, alias] of AL){
+    if (map[key] !== undefined) continue;
+    for (const na of alias){
+      if (na.length < 5) continue;
+      const i = H.findIndex((h,ix) => h && !usadas.has(ix) && (' '+h+' ').includes(' '+na+' '));
+      if (i >= 0){ map[key] = i; usadas.add(i); break; }
+    }
+  }
+  return map;
+}
+
+function fmt(v, campo){
+  if (v === null || v === undefined || v === '') return '';
+  if (v instanceof Date) return fmtFecha(v);
+  if (typeof v === 'number')
+    return CAMPOS_MONEY.has(campo) ? fmtMoney(v)
+      : (Number.isInteger(v) ? String(v) : String(Math.round(v*100)/100));
+  return String(v).trim();
+}
+
+/* ============================================================
+   3 · Estado y ajustes
+   ============================================================ */
+const LSKEY = 'thiqa_tablero_v1';
+const AJ_DEF = { tope:40000, topeCP:80000, bonoPct:10, honorario:null, grupos:{} };
+const S = { wb:null, rows:[], headers:[], todas:[], map:{}, obra:[], obraHoja:'', obraArchivo:'',
+            etapaOff:new Set(), sel:new Set(), orden:{col:'FOLIO', dir:'asc'},
+            doc:'cuenta', zoom:.62, carpetasExtra:[], fotos:{}, fotoActiva:'' };
+let AJ = Object.assign({}, AJ_DEF);
+
+function leerGuardado(){
+  try { return JSON.parse(localStorage.getItem(LSKEY) || '{}'); } catch(e){ return {}; }
+}
+function guardar(tambienEmpate){
+  try {
+    const antes = leerGuardado();
+    let byName = antes.byName || {};
+    if (tambienEmpate){
+      byName = {};
+      for (const k in S.map) byName[k] = S.headers[S.map[k]];
+    }
+    localStorage.setItem(LSKEY, JSON.stringify({
+      byName, aj: AJ, doc: S.doc, tema: document.documentElement.dataset.theme }));
+  } catch(e){}
+}
+
+/* ============================================================
+   Fotos del domicilio
+   ------------------------------------------------------------
+   Van en IndexedDB y no en localStorage a propósito: ochenta y cinco
+   fotos ya reducidas pesan unos siete megas y localStorage se llena a
+   los cinco. Con el tope lleno, guardar truena y se pierde la foto sin
+   avisar; IndexedDB aguanta y además guarda por casa.
+
+   La llave es la casa (folio + domicilio), no el renglón del Excel, así
+   que la foto sigue ahí aunque vuelvas a subir el archivo la semana que
+   entra. Nada de esto sale de tu computadora.
+   ============================================================ */
+const FOTO_DB = 'thiqa_tablero_fotos';
+function abrirFotos(){
+  return new Promise((ok, mal) => {
+    if (!window.indexedDB) return mal(new Error('SIN_IDB'));
+    const p = indexedDB.open(FOTO_DB, 1);
+    p.onupgradeneeded = () => { if (!p.result.objectStoreNames.contains('fotos')) p.result.createObjectStore('fotos'); };
+    p.onsuccess = () => ok(p.result);
+    p.onerror = () => mal(p.error || new Error('SIN_IDB'));
+  });
+}
+async function leerFotos(){
+  try {
+    const db = await abrirFotos();
+    return await new Promise((ok, mal) => {
+      const tx = db.transaction('fotos', 'readonly'), st = tx.objectStore('fotos');
+      const kk = st.getAllKeys(), vv = st.getAll();
+      tx.oncomplete = () => {
+        const out = {};
+        kk.result.forEach((k, i) => { out[k] = vv.result[i]; });
+        ok(out);
+      };
+      tx.onerror = () => mal(tx.error);
+    });
+  } catch(e){ return {}; }
+}
+async function ponFoto(k, uri){
+  const db = await abrirFotos();
+  return new Promise((ok, mal) => {
+    const tx = db.transaction('fotos', 'readwrite');
+    if (uri) tx.objectStore('fotos').put(uri, k); else tx.objectStore('fotos').delete(k);
+    tx.oncomplete = ok;
+    tx.onerror = () => mal(tx.error);
+  });
+}
+/* Se guarda ya reducida a 900 px del lado largo, unos 90 KB: el hueco de la hoja
+   mide poco más de tres pulgadas impresas, más resolución no se nota en papel y
+   sí hace pesado un PDF de ochenta hojas. */
+function reducirFoto(archivo){
+  return new Promise((ok, mal) => {
+    const img = new Image(), url = URL.createObjectURL(archivo);
+    img.onload = () => {
+      const max = 900, e = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.width * e));
+      c.height = Math.max(1, Math.round(img.height * e));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      try { ok(c.toDataURL('image/jpeg', 0.82)); } catch(err){ mal(err); }
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); mal(new Error('No pude abrir esa imagen.')); };
+    img.src = url;
+  });
+}
+async function tomarFoto(k, archivo){
+  if (!archivo || !/^image\//.test(archivo.type)){ toast('Eso no es una imagen.', true); return; }
+  try {
+    const uri = await reducirFoto(archivo);
+    await ponFoto(k, uri);
+    S.fotos[k] = uri;
+    pintarCasas(); actualizarBarra();
+    if (vista === 'reporte') pintarPrevia();
+    toast('Foto guardada en este navegador.');
+  } catch(e){
+    toast('No se pudo guardar la foto: ' + (e.message || e), true);
+  }
+}
+
+/* ============================================================
+   4 · Estatus de ruta y carteras
+   ------------------------------------------------------------
+   La regla de dinero del programa: sólo suman las casas en
+   "Recuperada" y en "Prox. Recuperacion". Las demás no entran en
+   ninguna suma, aunque traigan monto capturado.
+
+   Aquí se va un paso más lejos, porque el reporte es para
+   inversionistas: recuperada y próxima recuperación TAMPOCO se
+   mezclan entre ellas. Una casa recuperada ya se entregó; una próxima
+   todavía no. Sumarlas juntas infla lo entregado, así que van en dos
+   bloques separados y el de arriba —el que se lee primero— es el de
+   las recuperadas.
+   ============================================================ */
+const ES_RECUPERADA = /^recupera(?:d[ao]s?|cion(?:es)?)$/;
+const ES_PROXIMA    = /^(?:prox|proximas?) ?recupera(?:d[ao]s?|cion(?:es)?)$/;
+function etapaDe(r){
+  const n = norm(valor(r,'ESTATUS'));
+  if (ES_RECUPERADA.test(n)) return 'rec';
+  if (ES_PROXIMA.test(n)) return 'prox';
+  return 'fuera';
+}
+const ETAPAS = [
+  { k:'rec',   r:'Recuperadas',            n:'ya se entregaron' },
+  { k:'prox',  r:'Próximas recuperaciones', n:'convenio firmado, todavía sin entregar' },
+  { k:'fuera', r:'Fuera de toda suma',      n:'los demás estatus del catálogo' },
+];
+
+/* El maestro escribe la cartera con su nombre largo —PIC_QNO-TLAJO,
+   PRV_INFVT-_TLAJO— y hay al menos dos carteras más por llegar. En vez de una
+   lista fija, cada fuente se agrupa por lo que trae escrito y lo que no
+   reconozca cae en "Otras", visible, no descartado en silencio. */
+const GRUPOS_CARTERA = [
+  { k:'PIC',       r:'PIC',       re:/\bpic\b|pic qno|picqno/ },
+  { k:'INFONAVIT', r:'Infonavit', re:/infvt|infonavit|soji|dapa/ },
+  { k:'BANCARIA',  r:'Bancaria',  re:/\bbnc\b|hsbc|banco/ },
+];
+function grupoCartera(fuente){
+  const n = norm(fuente);
+  if (!n) return 'SIN';
+  if (AJ.grupos[n]) return AJ.grupos[n];
+  for (const g of GRUPOS_CARTERA) if (g.re.test(n)) return g.k;
+  return 'OTRAS';
+}
+const ROT_GRUPO = { PIC:'PIC', INFONAVIT:'Infonavit', BANCARIA:'Bancaria',
+                    OTRAS:'Otras carteras', SIN:'Sin cartera' };
+const ORDEN_GRUPO = ['PIC','INFONAVIT','BANCARIA','OTRAS','SIN'];
+
+/* ============================================================
+   5 · Control de obra (tapeados)
+   ------------------------------------------------------------
+   Copiado del generador de fichas, donde ya funciona. El área de obras
+   lleva su propio Excel y ahí no hay folio: lo único que une las dos
+   tablas es la dirección, y no viene escrita igual —"CERRO LA CRUZ 157
+   M-1" contra "Cerro de la Cruz 157"—. Se compara por número de casa
+   más las palabras de la calle, tirando el relleno ("de", "la", "av").
+
+   El domicilio del maestro arrastra una cola, y la cola trae números
+   que no son el de la casa: el C.P. que viene en el texto de la liga de
+   Maps y el dato catastral de la cartera ("NA MZ 17 LT 39 EDIF NA NIV
+   03"). Quedarse con el último número emparejaba por C.P. o por nivel
+   —o sea, casi nunca—.
+   ============================================================ */
+const OBRA_RUIDO = new Set(['de','la','el','los','las','del','av','avenida','calle','c','priv',
+                            'privada','cto','circuito','blvd','boulevard','no','num','numero',
+                            'casa','ntra','nuestra','sra','senora']);
+const OBRA_COLA = /\b(?:na|smz|mz|mza|manzana|lt|lote|edif|edificio|niv|nivel|int|interior|depto|dpto|departamento|[ml])\b\s*\d*/g;
+function claveDir(d){
+  const t = norm(String(d ?? '').replace(/\([^)]*\)/g, ' ').split(',')[0])
+    .replace(OBRA_COLA, ' ').replace(/\s+/g, ' ').trim();
+  /* Cinco dígitos es un C.P., no un número de casa. */
+  const nums = (t.match(/\b\d+\b/g) || []).filter(n => n.length !== 5);
+  const pal = t.split(' ').filter(w => w && !OBRA_RUIDO.has(w) && !/^\d+$/.test(w));
+  return { nums, pal: new Set(pal), suf: pal.filter(w => w.length === 1) };
+}
+function mismaDir(a, b){
+  const x = claveDir(a), y = claveDir(b);
+  if (!x.nums.length || !x.nums.some(n => y.nums.indexOf(n) >= 0)) return false;
+  /* Con el número igual y la letra distinta son dos casas, no una: sin esto
+     "Monte Cabra 178 D" y "178 E" caían en el mismo registro y una casa salía
+     con el gasto de las dos sumado. Se exige nada más cuando las dos traen
+     letra, porque el maestro a veces la deja fuera. */
+  if (x.suf.length && y.suf.length && !x.suf.some(s => y.suf.indexOf(s) >= 0)) return false;
+  let comun = 0;
+  for (const w of x.pal) if (y.pal.has(w)) comun++;
+  return comun > 0 && comun >= Math.min(x.pal.size, y.pal.size) * 0.6;
+}
+
+/* La columna de material es texto libre, un renglón por compra:
+   "-260 blocks (12x14x28) ($1,560.00)". Se lee la cantidad de adelante y el
+   material por palabra clave; las medidas del block se quitan antes para que no
+   se confundan con la cantidad. Un renglón sin cantidad al inicio no se adivina:
+   se anota aparte y se dice que quedó sin desglosar. */
+const OBRA_MAT = [['block','Block'], ['arena','Arena'], ['cemento','Cemento'],
+                  ['estuco','Estuco'], ['varilla','Varilla'], ['grava','Grava'],
+                  ['cal','Cal'], ['polin','Polín'], ['triplay','Triplay'],
+                  ['clavo','Clavos'], ['alambre','Alambre'], ['lamina','Lámina'],
+                  ['tabla','Tabla'], ['madera','Madera'], ['soldadura','Soldadura'],
+                  ['perfil','Perfil'], ['tubo','Tubo'], ['malla','Malla']];
+const OBRA_UNID = ['saco','tramo','bulto','kilo','metro','bote','cubeta','pieza','hoja','rollo'];
+const OBRA_PLURAL = { saco:'sacos', tramo:'tramos', bulto:'bultos', kilo:'kilos', metro:'metros',
+                      bote:'botes', cubeta:'cubetas', pieza:'piezas', hoja:'hojas', rollo:'rollos' };
+function obraMateriales(txt, acum, sueltas){
+  for (const ln of String(txt || '').split('\n')){
+    const n = norm(ln);
+    if (!n) continue;
+    const m = n.match(/^(\d+(?:\.\d+)?)\s+(.*)$/);
+    const limpia = ln.replace(/^[\s\-–]+/, '').trim();
+    if (!m){ if (limpia) sueltas.push(limpia); continue; }
+    const resto = m[2].replace(/\d+\s*x\s*\d+(\s*x\s*\d+)?/g, ' ');
+    const par = OBRA_MAT.find(p => resto.indexOf(p[0]) >= 0);
+    if (!par){ if (limpia) sueltas.push(limpia); continue; }
+    const u = OBRA_UNID.find(x => resto.indexOf(x) >= 0) || 'pz';
+    const a = acum[par[1]] || (acum[par[1]] = {});
+    a[u] = (a[u] || 0) + parseFloat(m[1]);
+  }
+}
+/* "260 pz", "10 sacos", "1 tramo". Si una misma compra mezcló unidades se
+   imprimen las dos en vez de sumar peras con manzanas. */
+function obraCantidad(porUnidad){
+  return Object.keys(porUnidad).map(u => {
+    const n = Math.round(porUnidad[u] * 100) / 100;
+    return n + ' ' + (n === 1 || u === 'pz' ? u : (OBRA_PLURAL[u] || u));
+  }).join(' + ');
+}
+/* "Fachada / -Puerta / -Ventana / Posterior / -Ventana" son dos renglones, no
+   cinco: el que no trae guion es el encabezado del grupo. */
+function obraElementos(txt){
+  const out = [];
+  for (const ln of String(txt || '').split('\n')){
+    const t = ln.trim();
+    if (!t) continue;
+    if (/^[\-–]/.test(t)){
+      const item = t.replace(/^[\-–]\s*/, '');
+      if (out.length) out[out.length - 1] += (/:/.test(out[out.length - 1]) ? ', ' : ': ') + item;
+      else out.push(item);
+    } else out.push(t);
+  }
+  return out;
+}
+/* Una vivienda puede traer más de un renglón: el tapeo y su retapeo. Se suman en
+   un solo registro —cantidades y gasto— y queda dicho en la nota, porque si no
+   el total impreso no cuadraría con ninguno de los dos. */
+function indexarObra(filas, ci){
+  const out = [];
+  for (const f of filas){
+    const dir = String(f[ci.dir] ?? '').trim();
+    if (!dir) continue;
+    let reg = out.find(x => mismaDir(x.dir, dir));
+    if (!reg){ reg = { dir, mats:{}, sueltas:[], total:0, elementos:[], partes:0 }; out.push(reg); }
+    reg.partes++;
+    obraMateriales(f[ci.mat], reg.mats, reg.sueltas);
+    const g = toNumber(f[ci.gasto]);
+    if (!isNaN(g)) reg.total += g;
+    for (const e of obraElementos(f[ci.elem])) if (reg.elementos.indexOf(e) < 0) reg.elementos.push(e);
+  }
+  return out;
+}
+/* Los encabezados del control de obra van en su propio renglón, y no basta con
+   quedarse con la primera fila que traiga ubicación y material: el libro de
+   obras lleva el calendario en una pestaña y los comprobantes de pago en otra,
+   y la de pagos tiene "MATERIAL" en Concepto y "Dirección" en Pagado por —lo
+   suficiente para pasar por encabezado—. Con eso la app se quedaba con la hoja
+   de los pagos y ninguna casa salía con materiales. Por eso se califican todas
+   las candidatas y gana la mejor: pesa más el renglón de puro texto, porque un
+   encabezado no trae montos ni fechas y un renglón de datos sí. */
+function candidataObra(fila){
+  /* Array.from y no map: el lector deja hueco donde la celda venía vacía, y
+     findIndex no salta los huecos. */
+  const h = Array.from(fila, norm);
+  const busca = (...alt) => {
+    for (const a of alt){ const j = h.findIndex(x => x.indexOf(a) >= 0); if (j >= 0) return j; }
+    return -1;
+  };
+  const dir = busca('ubicacion', 'domicilio', 'direccion');
+  const mat = h.findIndex(x => x === 'material' || x.indexOf('material') === 0);
+  if (dir < 0 || mat < 0 || dir === mat) return null;
+  const gasto = busca('gasto de material','gasto material','gasto','costo','importe');
+  const elem = busca('elementos a tapear','elementos','tapear');
+  const texto = !fila.some(v => typeof v === 'number' || v instanceof Date);
+  return { dir, mat, gasto, elem,
+           pts: (texto ? 10 : 0) + 2 + (gasto >= 0 ? 1 : 0) + (elem >= 0 ? 1 : 0) };
+}
+function columnasObra(filas){
+  let mejor = null;
+  for (let i = 0; i < Math.min(filas.length, 30); i++){
+    const c = candidataObra(filas[i] || []);
+    if (c && (!mejor || c.pts > mejor.pts)){ c.hr = i; mejor = c; }
+  }
+  return mejor;
+}
+async function cargarObra(f){
+  const ext = f.name.split('.').pop().toLowerCase();
+  let filas = null, ci = null;
+  if (ext === 'csv' || ext === 'txt'){
+    filas = window.parseCSV(await f.text());
+    ci = columnasObra(filas);
+  } else {
+    const wb = await window.XLSXReader.parse(await f.arrayBuffer());
+    for (let i = 0; i < wb.sheets.length; i++){
+      let rows;
+      try { rows = await wb.readSheet(i); } catch(e){ continue; }
+      const c = columnasObra(rows);
+      /* Gana la pestaña que empate mejor, no la primera que empate algo. */
+      if (c && (!ci || c.pts > ci.pts)){ ci = c; filas = rows; ci.hoja = wb.sheets[i]; }
+    }
+  }
+  if (!ci) throw new Error('No encontré las columnas de ubicación y material.');
+  S.obra = indexarObra(filas.slice(ci.hr + 1), ci);
+  S.obraHoja = ci.hoja || '';
+  S.obraArchivo = f.name;
+  return S.obra.length;
+}
+/* Lo que el control de obra tiene para este domicilio, o null. */
+function obraDe(r){
+  if (!S.obra || !S.obra.length) return null;
+  const d = valor(r,'DOMICILIO');
+  if (!d) return null;
+  if (r.__obra === undefined) r.__obra = S.obra.find(o => mismaDir(d, o.dir)) || null;
+  return r.__obra;
+}
+
+/* ============================================================
+   6 · De la fila al dato: valor, liga, dinero y avance
+   ============================================================ */
+const crudo = (r,k) => S.map[k] === undefined ? '' : fmt(r[S.map[k]], k);
+/* La URL de una celda no vive en la celda: el Excel la guarda aparte y el lector
+   la deja en __links. Sin esto la columna LINK sale como texto y la carpeta de
+   Drive se pierde. */
+function liga(r,k){
+  const ci = S.map[k], L = S.rows && S.rows.__links;
+  if (ci === undefined || r.__fila === undefined || !L) return '';
+  return (L[r.__fila] && L[r.__fila][ci]) || '';
+}
+/* El domicilio bueno vive en la columna Link, no en DOMICILIO: en el Sheet esa
+   celda guarda el texto de la dirección ya corregida y la URL de Maps cuelga
+   aparte, mientras que DOMICILIO es la que llega pegada
+   ("AV TEMUCO286SANTA FE00630TLAJOMULCO"). Se usa el texto de Link cuando lo
+   hay; si esa celda trae una URL como texto no sirve de dirección y manda
+   DOMICILIO. */
+function valor(r,k){
+  if (k === 'DOMICILIO'){
+    const t = String(crudo(r,'MAPA') || '').trim();
+    if (t && !esUrl(t)) return t;
+  }
+  return crudo(r,k);
+}
+/* Una carpeta puede venir de dos formas: como hipervínculo colgado de la celda
+   —lo normal en el maestro, donde la celda dice "PIC_TLAJO_034" y la URL va
+   aparte— o escrita como texto. Se aceptan las dos, y sólo si es una URL. */
+function carpeta(r,k){
+  for (const cand of [String(crudo(r,k) || '').trim(), String(liga(r,k) || '').trim()])
+    if (esUrl(cand)) return window.qrLimpia(cand);
+  return '';
+}
+/* Domicilio completo en una línea, sin repetir lo que ya venga dicho: el texto
+   de la columna Link casi siempre trae la colonia y el municipio dentro
+   ("Av. Temuco 286, Santa Fe"), así que cada parte se agrega nada más si falta. */
+function dirCompleta(r){
+  const partes = [], dicho = [];
+  for (const k of ['DOMICILIO','COLONIA','CP','MUNICIPIO','ENTIDAD']){
+    const t = String(valor(r,k) ?? '').trim();
+    const n = norm(t);
+    if (!n) continue;
+    const yaDicho = ' ' + dicho.join(' ') + ' ';
+    if (yaDicho.includes(' ' + n + ' ')) continue;
+    /* El municipio y la entidad casi siempre vienen abreviados dentro del texto
+       de la liga de Maps —"…, 45653 Tlajomulco de Zúñiga, Jal."— y la columna
+       los trae completos. Sin esto el domicilio terminaba en "Jal., Jalisco".
+       La regla se aplica sólo a esos dos campos: en la calle o la colonia, una
+       palabra corta que empieza igual que otra ("San" y "Santa Fe") son cosas
+       distintas y ahí sí hay que escribir las dos. */
+    if ((k === 'ENTIDAD' || k === 'MUNICIPIO') &&
+        yaDicho.split(' ').some(w => w.length >= 3 && n.startsWith(w))) continue;
+    partes.push(t); dicho.push(n);
+  }
+  return partes.join(', ');
+}
+/* La liga del mapa se arma sola con el domicilio cuando el Sheet no la trae: la
+   búsqueda por texto de Google Maps resuelve el resto sin pedirle nada a nadie.
+   Manda la liga real de la celda cuando existe, porque ésa ya la vio una
+   persona. */
+function mapaUrl(r){
+  const propio = String(crudo(r,'MAPA') || '').trim();
+  if (esUrl(propio)) return propio;
+  const l = liga(r,'MAPA');
+  if (l) return l;
+  const txt = dirCompleta(r);
+  return txt ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(txt) : '';
+}
+const numDe = (r,k) => toNumber(valor(r,k));
+function fechaDe(r,k){
+  const ci = S.map[k];
+  if (ci === undefined) return null;
+  const v = r[ci];
+  if (v instanceof Date) return v;
+  const s = String(v ?? '').trim();
+  if (!s) return null;
+  const m = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/.exec(s);
+  if (m){
+    const a = +m[3] < 100 ? 2000 + +m[3] : +m[3];
+    const d = new Date(a, +m[2] - 1, +m[1]);
+    return isNaN(d) ? null : d;
+  }
+  const d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+
+/* Los materiales y su costo: primero lo que traiga el archivo del maestro y, si
+   ahí no hay nada, lo que diga el control de obra. Siempre se anota de dónde
+   salió, porque una cifra sin origen no se puede defender en una junta. */
+function materialesDe(r){
+  const txtArch = String(valor(r,'MATERIALES') || '').trim();
+  const costoArch = numDe(r,'COSTO_MATERIALES');
+  const o = obraDe(r);
+  const lista = [], notas = [];
+  let costo = NaN, fuente = null, elementos = [];
+
+  if (txtArch){
+    fuente = 'archivo';
+    for (const ln of txtArch.split(/\n|;|·/)){
+      const t = ln.replace(/^[\s\-–]+/, '').trim();
+      if (t) lista.push({ nombre: t, cant: '' });
+    }
+  }
+  if (!isNaN(costoArch)){ costo = costoArch; if (!fuente) fuente = 'archivo'; }
+
+  if (o && (!lista.length || isNaN(costo))){
+    if (!lista.length){
+      for (const nombre of Object.keys(o.mats)) lista.push({ nombre, cant: obraCantidad(o.mats[nombre]) });
+      for (const s of o.sueltas) lista.push({ nombre: s, cant: '' });
+      if (lista.length) fuente = fuente ? 'ambos' : 'obra';
+    }
+    if (isNaN(costo) && o.total){ costo = o.total; fuente = fuente === 'archivo' ? 'ambos' : (fuente || 'obra'); }
+    if (o.partes > 1) notas.push('Incluye ' + o.partes + ' intervenciones (tapeo y retapeo), sumadas.');
+    if (o.sueltas.length && fuente !== 'archivo')
+      notas.push('Renglones sin desglosar: ' + o.sueltas.length + '.');
+    elementos = o.elementos.slice();
+  }
+  const elemArch = String(valor(r,'ELEMENTOS') || '').trim();
+  if (elemArch) elementos = obraElementos(elemArch);
+
+  return { lista, costo, fuente, elementos, nota: notas.join(' '),
+           texto: lista.map(x => x.cant ? x.cant + ' ' + x.nombre.toLowerCase() : x.nombre).join(' · ') };
+}
+
+/* El dinero de una casa. Nunca se rellena un hueco con cero: lo que falta se
+   queda como NaN y se cuenta aparte, para que una suma incompleta no se
+   presente como si estuviera completa. */
+function dineroDe(r){
+  const convenio = numDe(r,'MONTO_CONVENIO');
+  const topeCol = numDe(r,'MONTO_MAXIMO');
+  const cp = esSi(valor(r,'CARTA_PODER'));
+  const tope = (!isNaN(topeCol) && topeCol > 0) ? topeCol : (cp ? AJ.topeCP : AJ.tope);
+  const ahorro = isNaN(convenio) ? NaN : Math.max(0, tope - convenio);
+
+  const bonoCol = numDe(r,'BONO');
+  let bono = NaN, deBono = 'falta';
+  if (!isNaN(bonoCol)){ bono = bonoCol; deBono = 'archivo'; }
+  else if (!isNaN(ahorro)){ bono = Math.round(ahorro * AJ.bonoPct) / 100; deBono = 'calculado'; }
+
+  const honCol = numDe(r,'HONORARIO_FIJO');
+  let hon = NaN, deHon = 'falta';
+  if (!isNaN(honCol)){ hon = honCol; deHon = 'archivo'; }
+  else if (AJ.honorario !== null && AJ.honorario !== '' && !isNaN(+AJ.honorario)){
+    hon = +AJ.honorario; deHon = 'ajuste';
+  }
+
+  const hbCol = numDe(r,'HON_BONO');
+  let hb = NaN, deHB = 'falta';
+  if (!isNaN(hbCol)){ hb = hbCol; deHB = 'archivo'; }
+  else if (!isNaN(hon) && !isNaN(bono)){
+    hb = hon + bono;
+    deHB = (deHon === 'archivo' && deBono === 'archivo') ? 'archivo' : 'calculado';
+  }
+
+  const mat = materialesDe(r);
+  const partes = [convenio, hb, mat.costo].filter(v => !isNaN(v));
+  return { convenio, tope, cartaPoder: cp, ahorro, bono, hon, hb, deBono, deHon, deHB,
+           materiales: mat, costoMat: mat.costo,
+           inversion: partes.length ? partes.reduce((a,b) => a + b, 0) : NaN,
+           completo: !isNaN(convenio) && !isNaN(hb) && !isNaN(mat.costo) };
+}
+
+/* El avance: cinco pasos, y cada uno se prende sólo con evidencia en el archivo.
+   No es un porcentaje inventado — es "qué hay capturado y qué falta", que es lo
+   que un inversionista pregunta cuando ve una casa en la lista. */
+const TITULO_FICHA = { rec:'Ficha de casa recuperada',
+                       prox:'Ficha de próxima recuperación',
+                       fuera:'Ficha de casa en proceso' };
+const PASOS = [
+  { k:'convenio', r:'Convenio',   e:'monto de convenio capturado' },
+  { k:'desalojo', r:'Desalojo',   e:'fecha de desalojo capturada' },
+  { k:'tapeo',    r:'Tapeo',      e:'materiales o su costo capturados' },
+  { k:'exp',      r:'Expediente', e:'carpeta del expediente digital' },
+  { k:'honor',    r:'Honorarios', e:'honorarios y bono determinados' },
+];
+function avanceDe(r, d){
+  const dd = d || dineroDe(r);
+  const on = {
+    convenio: !isNaN(dd.convenio),
+    desalojo: !!String(valor(r,'F_DESALOJO') || '').trim(),
+    tapeo:    dd.materiales.lista.length > 0 || !isNaN(dd.costoMat),
+    exp:      !!carpeta(r,'CARPETA_EXP'),
+    honor:    !isNaN(dd.hb),
+  };
+  const hechos = PASOS.filter(p => on[p.k]).length;
+  return { on, hechos, total: PASOS.length,
+           falta: PASOS.filter(p => !on[p.k]).map(p => p.r) };
+}
+
+/* ============================================================
+   7 · Carga del archivo
+   ============================================================ */
+const suelta = $('suelta');
+const prende = () => suelta.classList.add('on');
+const apaga  = () => suelta.classList.remove('on');
+suelta.onclick = () => $('archivo').click();
+suelta.ondragover = e => { e.preventDefault(); prende(); };
+suelta.ondragleave = apaga;
+suelta.ondrop = e => { e.preventDefault(); apaga(); if (e.dataTransfer.files[0]) cargar(e.dataTransfer.files[0]); };
+$('archivo').onchange = e => { if (e.target.files[0]) cargar(e.target.files[0]); };
+
+async function cargar(f){
+  limpiaAviso('avisoCarga');
+  $('estadoArchivo').textContent = 'Leyendo ' + f.name + '…';
+  const ext = f.name.split('.').pop().toLowerCase();
+  try {
+    if (ext === 'xls'){
+      $('estadoArchivo').textContent = f.name + ' · no se pudo leer';
+      aviso('avisoCarga','mal','<b>El formato .xls (Excel viejo) no se puede leer aquí.</b><br>' +
+        'Desde Google Sheets: <i>Archivo → Descargar → Microsoft Excel (.xlsx)</i>.');
+      return;
+    }
+    if (ext === 'csv' || ext === 'txt'){
+      S.wb = null;
+      S.rows = window.parseCSV(await f.text());
+      $('cajaHoja').style.display = 'none';
+      $('estadoArchivo').textContent = f.name + ' · ' + (f.size/1024).toFixed(0) + ' KB · CSV, una sola hoja';
+      /* Un CSV no trae hipervínculos: la liga vive fuera de la celda y ese
+         formato no la guarda. Vale decirlo, porque es justo lo que se pierde. */
+      construir(mejorEncabezado(S.rows).hr);
+      aviso('avisoCarga','ojo','<b>Es un CSV, así que no trae las ligas.</b><br>' +
+        'Las carpetas de Drive y los mapas cuelgan de la celda, y ese formato no las guarda. ' +
+        'Para que salgan las carpetas hay que bajar el Sheet como <b>.xlsx</b>.');
+      return;
+    }
+    S.wb = await window.XLSXReader.parse(await f.arrayBuffer());
+    $('estadoArchivo').textContent = f.name + ' · ' + (f.size/1024).toFixed(0) + ' KB · ' +
+      S.wb.sheets.length + (S.wb.sheets.length === 1 ? ' hoja' : ' hojas');
+    $('selHoja').innerHTML = S.wb.sheets.map((n,i) => '<option value="'+i+'">'+esc(n)+'</option>').join('');
+    $('cajaHoja').style.display = S.wb.sheets.length > 1 ? 'grid' : 'none';
+    const auto = await autoHoja();
+    await leerHoja();
+    if (S.todas.length){
+      const n = S.todas.length;
+      aviso('avisoCarga','ok','<b>Listo: leí ' + n + (n === 1 ? ' casa' : ' casas') + '.</b>' +
+        (S.wb.sheets.length > 1
+          ? ' De la hoja <b>' + esc(S.wb.sheets[auto.hoja]) + '</b>, con los encabezados en la <b>fila ' +
+            auto.hr + '</b>. Si necesitas otra hoja, cámbiala aquí abajo.'
+          : '') +
+        '<br>Ya puedes pasar al <b>Tablero</b>.');
+    }
+  } catch(e){
+    const m = String(e.message || e);
+    const t = m === 'NAV_VIEJO'
+      ? '<b>Tu navegador no puede descomprimir el Excel.</b><br>Abre esta página con Google Chrome o Microsoft Edge.'
+      : m === 'NO_ZIP'
+      ? '<b>El archivo no parece un .xlsx válido.</b><br>Vuelve a guardarlo desde Excel como <i>Libro de Excel (*.xlsx)</i>.'
+      : m === 'ZIP64'
+      ? '<b>El archivo es demasiado grande o usa formato ZIP64.</b><br>Quita hojas que no uses o expórtalo a CSV.'
+      : '<b>No pude leer el archivo.</b><br>Detalle: ' + esc(m);
+    $('estadoArchivo').textContent = f.name + ' · no se pudo leer';
+    aviso('avisoCarga','mal',t);
+    toast('No se pudo leer el archivo.', true);
+  }
+}
+
+/* Un libro real trae hojas de respaldo, catálogos y notas sueltas. En vez de
+   abrir siempre la primera, se puntean todas y gana la que de verdad parece el
+   listado de casas: la que empata más campos. */
+function mejorEncabezado(rows){
+  let best = { hr:1, score:-1 };
+  const tope = Math.min(rows.length, 12);
+  for (let i = 0; i < tope; i++){
+    const head = (rows[i] || []).map(v => v instanceof Date ? fmtFecha(v) : String(v ?? '').trim());
+    const cols = head.filter(h => h !== '').length;
+    if (cols < 2) continue;
+    let datos = 0;
+    for (let j = i + 1; j < rows.length; j++){
+      const r = rows[j];
+      if (r && r.some(v => v !== null && v !== undefined && String(v).trim() !== '')) datos++;
+    }
+    if (!datos) continue;
+    const empatados = Object.keys(adivinar(head)).length;
+    const score = empatados * 12 + Math.min(cols, 30) + Math.min(datos, 60);
+    if (score > best.score) best = { hr: i + 1, score };
+  }
+  return best;
+}
+async function autoHoja(){
+  let best = { hoja:0, hr:1, score:-1 };
+  for (let i = 0; i < S.wb.sheets.length; i++){
+    let rows;
+    try { rows = await S.wb.readSheet(i); } catch(e){ continue; }
+    const c = mejorEncabezado(rows);
+    if (c.score > best.score) best = { hoja:i, hr:c.hr, score:c.score };
+  }
+  $('selHoja').value = String(best.hoja);
+  $('filaEnc').value = String(best.hr);
+  return best;
+}
+async function leerHoja(){
+  S.rows = await S.wb.readSheet(+$('selHoja').value);
+  construir(+$('filaEnc').value || 1);
+}
+$('selHoja').onchange = async () => {
+  const rows = await S.wb.readSheet(+$('selHoja').value).catch(() => null);
+  if (rows) $('filaEnc').value = String(mejorEncabezado(rows).hr);
+  leerHoja().catch(e => aviso('avisoCarga','mal','<b>No pude leer esa hoja.</b><br>' + esc(e.message || e)));
+};
+$('filaEnc').onchange = () => { if (S.wb) leerHoja().catch(()=>{}); else construir(+$('filaEnc').value || 1); };
+
+function construir(hr){
+  const head = (S.rows[hr-1] || []).map(v => v instanceof Date ? fmtFecha(v) : String(v ?? '').trim());
+  while (head.length && head[head.length-1] === '') head.pop();
+  if (!head.length){
+    aviso('avisoCarga','ojo','<b>La fila ' + hr + ' está vacía.</b> Prueba con otra fila de encabezados.');
+    return;
+  }
+  S.headers = head;
+  S.todas = [];
+  S.etapaOff = new Set(['fuera']);
+  S.sel.clear();
+  /* Se barre hasta el final del rango, no hasta la primera fila vacía: en el
+     maestro hay 212 casas seguidas y dos más allá abajo, separadas por
+     cientos de renglones vacíos. Cortar en el primer hueco las perdía. */
+  for (let i = hr; i < S.rows.length; i++){
+    const r = S.rows[i];
+    if (r && r.some(v => v !== null && v !== undefined && String(v).trim() !== '')){
+      r.__fila = i;
+      r.__obra = undefined;
+      S.todas.push(r);
+    }
+  }
+  if (!S.todas.length){
+    aviso('avisoCarga','ojo','<b>No encontré filas de datos debajo del encabezado.</b>');
+    return;
+  }
+
+  /* El empate: primero el que se guardó a mano la vez pasada, por nombre de
+     columna, y lo que no esté guardado lo adivina la app. */
+  const guardado = leerGuardado().byName || {};
+  S.map = adivinar(head);
+  let restauradas = 0;
+  for (const k in guardado){
+    if (CAMPOS.indexOf(k) < 0) continue;
+    const i = head.findIndex(h => h === guardado[k]);
+    if (i >= 0){ S.map[k] = i; restauradas++; }
+  }
+  S.carpetasExtra = detectarCarpetasExtra();
+  pintarColumnas(restauradas);
+  refrescarTodo();
+  irA('tablero', true);
+}
+
+/* Cualquier otra columna del archivo que traiga ligas y que no se haya empatado
+   a un campo conocido. Así, el día que el maestro estrene una columna de
+   carpetas —los tapeos, las evidencias— aparece sola en el tablero, sin tocar
+   una línea de código. */
+function detectarCarpetasExtra(){
+  const usadas = new Set(Object.values(S.map));
+  const L = (S.rows && S.rows.__links) || [];
+  const out = [];
+  S.headers.forEach((h,i) => {
+    if (!h || usadas.has(i)) return;
+    let n = 0;
+    for (const r of S.todas){
+      const t = String(r[i] ?? '').trim();
+      const l = (L[r.__fila] && L[r.__fila][i]) || '';
+      if (esUrl(t) || esUrl(l)) n++;
+    }
+    if (n >= Math.max(3, Math.round(S.todas.length * .15))) out.push({ col:i, rot:h, n });
+  });
+  return out;
+}
+function carpetaExtra(r, col){
+  const L = (S.rows && S.rows.__links) || [];
+  const t = String(r[col] ?? '').trim();
+  const l = (L[r.__fila] && L[r.__fila][col]) || '';
+  for (const c of [t, l]) if (esUrl(c)) return window.qrLimpia(c);
+  return '';
+}
+
+/* ============================================================
+   8 · Revisar columnas
+   ============================================================ */
+function pintarColumnas(restauradas){
+  $('cajaColumnas').style.display = 'block';
+  const opciones = '<option value="">— no está en el archivo —</option>' +
+    S.headers.map((h,i) => '<option value="'+i+'">'+esc(h || '(columna '+(i+1)+')')+'</option>').join('');
+  $('columnas').innerHTML = GRUPOS.map(g =>
+    '<div style="border:1px solid var(--brd);border-radius:12px;padding:14px 16px;background:var(--surf2)">' +
+    '<div class="rot" style="margin-bottom:10px">' + esc(g.t) + '</div>' +
+    g.f.map(x =>
+      '<label style="display:block;margin-bottom:9px"><span style="display:block;font-size:12px;' +
+      'color:var(--tx2);margin-bottom:4px">' + esc(x[1]) + '</span>' +
+      '<select data-campo="' + x[0] + '" style="min-height:38px;padding:8px 11px">' + opciones + '</select></label>'
+    ).join('') + '</div>').join('');
+  for (const sel of $('columnas').querySelectorAll('[data-campo]')){
+    const k = sel.dataset.campo;
+    sel.value = S.map[k] === undefined ? '' : String(S.map[k]);
+    sel.onchange = () => {
+      if (sel.value === '') delete S.map[k];
+      else S.map[k] = +sel.value;
+      for (const r of S.todas) r.__obra = undefined;
+      S.carpetasExtra = detectarCarpetasExtra();
+      refrescarTodo();
+    };
+  }
+
+  const n = Object.keys(S.map).length;
+  const faltan = ['FOLIO','MAPA','DOMICILIO','ESTATUS','CARTERA','F_DESALOJO','MONTO_CONVENIO','CARPETA_EXP']
+    .filter(k => S.map[k] === undefined);
+  /* Las columnas de fórmula que llegaron vacías: en el maestro el folio es una
+     fórmula que espeja la columna de al lado, y si el Sheet se exportó sin
+     recalcular llega en blanco. Sin decirlo, parece que el archivo está mal. */
+  const fc = S.rows.__fcols, vacias = [];
+  if (fc && fc.size) S.headers.forEach((h,i) => {
+    if (fc.has(i) && h && S.todas.every(r => r[i] === null || r[i] === undefined || String(r[i]).trim() === ''))
+      vacias.push(h);
+  });
+  let html = '<div class="aviso ok"><b>Empaté ' + n + ' de ' + CAMPOS.length + ' campos.</b>' +
+    (restauradas ? ' ' + restauradas + ' de ellos con el empate que guardaste antes.' : '') +
+    (S.carpetasExtra.length
+      ? '<br>Además encontré <b>' + S.carpetasExtra.length + ' columna(s) con ligas</b> que no son de ningún ' +
+        'campo conocido, y las voy a mostrar como carpetas extra: ' +
+        esc(S.carpetasExtra.map(c => c.rot).join(' · ')) + '.'
+      : '') + '</div>';
+  if (faltan.length)
+    html += '<div class="aviso ojo"><b>Sin empatar, y hacen falta:</b> ' +
+      esc(faltan.map(k => ROTULO[k]).join(' · ')) + '.<br>' +
+      'Apúntalas aquí abajo; sin ellas el reporte sale con huecos.</div>';
+  /* Estas no son un error: el maestro de hoy no las trae. Vale decir de dónde
+     saldría cada una, porque si no parece que la app no las lee. */
+  const opcionales = [
+    ['HON_BONO','se calcula con el tope y el bono, en Ajustes'],
+    ['COSTO_MATERIALES','sale del Excel de tapeados'],
+    ['MATERIALES','sale del Excel de tapeados'],
+    ['CARPETA_MATERIALES','la columna de la carpeta de los tapeos, si el maestro ya la trae'],
+    ['CARPETA_EVIDENCIAS','la columna de la carpeta de evidencias, si el maestro ya la trae'],
+  ].filter(x => S.map[x[0]] === undefined);
+  if (opcionales.length)
+    html += '<div class="aviso"><b>Estas no están en el archivo, y no es un problema:</b><br>' +
+      opcionales.map(x => '<b>' + esc(ROTULO[x[0]]) + '</b> — ' + x[1]).join('<br>') + '</div>';
+  if (vacias.length)
+    html += '<div class="aviso ojo"><b>' + vacias.length + ' columna(s) llegaron vacías porque son fórmulas.</b><br>' +
+      esc(vacias.slice(0,8).join(' · ')) + (vacias.length > 8 ? ' …' : '') + '<br>' +
+      'En el Sheet se ven llenas, pero la descarga se las trajo sin calcular. Si una de ellas es el folio, ' +
+      'apunta el folio a la columna que sí trae el texto.</div>';
+  $('avisoColumnas').innerHTML = html;
+}
+$('guardarEmpate').onclick = () => { guardar(true); toast('Guardé este empate para la próxima.'); };
+$('olvidarEmpate').onclick = () => {
+  try { const g = leerGuardado(); delete g.byName; localStorage.setItem(LSKEY, JSON.stringify(g)); } catch(e){}
+  toast('Listo, se olvidó el empate guardado.');
+};
+
+/* ============================================================
+   El control de obra, en pantalla
+   ============================================================ */
+$('obraBtn').onclick = () => $('obraArchivo').click();
+$('obraArchivo').onchange = async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  $('estadoObra').textContent = 'Leyendo ' + f.name + '…';
+  try {
+    const n = await cargarObra(f);
+    for (const r of S.todas) r.__obra = undefined;
+    const conMat = S.todas.filter(r => obraDe(r)).length;
+    $('obraQuita').style.display = 'inline-flex';
+    /* De qué pestaña salió y cuántas casas empataron: si la app se equivoca de
+       hoja, el número de casas es lo único que se ve, y un cero no debe pasar
+       de noche. */
+    $('estadoObra').innerHTML = '<b style="color:var(--tx)">' + esc(f.name) + '</b> · ' + n +
+      (n === 1 ? ' vivienda' : ' viviendas') + ' con tapeo' +
+      (S.obraHoja ? ', de la pestaña <b style="color:var(--tx)">' + esc(S.obraHoja) + '</b>' : '') + '.<br>' +
+      (S.todas.length
+        ? 'De tus ' + S.todas.length + ' casas, <b style="color:var(--tx)">' + conMat +
+          '</b> empataron por dirección' + (conMat === 0
+            ? '. Cero empates casi siempre es que se leyó la pestaña equivocada: revisa el nombre de arriba.'
+            : '.')
+        : 'Sube el maestro para ver cuántas empatan.');
+    refrescarTodo();
+    toast(conMat + ' casas con materiales.');
+  } catch(err){
+    $('estadoObra').innerHTML = '<b style="color:var(--al)">No se pudo leer ' + esc(f.name) + '.</b><br>' +
+      esc(err.message || err);
+    toast('No se pudo leer el de tapeados.', true);
+  }
+  e.target.value = '';
+};
+$('obraQuita').onclick = () => {
+  S.obra = []; S.obraHoja = ''; S.obraArchivo = '';
+  for (const r of S.todas) r.__obra = undefined;
+  $('obraQuita').style.display = 'none';
+  $('estadoObra').textContent = '';
+  refrescarTodo();
+};
+
+/* ============================================================
+   9 · El tablero
+   ============================================================ */
+const sinDato = t => '<span class="falta">' + (t || 'sin capturar') + '</span>';
+const dinT = v => isNaN(v) ? sinDato() : fmtMoney(v);
+
+function filtradas(){
+  const q = norm($('busca').value).split(' ').filter(Boolean);
+  const car = $('filtroCartera').value, cua = $('filtroCuadrilla').value;
+  return S.todas.filter(r => {
+    if (car && grupoCartera(valor(r,'CARTERA')) !== car) return false;
+    if (cua && valor(r,'CUADRILLA') !== cua) return false;
+    if (q.length){
+      const heno = norm([valor(r,'FOLIO'), dirCompleta(r), valor(r,'CUADRILLA'),
+                         valor(r,'RUTA'), valor(r,'CARTERA'), valor(r,'ESTATUS')].join(' '));
+      if (!q.every(w => heno.includes(w))) return false;
+    }
+    return true;
+  });
+}
+const porEtapa = rows => ({
+  rec:   rows.filter(r => etapaDe(r) === 'rec'),
+  prox:  rows.filter(r => etapaDe(r) === 'prox'),
+  fuera: rows.filter(r => etapaDe(r) === 'fuera'),
+});
+/* Las filas que de verdad entran al tablero y al reporte: las etapas prendidas.
+   "Fuera de toda suma" llega apagada, no descartada — se prende con su casilla. */
+const enJuego = rows => rows.filter(r => !S.etapaOff.has(etapaDe(r)));
+
+/* Suma lo que hay y cuenta lo que falta, por separado. Nunca se rellena un hueco
+   con cero: una suma de 40 casas sobre 46 no es la suma de 46. */
+function totales(rows){
+  const t = { n: rows.length, convenio:0, hb:0, mat:0, inversion:0,
+              sinConvenio:0, sinHB:0, sinMat:0, calculados:0, completas:0 };
+  for (const r of rows){
+    const d = dineroDe(r);
+    if (isNaN(d.convenio)) t.sinConvenio++; else t.convenio += d.convenio;
+    if (isNaN(d.hb)) t.sinHB++; else t.hb += d.hb;
+    if (isNaN(d.costoMat)) t.sinMat++; else t.mat += d.costoMat;
+    if (d.deHB === 'calculado') t.calculados++;
+    if (d.completo) t.completas++;
+  }
+  t.inversion = t.convenio + t.hb + t.mat;
+  return t;
+}
+/* Cuando no hay ni una cifra capturada, la suma no es cero: es que no hay dato.
+   Un $0 en un reporte de inversionistas se lee como "no se gastó nada", que es
+   una afirmación distinta y falsa. */
+const sumaT = (total, falta, n) => (n - falta) === 0 ? 'sin capturar' : fmtCorto(total);
+const deQuedan = (falta, n) => (n - falta) === 0
+  ? '<b style="color:var(--nar2)">ninguna de las ' + n + ' la trae capturada</b>'
+  : (falta ? 'de ' + (n - falta) + ' casas · <b style="color:var(--nar2)">' + falta +
+             ' sin capturar</b>'
+           : 'de las ' + n + ', completo');
+
+function pintarFiltros(){
+  const car = [...new Set(S.todas.map(r => grupoCartera(valor(r,'CARTERA'))))]
+    .sort((a,b) => ORDEN_GRUPO.indexOf(a) - ORDEN_GRUPO.indexOf(b));
+  const antesCar = $('filtroCartera').value;
+  $('filtroCartera').innerHTML = '<option value="">Todas</option>' +
+    car.map(k => '<option value="'+k+'">'+esc(ROT_GRUPO[k] || k)+'</option>').join('');
+  if (car.indexOf(antesCar) >= 0) $('filtroCartera').value = antesCar;
+
+  const cua = [...new Set(S.todas.map(r => valor(r,'CUADRILLA')).filter(Boolean))].sort();
+  const antesCua = $('filtroCuadrilla').value;
+  $('filtroCuadrilla').innerHTML = '<option value="">Todas</option>' +
+    cua.map(v => '<option>'+esc(v)+'</option>').join('');
+  if (cua.indexOf(antesCua) >= 0) $('filtroCuadrilla').value = antesCua;
+
+  pintarChips();
+}
+/* Las casillas se cuentan sobre lo que ya pasó los otros filtros, no sobre el
+   archivo entero: con la cartera puesta en PIC, decir "Recuperadas 85" cuando
+   sólo 56 son de PIC manda a buscar 29 casas que no están. Van aparte de los
+   desplegables porque esto se repinta con cada tecla del buscador y rehacer los
+   desplegables a cada rato le quita el foco a quien está escribiendo. */
+function pintarChips(){
+  const g = porEtapa(filtradas());
+  $('filtroEtapa').innerHTML = ETAPAS.map(e =>
+    '<button class="chip' + (S.etapaOff.has(e.k) ? ' off' : '') + '" data-etapa="' + e.k + '" ' +
+    'title="' + esc(e.n) + '"><i></i>' + esc(e.r) + '<b>' + g[e.k].length + '</b></button>').join('');
+  for (const b of $('filtroEtapa').querySelectorAll('[data-etapa]'))
+    b.onclick = () => {
+      const k = b.dataset.etapa;
+      if (S.etapaOff.has(k)) S.etapaOff.delete(k); else S.etapaOff.add(k);
+      refrescarTodo();
+    };
+}
+
+function pintarKPIs(){
+  const g = porEtapa(filtradas());
+  const t = totales(g.rec);
+  const cua = [...new Set(g.rec.map(r => valor(r,'CUADRILLA')).filter(Boolean))].length;
+  $('kpisRec').innerHTML = [
+    ['verde','Casas recuperadas', String(t.n),
+      t.n ? 'ya entregadas' + (cua ? ' · ' + cua + (cua === 1 ? ' cuadrilla' : ' cuadrillas') : '') : 'ninguna con los filtros de arriba'],
+    ['','Monto de convenio', sumaT(t.convenio, t.sinConvenio, t.n), deQuedan(t.sinConvenio, t.n)],
+    ['','Honorarios + bono', sumaT(t.hb, t.sinHB, t.n), deQuedan(t.sinHB, t.n) +
+      (t.calculados ? ' · ' + t.calculados + ' calculadas' : '')],
+    ['','Costo de materiales', sumaT(t.mat, t.sinMat, t.n), deQuedan(t.sinMat, t.n)],
+    ['oro','Inversión total', t.n && (t.sinConvenio + t.sinHB + t.sinMat) === t.n * 3
+        ? 'sin capturar' : fmtCorto(t.inversion),
+      t.completas === t.n && t.n
+        ? 'convenio + honorarios + materiales, completo'
+        : 'convenio + honorarios + materiales · <b style="color:var(--nar2)">' +
+          (t.n - t.completas) + ' casas incompletas</b>'],
+  ].map(k => '<div class="kpi ' + k[0] + '"><div class="r">' + k[1] + '</div>' +
+             '<div class="v">' + k[2] + '</div><div class="n">' + k[3] + '</div></div>').join('');
+
+  /* Por cartera. Es la pregunta que trae el inversionista de PIC: cuántas de las
+     mías, y cuánto de las mías. */
+  const grupos = [...new Set(g.rec.map(r => grupoCartera(valor(r,'CARTERA'))))]
+    .sort((a,b) => ORDEN_GRUPO.indexOf(a) - ORDEN_GRUPO.indexOf(b));
+  let html = '<div class="card"><h3>Por cartera</h3><p>Sólo las recuperadas. Cada cartera con lo suyo, ' +
+    'y al final la suma.</p><div class="tablaBox"><table class="t"><thead><tr>' +
+    '<th>Cartera</th><th style="text-align:right">Casas</th><th style="text-align:right">Monto de convenio</th>' +
+    '<th style="text-align:right">Honorarios + bono</th><th style="text-align:right">Costo de materiales</th>' +
+    '<th style="text-align:right">Inversión</th></tr></thead><tbody>';
+  if (!grupos.length){
+    html += '<tr><td colspan="6" style="color:var(--tx3);text-align:center;padding:22px">' +
+      'Ninguna casa recuperada con los filtros de arriba.</td></tr>';
+  } else for (const k of grupos){
+    const rows = g.rec.filter(r => grupoCartera(valor(r,'CARTERA')) === k);
+    const s = totales(rows);
+    const fuentes = [...new Set(rows.map(r => valor(r,'CARTERA')).filter(Boolean))];
+    html += '<tr><td><b>' + esc(ROT_GRUPO[k] || k) + '</b>' +
+      (fuentes.length ? '<br><span style="font-size:11px;color:var(--tx3)">' +
+        esc(fuentes.join(' · ')) + '</span>' : '') + '</td>' +
+      '<td class="n">' + s.n + '</td><td class="n">' + fmtMoney(s.convenio) + '</td>' +
+      '<td class="n">' + fmtMoney(s.hb) + '</td><td class="n">' + fmtMoney(s.mat) + '</td>' +
+      '<td class="n" style="color:var(--nar2)">' + fmtMoney(s.inversion) + '</td></tr>';
+  }
+  html += '</tbody><tfoot><tr><td>Total</td><td class="n">' + t.n + '</td><td class="n">' +
+    fmtMoney(t.convenio) + '</td><td class="n">' + fmtMoney(t.hb) + '</td><td class="n">' +
+    fmtMoney(t.mat) + '</td><td class="n">' + fmtMoney(t.inversion) + '</td></tr></tfoot></table></div></div>';
+
+  /* Las próximas recuperaciones, aparte y con su aviso. */
+  const p = totales(g.prox);
+  html += '<div class="card" style="border-left:4px solid var(--nar)"><h3>Próximas recuperaciones</h3>' +
+    '<p>Tienen convenio firmado pero <b>la casa todavía no se entrega</b>, así que no se suman ' +
+    'con las recuperadas de arriba. Van aparte a propósito: juntarlas infla lo entregado.</p>' +
+    (p.n
+      ? '<div class="g4">' + [
+          ['Casas', String(p.n)],
+          ['Monto de convenio', fmtCorto(p.convenio)],
+          ['Honorarios + bono', fmtCorto(p.hb)],
+          ['Costo de materiales', fmtCorto(p.mat)],
+        ].map(x => '<div><span class="rot">' + x[0] + '</span>' +
+             '<div class="num" style="font-size:20px;font-weight:700">' + x[1] + '</div></div>').join('') + '</div>'
+      : '<p style="margin:0;color:var(--tx3)">Ninguna con los filtros de arriba.</p>') + '</div>';
+  $('cajaProximas').innerHTML = html;
+
+  /* Y lo que no suma nunca, dicho con nombre y apellido. */
+  const f = g.fuera;
+  if (f.length){
+    const cuenta = {};
+    for (const r of f){ const v = valor(r,'ESTATUS') || '(sin estatus)'; cuenta[v] = (cuenta[v] || 0) + 1; }
+    $('cajaFuera').innerHTML = '<div class="aviso" style="margin-bottom:18px">' +
+      '<b>' + f.length + ' casas quedaron fuera de toda suma por su estatus.</b><br>' +
+      Object.keys(cuenta).sort().map(k => esc(k) + ' (' + cuenta[k] + ')').join(' · ') + '.<br>' +
+      'Es la regla del programa: sólo cuentan Recuperada y Prox. Recuperacion, aunque las otras traigan ' +
+      'monto capturado. Si de veras quieres verlas, préndelas con su casilla arriba.</div>';
+  } else $('cajaFuera').innerHTML = '';
+
+  /* Qué falta capturar, contado. Es la lista de pendientes del tablero. */
+  const rec = g.rec;
+  if (rec.length){
+    const cuenta = PASOS.map(p2 => ({ r:p2.r, e:p2.e, n: rec.filter(r => !avanceDe(r).on[p2.k]).length }))
+      .filter(x => x.n);
+    $('cajaFalta').innerHTML = cuenta.length
+      ? '<div class="aviso ojo" style="margin-bottom:18px"><b>Qué falta para que el reporte salga completo</b><br>' +
+        cuenta.map(x => '<b>' + x.n + '</b> ' + (x.n === 1 ? 'casa sin' : 'casas sin') + ' ' + esc(x.e)).join(' · ') +
+        '.</div>'
+      : '<div class="aviso ok" style="margin-bottom:18px"><b>Las ' + rec.length +
+        ' casas recuperadas están completas:</b> convenio, desalojo, tapeo, expediente y honorarios.</div>';
+  } else $('cajaFalta').innerHTML = '';
+}
+
+/* ---------- la tabla ---------- */
+const COLS = [
+  { k:'FOLIO',      r:'Folio THIQA' },
+  { k:'CARTERA',    r:'Cartera' },
+  { k:'DOMICILIO',  r:'Domicilio' },
+  { k:'F_DESALOJO', r:'Fecha de desalojo' },
+  { k:'MONTO_CONVENIO', r:'Monto de convenio', n:true },
+  { k:'HON_BONO',   r:'Honorarios + bono', n:true },
+  { k:'MATERIALES', r:'Materiales utilizados' },
+  { k:'COSTO_MATERIALES', r:'Costo de materiales', n:true },
+  { k:'CARPETAS',   r:'Carpetas' },
+  { k:'AVANCE',     r:'Avance' },
+];
+function ordenar(rows){
+  const { col, dir } = S.orden;
+  const clave = r => {
+    const d = dineroDe(r);
+    switch(col){
+      case 'MONTO_CONVENIO': return isNaN(d.convenio) ? -Infinity : d.convenio;
+      case 'HON_BONO': return isNaN(d.hb) ? -Infinity : d.hb;
+      case 'COSTO_MATERIALES': return isNaN(d.costoMat) ? -Infinity : d.costoMat;
+      case 'F_DESALOJO': { const f = fechaDe(r,'F_DESALOJO'); return f ? f.getTime() : -Infinity; }
+      case 'AVANCE': return avanceDe(r, d).hechos;
+      case 'MATERIALES': return d.materiales.lista.length;
+      case 'CARPETAS': return CAMPOS_CARPETA.filter(k => carpeta(r,k)).length;
+      case 'CARTERA': return norm(ROT_GRUPO[grupoCartera(valor(r,'CARTERA'))] || '');
+      case 'DOMICILIO': return norm(dirCompleta(r));
+      default: return norm(valor(r,col));
+    }
+  };
+  const s = rows.slice().sort((a,b) => {
+    const x = clave(a), y = clave(b);
+    if (typeof x === 'number' && typeof y === 'number') return x - y;
+    return String(x).localeCompare(String(y), 'es');
+  });
+  return dir === 'desc' ? s.reverse() : s;
+}
+const ORDEN_ETAPA = ['rec','prox','fuera'];
+const ROT_ETAPA = { rec:'Recuperadas', prox:'Próximas recuperaciones', fuera:'Fuera de toda suma' };
+const NOTA_ETAPA = {
+  rec:  'la casa ya se entregó',
+  prox: 'convenio firmado, la casa todavía no se entrega · no suman con las de arriba',
+  fuera:'su estatus las deja fuera de toda suma, por regla del programa',
+};
+/* La tabla nunca lleva un total que junte etapas. Se parte en bloques y cada
+   bloque trae el suyo: si un renglón de "total" sumara recuperadas con próximas,
+   quien lo lea creería que se entregó más de lo que se entregó. */
+function agrupado(rows){
+  const etapas = ORDEN_ETAPA.filter(k => rows.some(r => etapaDe(r) === k));
+  const items = [];
+  for (const k of etapas){
+    const g = ordenar(rows.filter(r => etapaDe(r) === k));
+    if (etapas.length > 1) items.push({ sec:k, n:g.length });
+    for (const r of g) items.push({ r, etapa:k });
+    /* El subtotal cierra su bloque, no la tabla. Como pie de tabla acababa
+       pegado a los renglones de otro bloque —"Total recuperadas" justo debajo
+       de cinco próximas recuperaciones, dos hojas después de su bloque— y así
+       cualquiera lo lee como el total de lo que tiene enfrente. */
+    items.push({ sub:k, rows:g });
+  }
+  return { items, etapas };
+}
+const ROT_SUBTOTAL = { rec:'Total recuperadas', prox:'Total próximas recuperaciones',
+                       fuera:'Fuera de toda suma' };
+function filaSubtotal(k, rows, cols, colsAntes, estiloTd){
+  const t = totales(rows);
+  const e = estiloTd ? ' style="' + estiloTd + '"' : '';
+  const rot = ROT_SUBTOTAL[k] + ' · ' + t.n + (t.n === 1 ? ' casa' : ' casas');
+  if (k === 'fuera')
+    return '<tr class="subFila"><td colspan="' + cols + '"' + e + '>' + rot +
+      ' — no entran en ninguna suma, por regla del programa</td></tr>';
+  return '<tr class="subFila"><td colspan="' + colsAntes + '"' + e + '>' + rot + '</td>' +
+    '<td class="n"' + e + '>' + sumaT(t.convenio, t.sinConvenio, t.n) + '</td>' +
+    '<td class="n"' + e + '>' + sumaT(t.hb, t.sinHB, t.n) + '</td>' +
+    '<td' + e + '></td><td class="n"' + e + '>' + sumaT(t.mat, t.sinMat, t.n) + '</td>' +
+    (cols - colsAntes - 4 > 0 ? '<td colspan="' + (cols - colsAntes - 4) + '"' + e + '></td>' : '') +
+    '</tr>';
+}
+function chipsCarpetas(r){
+  const out = [];
+  for (const k of CAMPOS_CARPETA){
+    const u = carpeta(r,k);
+    const rot = ROT_CARPETA[k];
+    out.push(u
+      ? '<a class="carp" href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(rot) + '</a>'
+      : '<span class="carp no" title="el archivo no trae esta carpeta">' + esc(rot) + '</span>');
+  }
+  for (const c of S.carpetasExtra){
+    const u = carpetaExtra(r, c.col);
+    if (u) out.push('<a class="carp" href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(c.rot) + '</a>');
+  }
+  return out.join('');
+}
+function pintarTabla(){
+  const rows = ordenar(enJuego(filtradas()));
+  $('tablaEnc').innerHTML = COLS.map(c =>
+    '<th class="ord"' + (c.n ? ' style="text-align:right"' : '') +
+    (S.orden.col === c.k ? ' data-dir="' + S.orden.dir + '"' : '') +
+    ' data-col="' + c.k + '">' + esc(c.r) + '</th>').join('');
+  for (const th of $('tablaEnc').querySelectorAll('[data-col]'))
+    th.onclick = () => {
+      const k = th.dataset.col;
+      S.orden = { col:k, dir: (S.orden.col === k && S.orden.dir === 'asc') ? 'desc' : 'asc' };
+      pintarTabla();
+    };
+
+  const { items, etapas } = agrupado(rows);
+  const ESTILO_SUB = 'background:var(--surf2);border-top:2px solid var(--brd2);' +
+    'font-weight:700;font-family:var(--ttl);padding:12px 13px';
+  $('tablaCuerpo').innerHTML = items.length ? items.map(it => {
+    if (it.sub) return filaSubtotal(it.sub, it.rows, COLS.length, 4, ESTILO_SUB);
+    if (it.sec) return '<tr><td colspan="' + COLS.length + '" style="background:var(--surf2);' +
+      'border-top:2px solid var(--brd2);padding:11px 13px">' +
+      '<b style="font-family:var(--ttl);font-size:13.5px">' + ROT_ETAPA[it.sec] + '</b> ' +
+      '<span style="color:var(--tx3);font-size:12px">· ' + it.n + (it.n === 1 ? ' casa · ' : ' casas · ') +
+      NOTA_ETAPA[it.sec] + '</span></td></tr>';
+    const r = it.r;
+    const d = dineroDe(r), a = avanceDe(r, d), et = etapaDe(r);
+    const url = mapaUrl(r), dir = dirCompleta(r) || sinDato('sin domicilio');
+    const mats = d.materiales;
+    return '<tr>' +
+      '<td><b>' + (esc(valor(r,'FOLIO')) || sinDato('sin folio')) + '</b><br>' +
+        '<span class="etq ' + et + '">' + esc(valor(r,'ESTATUS') || 'sin estatus') + '</span></td>' +
+      '<td>' + esc(ROT_GRUPO[grupoCartera(valor(r,'CARTERA'))] || '') +
+        '<br><span style="font-size:11px;color:var(--tx3)">' + esc(valor(r,'CUADRILLA')) + '</span></td>' +
+      '<td style="min-width:220px">' + (url
+        ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(dirCompleta(r) || 'ver en el mapa') + '</a>'
+        : dir) + '</td>' +
+      '<td>' + (esc(valor(r,'F_DESALOJO')) || sinDato()) + '</td>' +
+      '<td class="n">' + dinT(d.convenio) + '</td>' +
+      '<td class="n">' + dinT(d.hb) +
+        (d.deHB === 'calculado' ? '<br><span style="font-size:10px;color:var(--tx3);font-weight:400">calculado</span>' : '') + '</td>' +
+      '<td style="min-width:210px;font-size:12px">' + (mats.lista.length
+        ? mats.lista.slice(0,5).map(x => (x.cant ? '<b>' + esc(x.cant) + '</b> ' : '') + esc(x.nombre)).join('<br>') +
+          (mats.lista.length > 5 ? '<br><span style="color:var(--tx3)">y ' + (mats.lista.length-5) + ' más</span>' : '')
+        : sinDato('sin tapeo capturado')) + '</td>' +
+      '<td class="n">' + dinT(d.costoMat) + '</td>' +
+      '<td style="min-width:170px">' + chipsCarpetas(r) + '</td>' +
+      '<td style="min-width:110px"><div class="pasos" title="' +
+        (a.falta.length ? esc('Falta: ' + a.falta.join(', ')) : 'completa') + '">' +
+        PASOS.map(p => '<i' + (a.on[p.k] ? ' class="on"' : '') + '></i>').join('') +
+        '<b>' + a.hechos + '/' + a.total + '</b></div></td>' +
+      '</tr>';
+  }).join('') : '<tr><td colspan="' + COLS.length + '" style="text-align:center;padding:34px;color:var(--tx3)">' +
+      'Nada que mostrar con estos filtros.</td></tr>';
+
+  $('tablaPie').innerHTML = '';
+  $('detSub').innerHTML = rows.length
+    ? 'Los cinco cuadros del avance son, en orden: ' +
+      PASOS.map(p => esc(p.r.toLowerCase())).join(' · ') + '. ' +
+      'Verde quiere decir que el dato está en el archivo, no que alguien lo revisó.'
+    : '';
+}
+
+$('busca').oninput = () => { pintarChips(); pintarKPIs(); pintarTabla(); pintarCasas();
+  actualizarContadores(); actualizarBarra(); };
+$('filtroCartera').onchange = $('filtroCuadrilla').onchange = () => refrescarTodo();
+
+/* ---------- copiar y bajar ---------- */
+function tablaPlana(){
+  const rows = ordenar(enJuego(filtradas()));
+  const enc = ['Folio THIQA','Cartera','Fuente','Estatus','Cuadrilla','Domicilio','Liga del domicilio',
+               'Fecha de desalojo','Monto de convenio','Honorarios + bono','Origen de honorarios',
+               'Materiales utilizados','Costo de materiales','Inversión','Carpeta del expediente digital',
+               'Carpeta de materiales de tapeo','Carpeta de evidencias','Avance'];
+  const cuerpo = rows.map(r => {
+    const d = dineroDe(r), a = avanceDe(r, d);
+    return [valor(r,'FOLIO'), ROT_GRUPO[grupoCartera(valor(r,'CARTERA'))] || '', valor(r,'CARTERA'),
+            valor(r,'ESTATUS'), valor(r,'CUADRILLA'), dirCompleta(r), mapaUrl(r),
+            valor(r,'F_DESALOJO'),
+            isNaN(d.convenio) ? '' : d.convenio, isNaN(d.hb) ? '' : d.hb, d.deHB,
+            d.materiales.texto, isNaN(d.costoMat) ? '' : d.costoMat,
+            isNaN(d.inversion) ? '' : d.inversion,
+            carpeta(r,'CARPETA_EXP'), carpeta(r,'CARPETA_MATERIALES'), carpeta(r,'CARPETA_EVIDENCIAS'),
+            a.hechos + '/' + a.total];
+  });
+  return { enc, cuerpo };
+}
+$('copiaTabla').onclick = async () => {
+  const { enc, cuerpo } = tablaPlana();
+  const txt = [enc.join('\t')].concat(cuerpo.map(f => f.map(c => String(c ?? '').replace(/[\t\n]/g,' ')).join('\t'))).join('\n');
+  try { await navigator.clipboard.writeText(txt); toast('Copiada: pégala en Excel o en el correo.'); }
+  catch(e){ toast('El navegador no dejó copiar. Usa "Bajar CSV".', true); }
+};
+$('bajaCsv').onclick = () => {
+  const { enc, cuerpo } = tablaPlana();
+  const cel = c => { const s = String(c ?? ''); return /[";\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; };
+  /* Punto y coma y BOM: es lo que Excel en español abre sin preguntar nada. */
+  const csv = '﻿' + [enc.map(cel).join(';')].concat(cuerpo.map(f => f.map(cel).join(';'))).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
+  a.download = 'casas-recuperadas-thiqa.csv';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Listo, se bajó el CSV.');
+};
+
+/* ============================================================
+   10 · Casa por casa
+   ============================================================ */
+function llave(r){
+  const f = norm(valor(r,'FOLIO')), d = norm(dirCompleta(r));
+  if (f || d) return (f && d) ? f + '|' + d : (f || d);
+  return 'fila' + r.__fila;
+}
+/* Lo que va al reporte: lo palomeado, y si no hay nada palomeado, todo lo que
+   esté en juego. Así no hay que dar un paso extra para imprimir lo obvio. */
+function paraReporte(){
+  const base = enJuego(filtradas());
+  if (!S.sel.size) return ordenar(base);
+  return ordenar(base.filter(r => S.sel.has(llave(r))));
+}
+function pintarCasas(){
+  const rows = ordenar(enJuego(filtradas()));
+  $('casas').innerHTML = rows.length ? rows.map(r => {
+    const d = dineroDe(r), a = avanceDe(r, d), et = etapaDe(r), k = llave(r);
+    const mats = d.materiales;
+    const carps = CAMPOS_CARPETA.map(c => ({ rot: ROT_CARPETA[c], u: carpeta(r,c) }))
+      .concat(S.carpetasExtra.map(c => ({ rot:c.rot, u: carpetaExtra(r, c.col) })))
+      .filter(x => x.u);
+    return '<article class="casa">' +
+      '<div class="hd"><div>' +
+        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">' +
+        '<input type="checkbox" data-k="' + esc(k) + '"' + (S.sel.has(k) ? ' checked' : '') +
+        ' style="width:17px;height:17px;accent-color:var(--nar);cursor:pointer">' +
+        '<span class="fol">' + (esc(valor(r,'FOLIO')) || 'sin folio') + '</span></label>' +
+        '<div style="margin-top:5px"><span class="etq ' + et + '">' +
+          esc(valor(r,'ESTATUS') || 'sin estatus') + '</span> ' +
+        '<span style="font-size:11.5px;color:var(--tx3)">' +
+          esc(ROT_GRUPO[grupoCartera(valor(r,'CARTERA'))] || '') +
+          (valor(r,'CUADRILLA') ? ' · ' + esc(valor(r,'CUADRILLA')) : '') + '</span></div>' +
+      '</div><div class="pasos" title="' + (a.falta.length ? esc('Falta: ' + a.falta.join(', ')) : 'completa') + '">' +
+        PASOS.map(p => '<i' + (a.on[p.k] ? ' class="on"' : '') + '></i>').join('') +
+        '<b>' + a.hechos + '/' + a.total + '</b></div></div>' +
+      '<div class="dir">' + (mapaUrl(r)
+        ? '<a href="' + esc(mapaUrl(r)) + '" target="_blank" rel="noopener">' +
+          (esc(dirCompleta(r)) || 'ver en el mapa') + '</a>'
+        : (esc(dirCompleta(r)) || sinDato('sin domicilio'))) + '</div>' +
+      '<div class="dinero">' +
+        '<div><div class="r">Fecha de desalojo</div><div class="v">' +
+          (esc(valor(r,'F_DESALOJO')) || sinDato()) + '</div></div>' +
+        '<div><div class="r">Monto de convenio</div><div class="v">' + dinT(d.convenio) + '</div></div>' +
+        '<div><div class="r">Honorarios + bono</div><div class="v">' + dinT(d.hb) + '</div></div>' +
+        '<div><div class="r">Costo de materiales</div><div class="v">' + dinT(d.costoMat) + '</div></div>' +
+      '</div>' +
+      '<div class="mats">' + (mats.lista.length
+        ? '<b>Materiales:</b> ' + mats.lista.map(x => (x.cant ? esc(x.cant) + ' ' : '') +
+            esc(x.nombre.toLowerCase())).join(' · ') +
+          (mats.nota ? '<br><span style="color:var(--tx3);font-size:11.5px">' + esc(mats.nota) + '</span>' : '')
+        : '<b>Materiales:</b> ' + sinDato('nada capturado en el control de obra')) +
+        (mats.elementos.length
+          ? '<br><b>Tapeo:</b> ' + esc(mats.elementos.join(' · '))
+          : '') + '</div>' +
+      (carps.length
+        ? '<div class="qrs">' + carps.map(c =>
+            '<figure>' + window.qrSvg(c.u) + '<figcaption>' + esc(c.rot) + '</figcaption></figure>').join('') +
+          '</div>'
+        : '<div class="mats">' + sinDato('el archivo no trae ninguna carpeta de esta casa') + '</div>') +
+      '<div class="fotoBox' + (S.fotoActiva === k ? ' activa' : '') + '" data-foto="' + esc(k) + '">' +
+        (S.fotos[k]
+          ? '<img src="' + esc(S.fotos[k]) + '" alt="Foto del domicilio">'
+          : '<span>Sin foto del domicilio<br>haz clic para elegirla, arrástrala aquí o pégala con Ctrl+V</span>') +
+      '</div>' +
+      '<div class="fotoBar">' +
+        (S.fotos[k] ? '<button data-quitafoto="' + esc(k) + '">Quitar la foto</button>' : '') +
+        '<span>' + (S.fotos[k] ? 'Guardada en este navegador · sale impresa en su ficha'
+                               : 'La foto sale impresa en la ficha de esta casa') + '</span>' +
+      '</div>' +
+      '</article>';
+  }).join('') : '<div class="vacio"><b>Nada que mostrar</b>Afloja los filtros del tablero.</div>';
+
+  for (const cb of $('casas').querySelectorAll('[data-k]'))
+    cb.onchange = () => {
+      if (cb.checked) S.sel.add(cb.dataset.k); else S.sel.delete(cb.dataset.k);
+      actualizarContadores(); actualizarBarra(); pintarSelInfo();
+    };
+
+  /* Tres caminos para la misma foto, porque casi siempre llega por WhatsApp:
+     pegarla con Ctrl+V (el camino corto desde el chat), arrastrarla del
+     escritorio, o buscarla en el disco o en la galería del celular. */
+  for (const box of $('casas').querySelectorAll('[data-foto]')){
+    const k = box.dataset.foto;
+    box.onclick = () => {
+      S.fotoActiva = k;
+      for (const o of $('casas').querySelectorAll('[data-foto]')) o.classList.toggle('activa', o === box);
+      $('fotoArchivo').click();
+    };
+    box.ondragover = e => { e.preventDefault(); box.classList.add('on'); };
+    box.ondragleave = () => box.classList.remove('on');
+    box.ondrop = e => {
+      e.preventDefault(); box.classList.remove('on');
+      S.fotoActiva = k;
+      const f = e.dataTransfer.files[0];
+      if (f) tomarFoto(k, f);
+    };
+  }
+  for (const b of $('casas').querySelectorAll('[data-quitafoto]'))
+    b.onclick = async e => {
+      e.stopPropagation();
+      const k = b.dataset.quitafoto;
+      await ponFoto(k, null).catch(() => {});
+      delete S.fotos[k];
+      pintarCasas(); actualizarBarra();
+      if (vista === 'reporte') pintarPrevia();
+      toast('Se quitó la foto.');
+    };
+  pintarSelInfo();
+}
+$('fotoArchivo').onchange = e => {
+  const f = e.target.files[0];
+  if (f && S.fotoActiva) tomarFoto(S.fotoActiva, f);
+  e.target.value = '';
+};
+/* Pegar con Ctrl+V va al recuadro que se picó al último. Sin esa referencia no
+   hay a qué casa pegarle, y adivinar sería peor que pedirlo. */
+window.addEventListener('paste', e => {
+  if (!S.todas.length) return;
+  const it = [...(e.clipboardData?.items || [])].find(x => /^image\//.test(x.type));
+  if (!it) return;
+  if (!S.fotoActiva){ toast('Primero pica el recuadro de la foto de una casa.', true); return; }
+  e.preventDefault();
+  tomarFoto(S.fotoActiva, it.getAsFile());
+});
+function pintarSelInfo(){
+  const rows = enJuego(filtradas());
+  const conFoto = rows.filter(r => S.fotos[llave(r)]).length;
+  $('selInfo').innerHTML = (S.sel.size
+    ? '<b>' + S.sel.size + '</b> palomeadas de ' + rows.length + ' en la lista.'
+    : 'Sin palomear nada, el reporte lleva las <b>' + rows.length + '</b> de la lista.') +
+    ' · <b>' + conFoto + '</b> con foto.';
+}
+$('selTodas').onclick = () => { for (const r of enJuego(filtradas())) S.sel.add(llave(r));
+  pintarCasas(); actualizarContadores(); actualizarBarra(); };
+$('selNinguna').onclick = () => { S.sel.clear();
+  pintarCasas(); actualizarContadores(); actualizarBarra(); };
+
+/* ============================================================
+   11 · Los documentos
+   ============================================================ */
+const LOGO_HOJA = 'img/thiqa-hoja.png';
+const hoy = () => new Date();
+
+function encabezadoHoja(titulo, sub, der){
+  return '<div class="enc"><div class="marca"><img src="' + LOGO_HOJA + '" alt="THIQA">' +
+    '<div><div class="t">' + esc(titulo) + '</div><div class="s">' + sub + '</div></div></div>' +
+    '<div class="der">' + der + '</div></div>';
+}
+function pieHoja(izq, der){
+  return '<div class="pie"><div>' + izq + '</div><div style="text-align:right;white-space:nowrap">' +
+    der + '</div></div>';
+}
+/* La regla de dinero va impresa en cada documento. Si la hoja circula sola —y
+   circula sola— quien la lea tiene que poder saber qué entró en las sumas. */
+const NOTA_REGLA = 'Sólo suman las casas en <b>Recuperada</b>. Las de <b>Prox. Recuperacion</b> van ' +
+  'contadas aparte y los demás estatus no entran en ninguna suma.';
+
+const COLGROUP = '<colgroup><col style="width:76px"><col style="width:188px"><col style="width:58px">' +
+  '<col style="width:72px"><col style="width:72px"><col style="width:148px"><col style="width:66px">' +
+  '<col style="width:76px"></colgroup>';
+const THEAD_CUENTA = '<thead><tr><th>Folio THIQA</th><th>Domicilio</th><th>Desalojo</th>' +
+  '<th style="text-align:right">Convenio</th><th style="text-align:right">Honorarios + bono</th>' +
+  '<th>Materiales utilizados</th><th style="text-align:right">Costo mat.</th>' +
+  '<th style="text-align:right">Inversión</th></tr></thead>';
+
+function filaCuenta(r){
+  const d = dineroDe(r), m = d.materiales;
+  const na = '<span class="sinDato">—</span>';
+  const dinero = v => isNaN(v) ? na : fmtMoney(v);
+  return '<tr><td class="fol">' + (esc(valor(r,'FOLIO')) || na) + '</td>' +
+    '<td>' + (esc(dirCompleta(r)) || na) + '</td>' +
+    '<td>' + (esc(valor(r,'F_DESALOJO')) || na) + '</td>' +
+    '<td class="n">' + dinero(d.convenio) + '</td>' +
+    '<td class="n">' + dinero(d.hb) + '</td>' +
+    '<td>' + (m.lista.length
+      ? esc(m.lista.map(x => (x.cant ? x.cant + ' ' : '') + x.nombre.toLowerCase()).join(', '))
+      : na) + '</td>' +
+    '<td class="n">' + dinero(d.costoMat) + '</td>' +
+    '<td class="n">' + dinero(d.inversion) + '</td></tr>';
+}
+function seccionCuenta(k, n){
+  return '<tr class="secFila"><td colspan="8" style="background:#EDF2F8;color:#1B3A5C;font-weight:700;' +
+    'font-size:8px;text-transform:uppercase;letter-spacing:.06em;padding:6px;' +
+    'border-left:3px solid #E8892B;border-bottom:1px solid #CFDAE7">' +
+    esc(ROT_ETAPA[k]) + ' · ' + n + (n === 1 ? ' casa · ' : ' casas · ') + esc(NOTA_ETAPA[k]) +
+    '</td></tr>';
+}
+function cifrasCuenta(t, prox){
+  const c = (rot, val, nota, oro) =>
+    '<div class="cifra' + (oro ? ' oro' : '') + '"><div class="r">' + rot + '</div>' +
+    '<div class="v">' + val + '</div><div class="n">' + nota + '</div></div>';
+  return '<div class="cifras">' +
+    c('Casas recuperadas', String(t.n), t.n ? 'entregadas' : 'ninguna') +
+    c('Monto de convenio', sumaT(t.convenio, t.sinConvenio, t.n), t.sinConvenio ? t.sinConvenio + ' sin capturar' : 'completo') +
+    c('Honorarios + bono', sumaT(t.hb, t.sinHB, t.n), t.sinHB ? t.sinHB + ' sin capturar' : 'completo') +
+    c('Costo de materiales', sumaT(t.mat, t.sinMat, t.n), t.sinMat ? t.sinMat + ' sin capturar' : 'completo') +
+    c('Inversión total', fmtCorto(t.inversion), 'de lo que sí está capturado', true) +
+    '</div>' +
+    (prox.n
+      ? '<div class="nota" style="flex:none">Aparte de éstas hay <b>' + prox.n +
+        (prox.n === 1 ? ' casa' : ' casas') + '</b> en <b>Prox. Recuperacion</b> por ' +
+        fmtMoney(prox.convenio) + ' de convenio: tienen convenio firmado pero todavía no se entregan, ' +
+        'así que no están sumadas arriba.</div>'
+      : '');
+}
+
+/* Se pagina midiendo, no contando renglones: un domicilio largo o una lista de
+   materiales de tres líneas ocupan lo que ocupan, y una hoja de tamaño fijo con
+   un número fijo de renglones se desborda o se queda corta. Aquí se van metiendo
+   renglones hasta que el siguiente ya no cabe, y ése abre la hoja que sigue. */
+function armarCuenta(rows){
+  const { items, etapas } = agrupado(rows);
+  const t = totales(rows.filter(r => etapaDe(r) === 'rec'));
+  const prox = totales(rows.filter(r => etapaDe(r) === 'prox'));
+  const car = [...new Set(rows.map(r => ROT_GRUPO[grupoCartera(valor(r,'CARTERA'))]))].filter(Boolean);
+  const sub = 'Programa de Recuperación de Viviendas · <b>' +
+    esc(car.length === 1 ? car[0] : car.length + ' carteras') + '</b>';
+  const der = '<b>' + t.n + (t.n === 1 ? ' casa recuperada' : ' casas recuperadas') + '</b>' +
+    (prox.n ? prox.n + ' próxima' + (prox.n === 1 ? '' : 's') + ' recuperación' +
+      (prox.n === 1 ? '' : 'es') + '<br>' : '') +
+    'Corte al ' + fechaLarga(hoy());
+
+  const medidor = document.createElement('div');
+  medidor.style.cssText = 'position:fixed;left:-99999px;top:0;visibility:hidden;width:900px';
+  document.body.appendChild(medidor);
+
+  const hojas = [];
+  const nuevaHoja = primera => {
+    const h = document.createElement('div');
+    h.className = 'hoja';
+    h.innerHTML = encabezadoHoja('Estado de casas recuperadas', sub, der) +
+      (primera ? cifrasCuenta(t, prox) : '') +
+      '<div class="sec">Detalle por casa' + (primera ? '' : ' (continúa)') + '</div>' +
+      '<div class="tablaZona"><table class="doc">' + COLGROUP + THEAD_CUENTA +
+        '<tbody></tbody></table></div>' +
+      pieHoja(NOTA_REGLA + '<br>Sale del maestro de remates de THIQA. Las cifras en blanco son datos ' +
+        'que todavía no están capturados en el archivo, no ceros.', '<span data-pag></span>');
+    medidor.appendChild(h);
+    hojas.push(h);
+    return h;
+  };
+
+  let i = 0;
+  do {
+    const h = nuevaHoja(hojas.length === 0);
+    const zona = h.querySelector('.tablaZona');
+    const tabla = h.querySelector('table.doc');
+    const tbody = h.querySelector('tbody');
+    let metidas = 0;
+    while (i < items.length){
+      const it = items[i];
+      tbody.insertAdjacentHTML('beforeend',
+        it.sec ? seccionCuenta(it.sec, it.n)
+        : it.sub ? filaSubtotal(it.sub, it.rows, 8, 3,
+            'background:#EDF2F8;border-top:2px solid #1B3A5C;font-weight:700;font-size:9px;padding:7px 6px')
+        : filaCuenta(it.r));
+      if (tabla.scrollHeight > zona.clientHeight){
+        /* Si no cabe ni el primer renglón de la hoja, se deja de todos modos:
+           una fila monstruosa no debe colgar la app en un ciclo sin fin. */
+        if (metidas === 0){ i++; metidas++; break; }
+        tbody.lastElementChild.remove();
+        break;
+      }
+      i++; metidas++;
+    }
+    /* Un encabezado de bloque no se queda solo al pie de la hoja con su bloque
+       empezando en la siguiente: se manda completo a la hoja que sigue. */
+    while (tbody.lastElementChild && tbody.lastElementChild.classList.contains('secFila')){
+      tbody.lastElementChild.remove();
+      i--; metidas--;
+    }
+    if (metidas <= 0){ if (hojas.length > 1) hojas.pop().remove(); break; }
+  } while (i < items.length);
+
+  hojas.forEach((h,ix) => {
+    const p = h.querySelector('[data-pag]');
+    if (p) p.textContent = 'Hoja ' + (ix+1) + ' de ' + hojas.length;
+  });
+  hojas.forEach(h => h.remove());
+  medidor.remove();
+  return hojas;
+}
+
+/* ---------- una hoja por casa ---------- */
+function armarFichas(rows){
+  return rows.map(r => {
+    const d = dineroDe(r), a = avanceDe(r, d), m = d.materiales;
+    const na = '<span class="sinDato">—</span>';
+    const dato = (rot, val, oro) =>
+      '<div class="campo"><span class="rot">' + rot + '</span><div class="dato' +
+      (oro ? ' oro' : '') + (val ? '' : ' vacio') + '">' + (val || '') + '</div></div>';
+    const dinero = v => isNaN(v) ? '' : fmtMoney(v);
+
+    const carps = CAMPOS_CARPETA.map(c => ({ rot: ROT_CARPETA[c], u: carpeta(r,c) }))
+      .concat(S.carpetasExtra.map(c => ({ rot:c.rot, u: carpetaExtra(r, c.col) })));
+    const conQR = carps.filter(x => x.u);
+    const mapa = mapaUrl(r);
+
+    const h = document.createElement('div');
+    h.className = 'hoja';
+    h.innerHTML =
+      encabezadoHoja(TITULO_FICHA[etapaDe(r)] || 'Ficha de casa',
+        'Programa de Recuperación de Viviendas · <b>' +
+          esc(ROT_GRUPO[grupoCartera(valor(r,'CARTERA'))] || 'sin cartera') + '</b>',
+        '<b>' + (esc(valor(r,'FOLIO')) || 'sin folio') + '</b>' +
+        esc(valor(r,'ESTATUS') || 'sin estatus') + '<br>' + fechaLarga(hoy())) +
+
+      '<div class="caja"><div class="campo"><span class="rot">Domicilio</span>' +
+      '<div class="dato' + (dirCompleta(r) ? '' : ' vacio') + '">' + esc(dirCompleta(r)) + '</div></div>' +
+      '<div class="r3">' + dato('Cuadrilla', esc(valor(r,'CUADRILLA'))) +
+        dato('Ruta', esc(valor(r,'RUTA'))) + dato('Fuente', esc(valor(r,'CARTERA'))) + '</div></div>' +
+
+      '<div class="sec">El dinero de la recuperación</div>' +
+      '<div class="r4">' +
+        dato('Monto de convenio', dinero(d.convenio), true) +
+        dato('Honorarios + bono', dinero(d.hb), true) +
+        dato('Costo de materiales', dinero(d.costoMat)) +
+        dato('Inversión total', dinero(d.inversion), true) +
+      '</div>' +
+      '<div class="r4">' +
+        dato('Fecha de desalojo', esc(valor(r,'F_DESALOJO'))) +
+        dato('Fecha de convenio', esc(valor(r,'F_CONVENIO'))) +
+        dato('Tope de la casa', dinero(d.tope)) +
+        dato('Ahorro contra el tope', dinero(d.ahorro)) +
+      '</div>' +
+      '<div class="nota">' +
+        (d.deHB === 'archivo' ? 'Los honorarios y el bono salen tal cual del archivo.'
+         : d.deHB === 'calculado'
+           ? 'El bono se calculó al ' + AJ.bonoPct + '% del ahorro contra el tope de ' + fmtMoney(d.tope) +
+             (d.cartaPoder ? ' (tope con carta poder)' : '') + '; el honorario fijo, de los ajustes.'
+           : 'Los honorarios y el bono todavía no se pueden determinar: falta capturarlos en el archivo ' +
+             'o poner el honorario fijo en Ajustes.') +
+      '</div>' +
+
+      '<div class="sec">Materiales utilizados en el tapeo</div>' +
+      (m.lista.length
+        ? '<ul class="listaMat">' + m.lista.map(x =>
+            '<li><span>' + esc(x.nombre) + '</span><b>' + (esc(x.cant) || '—') + '</b></li>').join('') + '</ul>'
+        : '<div class="nota">Esta casa no tiene tapeo capturado' +
+          (S.obra.length ? ' en el control de obra que se subió.' : ': no se subió el Excel de tapeados.') +
+          '</div>') +
+      (m.elementos.length ? '<div class="nota"><b>Elementos tapeados:</b> ' + esc(m.elementos.join(' · ')) + '</div>' : '') +
+      (m.nota ? '<div class="nota">' + esc(m.nota) + '</div>' : '') +
+
+      '<div class="sec">Avance de la recuperación</div>' +
+      '<div class="avance">' + PASOS.map(p =>
+        '<div class="paso' + (a.on[p.k] ? ' si' : '') + '"><div class="p">' + esc(p.r) + '</div>' +
+        '<div class="q">' + (a.on[p.k] ? 'Sí' : 'Falta') + '</div>' +
+        '<div class="e">' + esc(p.e) + '</div></div>').join('') + '</div>' +
+
+      '<div class="sec">Expediente y evidencias</div>' +
+      '<div class="qrFila">' +
+        (mapa ? '<div class="qrCaja">' + window.qrSvg(mapa) +
+          '<div class="cap">Domicilio en el mapa</div></div>' : '') +
+        conQR.slice(0,3).map(c => '<div class="qrCaja">' + window.qrSvg(c.u) +
+          '<div class="cap">' + esc(c.rot) + '</div></div>').join('') +
+        '<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">' +
+          '<span class="rot">Carpetas de esta casa</span>' +
+          '<div class="cbs">' + carps.map(c =>
+            '<div><span class="cb' + (c.u ? ' on' : '') + '"></span><span>' + esc(c.rot) + '</span></div>').join('') +
+          '</div>' +
+          (conQR.length
+            ? '<div class="nota" style="margin-top:2px">Escanea el código con la cámara del celular y ' +
+              'se abre la carpeta en Drive, sin buscar el folio en el Sheet.</div>'
+            : '<div class="nota" style="margin-top:2px">El archivo no trae ninguna carpeta de esta casa, ' +
+              'así que no hay código que escanear.</div>') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="sec">Foto del domicilio</div>' +
+      '<div class="foto">' + (S.fotos[llave(r)]
+        ? '<img src="' + esc(S.fotos[llave(r)]) + '" alt="">'
+        : '<span>Pega aquí la foto impresa</span>') + '</div>' +
+
+      pieHoja('Sale del maestro de remates de THIQA. Los recuadros con raya son datos que todavía no ' +
+        'están capturados. El nombre del ocupante no se lee ni se imprime.',
+        esc(valor(r,'FOLIO') || '') + '<br>' + fmtFecha(hoy()));
+    return h;
+  });
+}
+
+function documentos(){
+  const rows = paraReporte();
+  if (!rows.length) return [];
+  return S.doc === 'cuenta' ? armarCuenta(rows) : armarFichas(rows);
+}
+const TOPE_PREVIA = 12;
+function pintarPrevia(){
+  const hojas = documentos();
+  const box = $('previa');
+  box.innerHTML = '';
+  /* La vista previa se corta a doce hojas. Con 114 fichas y sus códigos son
+     cuatrocientos dibujos en pantalla que no se van a ver y sí se sienten; el
+     PDF sale completo de todos modos. */
+  const muestra = hojas.slice(0, TOPE_PREVIA);
+  for (const h of muestra) box.appendChild(h);
+  box.style.transform = 'scale(' + S.zoom + ')';
+  box.style.height = muestra.length ? (muestra.length * (1056 + 18) * S.zoom) + 'px' : '0';
+  box.style.width = '816px';
+  $('previaInfo').innerHTML = hojas.length
+    ? '<b>' + hojas.length + (hojas.length === 1 ? ' hoja' : ' hojas') + '</b> · ' +
+      (S.doc === 'cuenta' ? 'estado de casas recuperadas' : 'una por casa') +
+      (hojas.length > muestra.length
+        ? '<br>Aquí abajo se ven las primeras <b>' + muestra.length +
+          '</b> para que la página no se atore; al imprimir salen las <b>' + hojas.length + '</b>.'
+        : '')
+    : 'Nada seleccionado.';
+  $('previaSub').innerHTML = S.doc === 'cuenta'
+    ? 'El estado de cuenta se pagina solo: cada hoja lleva los renglones que caben, y los totales van en la última.'
+    : 'Una hoja por casa, en el orden en que está la tabla del tablero.';
+  for (const b of [['docCuenta','cuenta'], ['docFicha','ficha']])
+    $(b[0]).style.borderColor = S.doc === b[1] ? 'var(--nar)' : 'var(--brd)';
+}
+$('docCuenta').onclick = () => { S.doc = 'cuenta'; guardar(); pintarPrevia(); actualizarBarra(); };
+$('docFicha').onclick  = () => { S.doc = 'ficha';  guardar(); pintarPrevia(); actualizarBarra(); };
+$('zoom').oninput = e => { S.zoom = +e.target.value / 100; pintarPrevia(); };
+$('verPrevia').onclick = () => { irA('reporte'); };
+
+/* Lo que se va a imprimir se arma cada vez, no se recicla. Antes se rearmaba
+   sólo si el cajón estaba vacío, y entonces cambiar de documento y volver a
+   imprimir sacaba el PDF anterior: seis hojas del estado de cuenta en lugar de
+   las fichas. */
+function armarImpresion(){
+  const hojas = documentos();
+  const caja = $('impresion');
+  caja.innerHTML = '';
+  for (const h of hojas) caja.appendChild(h);
+  return hojas.length;
+}
+let listoParaImprimir = false;
+function imprimir(){
+  const n = armarImpresion();
+  if (!n){ toast('No hay nada que imprimir.', true); return; }
+  listoParaImprimir = true;
+  const titulo = document.title;
+  document.title = (S.doc === 'cuenta' ? 'Estado de casas recuperadas THIQA' : 'Fichas de casas THIQA') +
+    ' (' + n + ')';
+  toast('Se abrió el cuadro de impresión: elige "Guardar como PDF", márgenes Ninguno y gráficos de fondo.');
+  setTimeout(() => { window.print(); document.title = titulo; }, 260);
+}
+$('imprimir').onclick = imprimir;
+/* Ctrl+P arma solo lo que esté seleccionado, para que el atajo saque el mismo
+   PDF que el botón en vez de imprimir la interfaz. */
+window.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')){
+    if (!S.todas.length) return;
+    e.preventDefault();
+    imprimir();
+  }
+});
+/* Y si alguien imprime desde el menú del navegador, se arma igual. */
+window.addEventListener('beforeprint', () => {
+  if (!listoParaImprimir && S.todas.length) armarImpresion();
+});
+/* Al cerrar el cuadro de impresión se suelta: ciento catorce hojas con sus
+   códigos son mucho DOM para dejarlo cargado sin necesidad. */
+window.addEventListener('afterprint', () => {
+  listoParaImprimir = false;
+  /* Con retraso a propósito: no todos los navegadores acaban de dibujar el PDF
+     antes de avisar que la impresión terminó, y vaciar el cajón un instante
+     antes saldría con hojas en blanco. */
+  setTimeout(() => { if (!listoParaImprimir) $('impresion').innerHTML = ''; }, 1500);
+});
+
+/* ============================================================
+   12 · Ajustes
+   ============================================================ */
+function pintarAjustes(){
+  $('ajTope').value = AJ.tope;
+  $('ajTopeCP').value = AJ.topeCP;
+  $('ajBono').value = AJ.bonoPct;
+  $('ajHonorario').value = (AJ.honorario === null || AJ.honorario === '') ? '' : AJ.honorario;
+  const sinHon = AJ.honorario === null || AJ.honorario === '';
+  const hayCol = S.map['HONORARIO_FIJO'] !== undefined || S.map['HON_BONO'] !== undefined;
+  $('avisoHonorario').innerHTML = hayCol
+    ? '<div class="aviso ok"><b>Tu archivo trae los honorarios en una columna</b>, así que se usan ' +
+      'de ahí y esto no hace falta. En el tablero las cifras que se calcularon salen marcadas ' +
+      '<i>calculado</i>; las que vienen del archivo, sin marca.</div>'
+    : sinHon
+      ? '<div class="aviso ojo"><b>Falta el honorario fijo, y sin él los honorarios salen incompletos.</b><br>' +
+        'El bono sí se calcula solo —es el ' + AJ.bonoPct + '% del ahorro contra el tope—, pero el honorario ' +
+        'fijo por casa recuperada no se puede adivinar y por eso no lo traigo puesto: una cifra inventada ' +
+        'en un reporte de inversionistas es peor que un hueco. Captúralo aquí y la columna ' +
+        '<i>Honorarios + bono</i> se completa en todas las casas.</div>'
+      : '<div class="aviso ok"><b>Con ' + fmtMoney(AJ.honorario) + ' de honorario fijo</b> más el bono del ' +
+        AJ.bonoPct + '% del ahorro, la columna <i>Honorarios + bono</i> sale completa. En el reporte queda ' +
+        'dicho que la cifra se calculó, no que venía en el archivo.</div>';
+}
+function leerAjustes(){
+  const n = (id, def) => { const v = parseFloat($(id).value); return isNaN(v) ? def : v; };
+  AJ.tope = n('ajTope', AJ_DEF.tope);
+  AJ.topeCP = n('ajTopeCP', AJ_DEF.topeCP);
+  AJ.bonoPct = n('ajBono', AJ_DEF.bonoPct);
+  const h = $('ajHonorario').value.trim();
+  AJ.honorario = h === '' ? null : (isNaN(parseFloat(h)) ? null : parseFloat(h));
+  guardar();
+  pintarAjustes();
+  refrescarTodo();
+}
+for (const id of ['ajTope','ajTopeCP','ajBono','ajHonorario']) $(id).onchange = leerAjustes;
+
+/* Cada fuente del archivo con su grupo, y se puede mover. Si mañana llega
+   "PIC_QNO-ZAPOPAN" va a aparecer aquí sola, no se va a perder en "Otras" sin
+   que nadie se dé cuenta. */
+function pintarGrupos(){
+  const fuentes = [...new Set(S.todas.map(r => valor(r,'CARTERA')).filter(Boolean))].sort();
+  if (!fuentes.length){
+    $('grupos').innerHTML = '<p style="margin:0;color:var(--tx3);font-size:13px">' +
+      'Sube el maestro y aquí aparecen las fuentes que trae.</p>';
+    return;
+  }
+  const ops = ORDEN_GRUPO.filter(k => k !== 'SIN');
+  $('grupos').innerHTML = fuentes.map(f => {
+    const n = norm(f), g = grupoCartera(f);
+    const cuantas = S.todas.filter(r => valor(r,'CARTERA') === f).length;
+    return '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 0;' +
+      'border-bottom:1px solid var(--brd)">' +
+      '<div style="flex:1 1 240px"><b style="font-family:var(--ttl)">' + esc(f) + '</b>' +
+      '<span style="color:var(--tx3);font-size:12px"> · ' + cuantas +
+      (cuantas === 1 ? ' casa' : ' casas') + '</span></div>' +
+      '<select data-fuente="' + esc(n) + '" style="flex:0 1 220px;min-height:38px;padding:8px 11px">' +
+      ops.map(k => '<option value="' + k + '"' + (g === k ? ' selected' : '') + '>' +
+        esc(ROT_GRUPO[k]) + '</option>').join('') + '</select></div>';
+  }).join('');
+  for (const sel of $('grupos').querySelectorAll('[data-fuente]'))
+    sel.onchange = () => { AJ.grupos[sel.dataset.fuente] = sel.value; guardar(); refrescarTodo(); };
+}
+
+/* ============================================================
+   13 · Navegación, contadores y barra
+   ============================================================ */
+const links = [...document.querySelectorAll('.navlink')];
+function moverPill(b){
+  const p = $('navPill');
+  p.style.transform = 'translateY(' + (b.offsetTop + (b.offsetHeight - 46) / 2) + 'px)';
+  p.style.opacity = '1';
+}
+let vista = 'datos';
+function irA(v, callado){
+  const b = links.find(x => x.dataset.v === v);
+  if (!b || b.disabled) return;
+  vista = v;
+  for (const l of links) l.dataset.on = l.dataset.v === v ? '1' : '0';
+  for (const s of document.querySelectorAll('.vista')) s.dataset.on = '0';
+  const sec = $('v' + v.charAt(0).toUpperCase() + v.slice(1));
+  if (sec) sec.dataset.on = '1';
+  moverPill(b);
+  if (v === 'reporte') pintarPrevia();
+  if (v === 'ajustes'){ pintarAjustes(); pintarGrupos(); }
+  actualizarBarra();
+  if (!callado) window.scrollTo({ top:0, behavior:'smooth' });
+}
+for (const b of links) b.onclick = () => irA(b.dataset.v);
+window.addEventListener('resize', () => {
+  const b = links.find(x => x.dataset.v === vista);
+  if (b) moverPill(b);
+});
+
+function actualizarContadores(){
+  $('ctFilas').textContent = S.todas.length;
+  $('ctRec').textContent = porEtapa(filtradas()).rec.length;
+  $('ctSel').textContent = S.sel.size || enJuego(filtradas()).length;
+}
+function actualizarBarra(){
+  const rows = paraReporte();
+  const hay = S.todas.length > 0 && rows.length > 0;
+  $('barra').dataset.on = hay ? '1' : '0';
+  $('imprimir').disabled = !hay;
+  if (!hay) return;
+  const g = porEtapa(rows);
+  $('barraInfo').innerHTML = '<b>' + rows.length + (rows.length === 1 ? ' casa' : ' casas') + '</b> en el ' +
+    (S.doc === 'cuenta' ? 'estado de cuenta' : 'juego de fichas') +
+    (S.sel.size ? ' (palomeadas)' : ' (todas las de la lista)') +
+    (g.prox.length ? ' · ' + g.prox.length + ' de ellas son próximas recuperaciones, contadas aparte' : '') +
+    (g.fuera.length ? ' · ' + g.fuera.length + ' fuera de toda suma' : '');
+}
+function refrescarTodo(){
+  const hay = S.todas.length > 0;
+  for (const b of links)
+    if (['tablero','casas','reporte'].indexOf(b.dataset.v) >= 0) b.disabled = !hay;
+  if (!hay){ actualizarContadores(); actualizarBarra(); return; }
+  pintarFiltros();
+  pintarKPIs();
+  pintarTabla();
+  pintarCasas();
+  pintarGrupos();
+  pintarAjustes();
+  actualizarContadores();
+  actualizarBarra();
+  if (vista === 'reporte') pintarPrevia();
+  $('tabSub').innerHTML = 'El estatus de la recuperación, casa por casa y por cartera. ' +
+    'Del maestro salieron <b>' + S.todas.length + ' casas</b>' +
+    (S.obra.length ? ' y del control de obra <b>' + S.obra.length + ' viviendas con tapeo</b>' : '') + '.';
+}
+
+/* ---------- tema ---------- */
+function ponTema(t){
+  document.documentElement.dataset.theme = t;
+  $('temaTxt').textContent = t === 'oscuro' ? 'Claro' : 'Oscuro';
+  guardar();
+}
+$('temaBtn').onclick = () =>
+  ponTema(document.documentElement.dataset.theme === 'oscuro' ? 'claro' : 'oscuro');
+
+/* ---------- arranque ---------- */
+(function inicio(){
+  const g = leerGuardado();
+  if (g.aj) AJ = Object.assign({}, AJ_DEF, g.aj, { grupos: g.aj.grupos || {} });
+  if (g.doc === 'cuenta' || g.doc === 'ficha') S.doc = g.doc;
+  ponTema(g.tema === 'oscuro' ? 'oscuro' : 'claro');
+  leerFotos().then(f => {
+    S.fotos = f;
+    const n = Object.keys(f).length;
+    if (n && S.todas.length) pintarCasas();
+    if (n && !S.todas.length)
+      aviso('avisoCarga','info','<b>Tengo guardadas ' + n +
+        (n === 1 ? ' foto de domicilio' : ' fotos de domicilios') + ' de la última vez.</b><br>' +
+        'Vuelve a subir el maestro y reaparecen solas, atadas a su casa: no hay que volver a ponerlas.');
+  });
+  pintarAjustes();
+  pintarGrupos();
+  refrescarTodo();
+  irA('datos', true);
+  requestAnimationFrame(() => moverPill(links[0]));
+  if (typeof DecompressionStream === 'undefined')
+    aviso('avisoCarga','ojo','<b>Este navegador no puede abrir archivos .xlsx.</b><br>' +
+      'Le falta la parte que descomprime, que es lo que usa la app para leer el Excel sin librerías. ' +
+      'Ábrela con Google Chrome o Microsoft Edge.');
+})();
+
+})();
+</script>
+</body>
+</html>
