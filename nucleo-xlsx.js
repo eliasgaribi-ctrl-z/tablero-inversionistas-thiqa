@@ -74,7 +74,17 @@ const XLSXReader = (() => {
   }
 
   const BUILTIN_DATE = new Set([14,15,16,17,18,19,20,21,22,27,30,36,45,46,47,50,57]);
-  const serialToDate = v => new Date(Math.round((v - 25569) * 86400000));
+  /* El número de serie de Excel es un día del calendario, no un instante: el
+     45901 es "1 de septiembre", punto. Armar la fecha en UTC y luego leerla con
+     getDate() —que es hora local— la corría un día hacia atrás en cualquier huso
+     al oeste de Greenwich, México incluido: un desalojo del día 1 salía impreso
+     el último día del mes anterior. Se arma en local para que el día que se lee
+     sea el día que trae el archivo, en el huso que sea. */
+  const serialToDate = v => {
+    const u = new Date(Math.round((v - 25569) * 86400000));
+    return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate(),
+                    u.getUTCHours(), u.getUTCMinutes(), u.getUTCSeconds());
+  };
 
   async function parse(buffer){
     const zip = await unzip(buffer);

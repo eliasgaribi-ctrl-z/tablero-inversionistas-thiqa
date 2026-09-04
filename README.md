@@ -35,24 +35,61 @@ navegador y ahí se queda.
 
 ## 🚀 Usar la app
 
+Para el inversionista son dos pasos:
+
 1. Entra a **[eliasgaribi-ctrl-z.github.io/tablero-inversionistas-thiqa](https://eliasgaribi-ctrl-z.github.io/tablero-inversionistas-thiqa/)**
-2. Pícale a **Sincronizar con el maestro** y las casas llegan solas. La primera vez hay que
-   publicar el script una única vez — está abajo, en [Sincronizar con el
-   maestro](#-sincronizar-con-el-maestro).
-   *O bien*, si prefieres no publicar nada: baja el maestro con **Archivo → Descargar → Microsoft
-   Excel (.xlsx)** y súbelo. Descárgalo, no lo copies a mano: es la descarga la que trae las ligas
-   de las carpetas de Drive colgadas de cada celda.
-3. Si tienes a mano el **Excel de tapeados** del área de obras, súbelo también. De ahí salen los
-   materiales utilizados y su costo — el maestro no los trae, y ese archivo sí se sube a mano.
-4. Captura el **honorario fijo** en Ajustes la primera vez. El bono se calcula solo; el honorario
-   fijo no se adivina.
-5. El tablero abre en **PIC**. Infonavit está en la pestaña de al lado.
-6. De ahí a **Reporte** para imprimir o guardar el PDF (`Ctrl/Cmd + P` también sirve, y arma lo
-   mismo que el botón).
+2. Pícale a **Traer las casas del maestro**. Eso es todo: no hay nada que capturar, ni que bajar,
+   ni que subir. El botón sirve cuantas veces quieras y cada vez vuelve a leer el maestro tal como
+   está en ese momento — la sincronización pasa cuando alguien la pide, no en un horario.
+
+Se abre en el **Resumen**: cuántas casas hay, de qué cartera y en qué va cada una. De ahí,
+**Tablero** para las cifras de dinero y **Reporte** para imprimir o guardar el PDF (`Ctrl/Cmd + P`
+también sirve, y arma lo mismo que el botón).
+
+Para que ese botón funcione hay que hacer **dos cosas una sola vez en la vida** — no las repite
+nadie más después:
+
+- **Publicar la página**, que es lo que hace que el enlace de arriba exista.
+  Está en [Publicar la página](#-publicar-la-página).
+- **Publicar el script y pegar su liga en `config.js`**, que es lo que hace que el botón traiga
+  datos. Está en [Sincronizar con el maestro](#-sincronizar-con-el-maestro).
+
+Dos cosas siguen siendo a mano, y están plegadas en *«¿Prefieres subir los archivos a mano?»*:
+
+- El **Excel de tapeados** del área de obras. De ahí salen los materiales utilizados y su costo —
+  el maestro no los trae, así que ése sí se sube a mano.
+- El **maestro en `.xlsx`**, por si el script no contesta. Bájalo con **Archivo → Descargar →
+  Microsoft Excel (.xlsx)**; descárgalo, no lo copies a mano, porque es la descarga la que trae
+  las ligas de las carpetas de Drive colgadas de cada celda.
+
+Y el **honorario fijo** se captura en Ajustes la primera vez: el bono se calcula solo, el honorario
+fijo no se adivina.
 
 Hay dos archivos de ejemplo en [`ejemplo/`](ejemplo/) para probar la app sin datos reales.
 Los domicilios, los folios y los montos son inventados; lo que sí reproducen es la forma del
 archivo verdadero, con sus mañas.
+
+## 🌐 Publicar la página
+
+**Si el enlace de arriba no abre nada, es esto.** Un repositorio con un `index.html` no se publica
+solo: GitHub sirve la página sólo cuando se lo pides, y mientras no lo hagas el enlace no existe y
+lo único que se ve del proyecto es el código.
+
+Se prende una vez, en el repositorio:
+
+**Settings → Pages → Build and deployment → Source → GitHub Actions**
+
+Con eso, el flujo [`.github/workflows/pages.yml`](.github/workflows/pages.yml) que ya viene en el
+repositorio se encarga del resto: cada vez que algo cambie en `main`, vuelve a publicar solo. El
+enlace queda en `https://<usuario>.github.io/tablero-inversionistas-thiqa/`, y en **Actions** se ve
+cada publicación con su palomita.
+
+> También sirve **Source → Deploy from a branch**, con `main` y la carpeta `/ (root)`. Es el camino
+> viejo y funciona igual; el flujo de arriba se prefiere porque deja rastro de cada publicación y
+> avisa cuando algo falla, en lugar de fallar en silencio.
+
+El archivo `.nojekyll` que está en la raíz también hace falta y ya está puesto: sin él GitHub
+intenta procesar la carpeta con Jekyll y se come los archivos que empiezan con guion bajo.
 
 ## 📋 Los datos que salen
 
@@ -77,11 +114,14 @@ archivo.
 
 - **Un botón que trae las casas del maestro**, sin bajar el Excel ni pasar por Drive. Con un
   script publicado una sola vez en el Sheet — y que manda nada más las columnas del tablero.
+- **Un resumen de todo el programa**, no sólo de lo recuperado: cuántas casas hay por cartera y
+  cuántas van en cada uno de los ocho estatus de ruta del maestro, con su barra de avance.
 - **Separa PIC de Infonavit sin que se lo digas.** El maestro escribe la cartera con su nombre
   largo —`PIC_QNO-TLAJO`, `PRV_INFVT-_TLAJO`, `CART_SOJI_TLAJO`— y el tablero las agrupa: PIC,
-  Infonavit (donde entra también SOJI, que es Soluciones Jurídicas Infonavit), Bancaria y Otras.
-  Cuando llegue una cartera nueva va a aparecer sola en Ajustes, con su nombre, y ahí se le dice a
-  qué grupo va. **Ninguna cartera se queda fuera de las cuentas sin avisar.**
+  Infonavit (donde entra también SOJI, que es Soluciones Jurídicas Infonavit) y Otras. Cuando
+  llegue una cartera nueva va a aparecer sola en Ajustes, con su nombre, y ahí se le dice a qué
+  grupo va. **Ninguna cartera se queda fuera de las cuentas sin avisar** — y la que se apague a
+  propósito sale dicha con su número en el Resumen.
 - **Lee el Excel sin librerías ni internet.** Un `.xlsx` es un ZIP de XML y aquí se abre a mano,
   con lo que ya trae el navegador. Es lo que permite que todo sea un archivo estático.
 - **Conserva las ligas del Sheet.** Las carpetas de Drive y los mapas no viven en la celda: cuelgan
@@ -99,6 +139,44 @@ archivo.
 - **Copiar la tabla** al portapapeles para pegarla en un correo o en Excel, y **bajar el CSV** con
   punto y coma y BOM, que es lo que Excel en español abre sin preguntar nada.
 - **Modo oscuro**, y todo lo que ajustes se recuerda en tu navegador.
+
+## 🧭 El resumen del programa
+
+El tablero contesta *«¿cuánto llevamos invertido?»*. El **Resumen** contesta la otra pregunta, la
+que trae dirección: *«¿cuántas casas hay, de quién son y en qué van?»*. Es la primera pantalla
+después de traer las casas.
+
+Trae seis cifras de un vistazo —casas en el programa, recuperadas, próximas a recuperar, en ruta,
+pendientes por asignar y detenidas—, una tabla de **cartera por estatus** donde cada casa cuenta
+una sola vez (los renglones suman el total de su cartera, las columnas el total del programa), y
+una barra de avance por cartera.
+
+Aquí **sí** entran las casas que no suman dinero. No es una contradicción con la regla del
+programa: la regla dice qué se puede sumar en pesos, y en el Resumen no se suman pesos, se cuentan
+casas. Por eso también es la única pantalla que **no** respeta los filtros del Tablero — ni la
+pestaña de cartera, ni el buscador, ni las casillas de estatus. Un total que cambia según dónde se
+quedó el clic no es un total.
+
+Los ocho estatus del catálogo del maestro salen con su nombre: *Recuperada*, *Prox. Recuperacion*,
+*En ruta*, *Pendiente por Asignar*, *Negación Ocupante*, *Oposición - 3er Interesado*, *Reciclada*
+y *Cartera Bloqueada*. Si el maestro trae uno escrito de otra forma, cae en **Otro estatus** con su
+texto tal cual y el Resumen lo dice, en lugar de tragárselo.
+
+### La cartera de Bancarios está apagada
+
+**BNC_HSBC-TLAJO no se muestra.** No tiene pestaña, no entra en ninguna suma y no sale en los
+documentos. Está apagada a propósito en [`config.js`](config.js), en la lista `CARTERAS_OCULTAS`,
+porque este tablero es de las casas que se recuperan para los inversionistas y esa cartera no va en
+ese reporte.
+
+Apagada no es desaparecida: el Resumen dice cuántas casas se dejaron fuera y de qué cartera son, y
+el aviso de sincronizar también. Un total al que le faltan casas sin avisar es un total equivocado.
+
+Para volver a prenderla, deja la lista vacía:
+
+```js
+CARTERAS_OCULTAS: [],
+```
 
 ## 🗂️ PIC al frente, Infonavit en su pestaña
 
@@ -129,16 +207,41 @@ cartera nueva, aparece con su nombre en Ajustes para decirle a qué grupo va, en
 </div>
 
 Hay un botón que trae las casas directo del Sheet, sin bajar el Excel. Necesita publicar una vez el
-archivo [`apps-script/Sincronizar.gs`](apps-script/Sincronizar.gs) en el Apps Script del maestro:
+archivo [`apps-script/Sincronizar.gs`](apps-script/Sincronizar.gs).
 
-1. En el maestro: **Extensiones → Apps Script**, archivo nuevo, y pegas `Sincronizar.gs`.
-2. Cambias la `CLAVE` de arriba por una tuya, larga.
-3. **Implementar → Nueva implementación → Aplicación web**, con *Ejecutar como: **Yo*** y *Quién
+> ### ⚠️ Va en un proyecto aparte, **no** pegado al maestro
+>
+> El maestro ya tiene su propio Apps Script —el de la página de carga de expedientes— y **ése ya
+> define un `doGet`**. Dos `doGet` en el mismo proyecto no conviven: Apps Script se queda con uno y
+> el otro deja de existir sin decir nada. Pegar este archivo ahí rompería la página de carga, o
+> haría que el tablero nunca reciba datos, y en los dos casos sin un error que lo explique.
+>
+> Por eso este script entra por su propia puerta y lee el maestro **por su ID**. No necesita estar
+> pegado al Sheet; necesita que quien lo publique tenga acceso al Sheet, que es otra cosa.
+
+1. En [script.google.com](https://script.google.com) → **Nuevo proyecto**, firmado con la cuenta
+   que tiene acceso al maestro. Le pones de nombre `RMV — Sincronizar tablero` y pegas
+   `Sincronizar.gs`.
+2. Cambias la `CLAVE` de arriba por una tuya, larga. **Mientras no la cambies el script no contesta
+   nada**, a propósito: la de fábrica está escrita en este repositorio y la sabe cualquiera.
+3. Corres una vez la función `probar` para **autorizarlo**. Google pide permiso para leer tus hojas
+   de cálculo y hay que dárselo; en la pantalla de *«Google no ha verificado esta aplicación»* vas a
+   *Configuración avanzada → Ir a (nombre del proyecto)*. Es tu propio script: esa pantalla sale
+   siempre con los que uno escribe. Este paso es el que se salta todo el mundo, y sin él la
+   implementación contesta una página de inicio de sesión en vez de datos.
+4. **Implementar → Nueva implementación → Aplicación web**, con *Ejecutar como: **Yo*** y *Quién
    tiene acceso: **Cualquier usuario***. Copias la dirección que termina en `/exec`.
-4. En el tablero: **Ajustes**, pegas la dirección y la clave, y le das a **Probar la liga** — te
-   dice de una vez si funciona y cuántas casas ve, sin traerse nada.
+5. Pegas esa dirección y la clave en [`config.js`](config.js), en `SYNC_URL` y `SYNC_KEY`, y subes
+   el archivo. **Ese es el paso que vuelve el tablero un botón:** a partir de ahí nadie más captura
+   nada, en ningún navegador.
 
-Después de eso, sincronizar es un clic.
+Después de eso, sincronizar es un clic — y sirve cuantas veces se pida.
+
+> Si prefieres **no** dejar la liga en el repositorio, déjala vacía en `config.js` y pégala en
+> **Ajustes** dentro del tablero, donde el botón **Probar la liga** te dice de una vez si funciona
+> y cuántas casas ve, sin traerse nada. Lo que cambia es que entonces hay que hacerlo una vez en
+> cada navegador que abra la página, y deja de ser un botón para el que llega de fuera. Los pros y
+> los contras están escritos completos arriba de `config.js`.
 
 > **Guardar no es publicar.** Si algún día editas el script, hay que hacer *Implementar →
 > Administrar implementaciones → editar → **Nueva versión***. Sin eso el tablero sigue recibiendo
@@ -178,10 +281,24 @@ día del mes anterior.
 
 Es la única opción que sirve, porque una página estática no puede firmarse con Google. Eso significa
 que **quien tenga la dirección y la clave puede leer esas columnas** — no el Sheet, sólo lo que el
-script manda. Por eso la clave no es adorno (sin ella el script no contesta nada), del maestro sale
-lo mínimo y nunca datos de personas, y la dirección y la clave **no van en el repositorio**: viven
-en el navegador de quien usa el tablero. Si se te salen de las manos, cambias la `CLAVE`, publicas
-nueva versión, y la anterior deja de servir en ese momento.
+script manda.
+
+Y aquí hay que ser claros, porque es una decisión y no un descuido: **para que el tablero sea un
+botón, la dirección y la clave tienen que ir en `config.js`, que es público.** No existe manera de
+esconder una contraseña en una página estática; si el inversionista no captura nada, es porque la
+página ya la trae. Lo que se puede hacer es que lo que quede expuesto sea lo mínimo, y eso ya está
+hecho:
+
+- Del maestro sale **sólo lo que el tablero usa**, nunca datos de personas.
+- Conviene revisar que las carpetas de Drive del expediente **no** estén compartidas como
+  *«cualquiera con el enlace»*. Con *«sólo personas invitadas»*, la liga le pide iniciar sesión a
+  quien no debe estar ahí y no le sirve de nada.
+- Si se te sale de las manos: cambias la `CLAVE`, publicas nueva versión y la actualizas en
+  `config.js`. La anterior deja de servir en ese momento.
+
+Si esa exposición no te acomoda, deja `SYNC_URL` vacío: el tablero vuelve a pedir la liga una vez
+por navegador y nada de esto queda en el repositorio. Es la misma app, con un paso más para quien
+la abre.
 
 ## 💰 La regla de dinero, en serio
 
@@ -348,13 +465,17 @@ Y abre `index.html` con Chrome o Edge. No hay nada que instalar ni que compilar.
 
 | Archivo | Qué es |
 |---|---|
-| `index.html` | la app entera: interfaz, tablero y los dos documentos |
-| `nucleo-xlsx.js` | el lector de XLSX/CSV, copiado sin cambios del generador de fichas |
+| `index.html` | la app entera: interfaz, resumen, tablero y los dos documentos |
+| `config.js` | **lo único que se toca a mano**: la liga del script, su clave y las carteras apagadas |
+| `nucleo-xlsx.js` | el lector de XLSX/CSV, copiado del generador de fichas |
 | `qr.js` | el generador de códigos QR, copiado sin cambios del generador de fichas |
-| `apps-script/Sincronizar.gs` | el script que va pegado al maestro y le sirve las casas al botón de sincronizar |
+| `apps-script/Sincronizar.gs` | el script que le sirve las casas al botón, en su propio proyecto de Apps Script |
+| `.github/workflows/pages.yml` | publica la página en GitHub Pages en cada cambio a `main` |
+| `.nojekyll` | le dice a GitHub que sirva la carpeta tal cual, sin pasarla por Jekyll |
 | `plantilla-estado-de-cuenta.html` | el estado de cuenta en blanco, para llenar a mano |
 | `plantilla-ficha-de-casa.html` | la ficha en blanco, para llenar a mano |
 | `ejemplo/` | dos Excel de prueba con datos inventados |
+| `docs/` | las capturas de pantalla que salen en este README |
 | `fuentes/`, `img/` | las tipografías y la marca, dentro del repositorio para que funcione sin internet |
 
 ## 🏗️ Stack

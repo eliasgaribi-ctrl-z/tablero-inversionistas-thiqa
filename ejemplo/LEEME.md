@@ -40,10 +40,16 @@ colonia y a veces con la manzana pegada (`AV TEMUCO 100 M-1`).
 
 ## Cómo probarlo
 
-1. Sube `maestro-de-ejemplo.xlsx`. Debe decir **214 casas**, de la hoja `Base_Carteras_Asignadas`.
-2. Sube `tapeados-de-ejemplo.xlsx`. Debe decir **14 viviendas con tapeo, de la pestaña Calendario
-   de Obra** —si dice otra pestaña, algo se rompió—.
-3. En Ajustes, captura un honorario fijo (por ejemplo 6000). La columna *Honorarios + bono* se
+1. Sube `maestro-de-ejemplo.xlsx`. La app abre en el **Resumen**.
+2. En el Resumen deben salir **174 casas en el programa**, repartidas en PIC (124) e Infonavit
+   (50), y una nota abajo que dice que **40 casas de Bancaria no se están mostrando**. Ésas son
+   las 214 del archivo: 174 a la vista y 40 apagadas en `config.js`, que es como viene de fábrica.
+   Si quieres verlas todas, deja vacía la lista `CARTERAS_OCULTAS`.
+3. Sube `tapeados-de-ejemplo.xlsx` desde *«¿Prefieres subir los archivos a mano?»*. Debe decir
+   **14 viviendas con tapeo, de la pestaña Calendario de Obra** —si dice otra pestaña, algo se
+   rompió—.
+4. En Ajustes, captura un honorario fijo (por ejemplo 6000). La columna *Honorarios + bono* se
    completa y el tablero marca las cifras como **calculadas**.
-4. En el Tablero deben salir **85 recuperadas** y, aparte, **29 próximas recuperaciones**. Nunca
-   sumadas juntas.
+5. En el Tablero, con la pestaña en **Todas**, deben salir **73 recuperadas** y, aparte, **23
+   próximas recuperaciones**. Nunca sumadas juntas. (Con Bancaria prendida serían 85 y 29: ésas
+   son las cifras del archivo completo.)

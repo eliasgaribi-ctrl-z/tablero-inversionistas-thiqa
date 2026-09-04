@@ -40,15 +40,41 @@
  * ---------------------------------------------------------------------------
  * CÓMO INSTALARLO (una vez)
  *
- * 1. Abre el maestro → Extensiones → Apps Script.
- * 2. Archivo nuevo → Script, llámalo `Sincronizar`, y pega todo esto.
+ * VA EN UN PROYECTO APARTE, NO PEGADO AL MAESTRO. Es importante y es fácil
+ * equivocarse: el maestro YA tiene un proyecto de Apps Script —el de la página
+ * de carga de expedientes— y ése ya define su propio `doGet`. Dos `doGet` en el
+ * mismo proyecto no conviven: Apps Script se queda con uno y el otro deja de
+ * existir sin decir nada. O sea que pegar este archivo ahí rompería la página
+ * de carga, o este script nunca contestaría, y en los dos casos sin un error
+ * que lo explique.
+ *
+ * Por eso este script entra por su propia puerta y lee el maestro por su ID
+ * (la constante SHEET_ID de abajo). No necesita estar pegado al Sheet:
+ * necesita que quien lo publique tenga acceso al Sheet, que es distinto.
+ *
+ * 1. Ve a script.google.com → **Nuevo proyecto**, firmado con la cuenta que
+ *    tiene acceso al maestro (remates@thiqa.mx). No pases por el maestro.
+ * 2. Ponle de nombre `RMV — Sincronizar tablero` y pega todo este archivo,
+ *    reemplazando lo que traiga.
  * 3. Cambia la CLAVE de abajo por una tuya, larga y que no sea una palabra.
- * 4. Guarda.
+ *    Mientras no la cambies el script no contesta nada, a propósito.
+ * 4. Guarda, y corre una vez la función `probar` para autorizarlo: Google va a
+ *    pedir permiso para leer tus hojas de cálculo y hay que dárselo. La primera
+ *    vez sale una pantalla de "Google no ha verificado esta aplicación" →
+ *    *Configuración avanzada* → *Ir a (nombre del proyecto)*. Es tu propio
+ *    script; esa pantalla sale siempre con los que uno escribe.
  * 5. **Implementar → Nueva implementación** → tipo *Aplicación web*, con:
  *        Ejecutar como:      Yo (remates@thiqa.mx)
  *        Quién tiene acceso: Cualquier usuario
  *    Copia la dirección que termina en `/exec`.
- * 6. En el tablero: Ajustes → pega la dirección y la clave. Listo.
+ * 6. Pega esa dirección y la clave en el archivo `config.js` del repositorio,
+ *    en `SYNC_URL` y `SYNC_KEY`. Ahí es donde el tablero se vuelve un botón:
+ *    lo pones una vez y ningún inversionista vuelve a capturar nada.
+ *
+ *    (Si prefieres no dejarlas en el repositorio, se pueden pegar en Ajustes
+ *    dentro del tablero, pero entonces hay que hacerlo una vez en cada
+ *    navegador que lo abra. Lo que hay que saber para decidir está escrito
+ *    en `config.js`.)
  *
  * **Guardar no es publicar.** Cada vez que cambies este archivo hay que hacer
  * Implementar → Administrar implementaciones → editar → Nueva versión. Sin eso,
@@ -63,17 +89,43 @@
  *
  *   · La clave no es adorno: sin ella el script no contesta nada.
  *   · Del Sheet sale lo mínimo, nunca datos de personas.
- *   · La dirección y la clave no van en el repositorio ni en un correo abierto.
- *     Viven en el navegador de quien usa el tablero.
+ *   · En cuanto la dirección y la clave se pongan en `config.js` para que el
+ *     tablero sea un botón, quedan a la vista de quien abra el código de la
+ *     página. Es el precio de que el inversionista no capture nada, y por eso
+ *     importa que lo que sale de aquí sea lo mínimo. Con las carpetas de Drive
+ *     compartidas como "sólo personas invitadas", la liga no le sirve de nada
+ *     a un extraño.
  *   · Si se te sale de las manos, cambia la CLAVE aquí, publica nueva versión y
- *     la anterior deja de servir en ese momento.
+ *     la anterior deja de servir en ese momento. Acuérdate de actualizarla
+ *     también en `config.js`.
  */
 
-/** La clave. Cámbiala por una tuya antes de publicar. */
+/**
+ * La clave. Cámbiala por una tuya antes de publicar.
+ *
+ * Mientras siga siendo ésta, el script no contesta datos aunque la pidan bien.
+ * Es a propósito: este archivo vive en un repositorio público, así que la clave
+ * de fábrica la conoce cualquiera, y una implementación publicada con ella
+ * estaría abierta de par en par sin que se notara.
+ */
 const CLAVE = 'cambia-esta-clave-por-una-tuya-larga';
+const CLAVE_DE_FABRICA = 'cambia-esta-clave-por-una-tuya-larga';
 
 /** La pestaña de trabajo del maestro. */
 const HOJA = 'Base_Carteras_Asignadas';
+
+/**
+ * El maestro, por si este archivo termina en un proyecto suelto en lugar de
+ * pegado al Sheet. Pegado —que es como debe ir— no se usa: manda el archivo que
+ * lo contiene. Suelto, es lo único que le dice a qué libro entrar, y sin esto
+ * fallaría con un "no puedo leer la propiedad de null" que no explica nada.
+ */
+const SHEET_ID = '1J44hMg1grwYKQe13zvyxn5CTzadQ9H86vfR6pre8t3A';
+
+/** El libro: el que contiene al script y, si no hay ninguno, el de arriba. */
+function libroMaestro() {
+  return SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(SHEET_ID);
+}
 
 /**
  * Las únicas columnas que salen del Sheet, por nombre de encabezado.
@@ -109,6 +161,11 @@ const CON_LIGA = ['LINK', 'EXP. DIGITAL', 'CARPETA MATERIALES DE TAPEO', 'CARPET
 function doGet(e) {
   try {
     const p = (e && e.parameter) || {};
+    if (CLAVE === CLAVE_DE_FABRICA) {
+      return responde({ ok: false, error: 'clave_de_fabrica',
+        mensaje: 'Este script sigue con la clave de fábrica, que es pública. ' +
+                 'Cámbiala en la constante CLAVE y publica una nueva versión.' });
+    }
     if (String(p.k || '') !== CLAVE) {
       return responde({ ok: false, error: 'clave', mensaje: 'La clave no coincide.' });
     }
@@ -131,7 +188,7 @@ function norm(s) {
 }
 
 function leerMaestro() {
-  const libro = SpreadsheetApp.getActiveSpreadsheet();
+  const libro = libroMaestro();
   const hoja = libro.getSheetByName(HOJA);
   if (!hoja) {
     return { ok: false, error: 'hoja',
