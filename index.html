@@ -369,6 +369,11 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
 .hoja .dato{border-bottom:1.5px solid #C9D2DB;min-height:17px;font-size:11.5px;font-weight:700;
   color:#1B3A5C;overflow-wrap:anywhere}
 .hoja .dato.oro{border-bottom-color:#E8892B}
+/* La ficha reusa la clase .vacio para marcar un campo sin dato, pero .vacio de
+   arriba es el bloque de "nada que mostrar" de la pantalla y trae 54px de aire
+   arriba y abajo. En la hoja impresa eso inflaba cada campo vacío 108px y
+   descuadraba la página. Aquí se le devuelve su tamaño de campo. */
+.hoja .dato.vacio{padding:0;text-align:inherit;color:inherit}
 .hoja .dato.vacio::after{content:"—";color:#B9C3CE;font-weight:400}
 .hoja .campo{display:flex;flex-direction:column;gap:2px}
 .hoja .caja{background:#F4F6F8;border-radius:6px;padding:10px 14px;display:flex;flex-direction:column;gap:8px;flex:none}
@@ -1559,6 +1564,18 @@ function explicaSync(e){
       'termina en <code>/exec</code>, la implementación no está puesta en <b>Quién tiene acceso: ' +
       'Cualquier usuario</b>, o no hay internet. Pega la dirección en una pestaña del navegador: ' +
       'si ahí tampoco sale JSON, el problema está en la implementación.';
+  const http = /^HTTP_(\d+)$/.exec(m);
+  if (http){
+    const c = http[1];
+    return '<b>La dirección contestó con un error ' + esc(c) + '.</b><br>' +
+      (c === '403' || c === '401'
+        ? 'Google está negando el acceso: la implementación no está en <b>Quién tiene acceso: ' +
+          'Cualquier usuario</b>, o se publicó desde una cuenta sin permiso al maestro.'
+        : c.charAt(0) === '5'
+        ? 'El script se cayó al correr. Ábrelo en Apps Script y corre la función <code>probar</code> ' +
+          'para ver el error completo en el registro.'
+        : 'Revisa que la dirección esté completa y termine en <code>/exec</code>.');
+  }
   if (m === 'NO_JSON')
     return '<b>Esa dirección contestó una página, no datos.</b><br>Casi siempre es que la ' +
       'implementación está pidiendo iniciar sesión. En <i>Implementar → Administrar ' +
@@ -1572,7 +1589,14 @@ async function pedirMaestro(){
   const res = await fetch(u, { redirect:'follow', cache:'no-store' });
   const txt = await res.text();
   let j;
-  try { j = JSON.parse(txt); } catch(e){ throw new Error('NO_JSON'); }
+  try { j = JSON.parse(txt); }
+  catch(e){
+    /* Sin mirar el código, un 500 del script y un 403 de Google acababan los
+       dos en "la implementación está pidiendo iniciar sesión", que manda a
+       revisar la parte que sí estaba bien. */
+    if (!res.ok) throw new Error('HTTP_' + res.status);
+    throw new Error('NO_JSON');
+  }
   return j;
 }
 /* Del JSON al mismo S.rows que devolvería el lector de Excel: los encabezados en
@@ -1650,11 +1674,34 @@ async function sincronizar(){
        de apagar carteras: si dijera 174 cuando el maestro tiene 214, la cifra
        del tablero y la del Sheet no cuadrarían y no habría dónde ver por qué. */
     const trajo = (j.filas || []).length;
+    /* La hora que manda el script, no la del navegador. El script la escribe
+       con la zona horaria del Sheet; la máquina de quien abre el tablero puede
+       estar en otro huso o traer el reloj mal, y entonces "sincronizado a las
+       9:40" no dice nada de cuándo se leyó el maestro. Si no viene, el reloj
+       local es el respaldo. */
+    const hora = (() => {
+      /* La hora se lee del texto tal cual, sin pasarla por Date: el script la
+         manda como "2026-09-04T06:30:00-06:00" y ese 06:30 ya es la hora del
+         Sheet. Reconstruirla con Date la vuelve a traducir al huso de quien
+         abre la página —en un servidor en UTC, 06:30 se convertía en 12:30—,
+         que es de nuevo el problema que se quería evitar. */
+      const m = /T(\d{2}):(\d{2})/.exec(String(j.actualizado || ''));
+      return m ? m[1] + ':' + m[2] : pad(d.getHours()) + ':' + pad(d.getMinutes());
+    })();
     S.sync = { n: trajo, vistas: S.todas.length, ocultas: S_OCULTAS.n,
-               hoja: j.hoja || '', faltan: j.faltan || [],
-               hora: pad(d.getHours()) + ':' + pad(d.getMinutes()) };
+               hoja: j.hoja || '', faltan: j.faltan || [], hora: hora };
     pintarEstadoSync();
-    aviso('avisoSync','ok','<b>Listo: traje ' + trajo +
+    /* Con columnas faltantes el banner no puede ser verde: el tablero abrió,
+       sí, pero le van a faltar datos y hay que ir a ver por qué. */
+    const faltan = j.faltan || [];
+    aviso('avisoSync', faltan.length ? 'ojo' : 'ok',
+      (faltan.length
+        ? '<b>Traje las casas, pero el script no encontró ' + faltan.length +
+          (faltan.length === 1 ? ' columna' : ' columnas') + ' en el maestro:</b> ' +
+          esc(faltan.join(' · ')) + '.<br>Puede que las hayan renombrado en el Sheet. ' +
+          'Lo que salga de esas columnas va a llegar en blanco.<br>'
+        : '') +
+      '<b>Listo: traje ' + trajo +
       (trajo === 1 ? ' casa' : ' casas') + ' del maestro.</b>' +
       (j.renglonesVacios ? ' Salté ' + j.renglonesVacios + ' renglones vacíos.' : '') +
       (S_OCULTAS.n ? '<br>De ésas, <b>' + S_OCULTAS.n + '</b> no se muestran: son de una cartera ' +

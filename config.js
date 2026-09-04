@@ -53,10 +53,10 @@ window.THIQA_CONFIG = {
 
   /* La dirección de la aplicación web del script, la que termina en /exec.
      Vacío = el tablero la pide en Ajustes, como antes. */
-  SYNC_URL: '',
+  SYNC_URL: 'https://script.google.com/macros/s/AKfycbyxQoOff4LZL4aKVMpmC5EUh5KuA9cjHGRp6KTND5Ls2om6nM1mwGng0Gn1V5K9UauBfQ/exec',
 
   /* La misma clave que pusiste en CLAVE dentro de Sincronizar.gs. */
-  SYNC_KEY: '',
+  SYNC_KEY: 'cPwYCnOJ6SzJenL1mB9DrJSmCoEryPm4',
 
   /* El maestro al que apunta todo esto. Sólo se usa para poder abrirlo desde
      el tablero; los datos siempre llegan por el script, nunca de aquí. */

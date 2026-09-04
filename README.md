@@ -315,12 +315,14 @@ ya se entregó; una próxima todavía no. Sumarlas juntas infla lo entregado, qu
 número que no se debe inflar frente a un inversionista.
 
 Por eso el tablero y el papel están partidos en bloques, cada bloque cierra con **su** subtotal, y
-no existe ningún renglón que junte los dos. Las 100 casas que quedan fuera se dicen con nombre y
-número, para que nadie se pregunte dónde quedaron.
+no existe ningún renglón que junte los dos. Las casas que quedan fuera se dicen con nombre y
+número, para que nadie se pregunte dónde quedaron — y el [Resumen](#-el-resumen-del-programa) las
+cuenta todas, una por una, que para eso está.
 
 ### Un cero no es lo mismo que un hueco
 
-Si de 85 casas ninguna trae el costo de materiales capturado, la casilla **no dice `$0.00`**: dice
+Si de las casas recuperadas ninguna trae el costo de materiales capturado, la casilla **no dice
+`$0.00`**: dice
 *sin capturar*. Un cero en un reporte se lee como «no se gastó nada», que es una afirmación
 distinta y falsa. Cada cifra de arriba dice de cuántas casas salió y cuántas faltan, y el tablero
 lleva una lista de pendientes con el conteo exacto: *8 casas sin fecha de desalojo, 71 sin

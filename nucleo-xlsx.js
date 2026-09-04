@@ -214,11 +214,23 @@ const XLSXReader = (() => {
           h.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
         const dest = url[rid];
         if (!dest) continue;
-        const ref = (h.getAttribute('ref') || '').split(':')[0];
-        const m = /^([A-Z]+)(\d+)$/.exec(ref);
-        if (!m) continue;
-        const ri = +m[2] - 1;
-        (links[ri] || (links[ri] = []))[colToIdx(m[1])] = dest;
+        /* El ref puede ser una celda ("H2") o un rango ("H2:H10"): Excel junta
+           en un solo <hyperlink> las celdas contiguas que apuntan al mismo
+           destino. Quedarse con la primera dejaba sin liga a todas las demás,
+           que es justo lo que pasa cuando alguien arrastra una liga hacia
+           abajo en el Sheet. */
+        const ref = String(h.getAttribute('ref') || '');
+        const ini = /^([A-Z]+)(\d+)$/.exec(ref.split(':')[0]);
+        if (!ini) continue;
+        const fin = /^([A-Z]+)(\d+)$/.exec(ref.split(':')[1] || '') || ini;
+        const c1 = colToIdx(ini[1]), c2 = colToIdx(fin[1]);
+        const r1 = +ini[2] - 1, r2 = +fin[2] - 1;
+        /* Con un tope: un rango de columna entera ("H1:H1048576") llenaría un
+           millón de renglones de nada. */
+        if ((r2 - r1) > 20000 || (c2 - c1) > 200) continue;
+        for (let rr = r1; rr <= r2; rr++)
+          for (let cc = c1; cc <= c2; cc++)
+            (links[rr] || (links[rr] = []))[cc] = dest;
       }
 
       rows.__fcols = fcols;
