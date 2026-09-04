@@ -183,8 +183,19 @@ const COLUMNAS = [
   { nombre: 'CARPETA DE EVIDENCIAS',       busca: ['EVIDENCIA', 'EVIDENCIAS', 'CARPETA DE EVIDENCIAS'] },
 ];
 
-/** Las columnas de las que hay que sacar la URL de la liga, no sólo el texto. */
-const CON_LIGA = ['LINK', 'EXP. DIGITAL'];
+/**
+ * Las columnas de las que hay que sacar la URL de la liga, no sólo el texto.
+ *
+ * Las tres carpetas tienen que estar aquí, y no basta con que estén en COLUMNAS.
+ * Son dos listas distintas: COLUMNAS decide QUÉ SALE del Sheet, y ésta decide DE
+ * CUÁLES se sigue la liga. Una columna que esté nada más en COLUMNAS manda el
+ * texto de la celda —que en COMPROBANTES y EVIDENCIA es una palabra, no una
+ * dirección— y la carpeta de Drive se queda en el Sheet. En el tablero eso se ve
+ * como el botón punteado de "no hay carpeta", aunque en el maestro sí la haya:
+ * la liga nunca salió de aquí.
+ */
+const CON_LIGA = ['LINK', 'EXP. DIGITAL',
+                  'CARPETA MATERIALES DE TAPEO', 'CARPETA DE EVIDENCIAS'];
 
 /* ========================================================================= */
 

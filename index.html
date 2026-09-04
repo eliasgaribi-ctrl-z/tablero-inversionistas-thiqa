@@ -223,6 +223,42 @@ table.t td{padding:10px 13px;border-bottom:1px solid var(--brd);vertical-align:t
 table.t tbody tr:last-child td{border-bottom:0}
 table.t tbody tr:hover{background:var(--surf2)}
 table.t td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+/* El signo de pesos en gris: lo que se compara de renglón a renglón son las
+   cifras, y con el $ del mismo peso que el número estorba en cada columna. */
+.pesos{color:var(--tx3);font-weight:400}
+/* Una franja gris cada dos renglones. Con once columnas, seguir un renglón
+   hasta la orilla con pura línea de 1 px no se puede.
+
+   Va nada más en el detalle por casa, no en toda tabla con clase .t: las otras
+   dos —la de carteras y la matriz del resumen— traen cuatro o cinco renglones y
+   cierran con un pie del mismo gris, así que rayarlas junta el último renglón
+   con el total y se leen como uno solo. */
+#tabla tbody tr:nth-child(even) > td{background:var(--surf2)}
+#tabla tbody tr:hover > td{background:var(--azulL)}
+/* Los cuatro bloques de columnas. El renglón de grupos se queda pegado arriba y
+   el de nombres justo debajo, para saber siempre dónde estás parado. */
+table.t thead tr.grp th{top:0;z-index:4;padding:8px 13px;font-size:9.5px;letter-spacing:.14em;
+  color:var(--tx3);background:var(--surf2);border-right:1px solid var(--brd)}
+table.t thead tr.grp th.oro{color:var(--nar2)}
+table.t thead tr.grp th:last-child{border-right:0}
+table.t thead tr.cols th{top:30px}
+/* Compacta aprieta los renglones; los encabezados conservan su tamaño. Poner el
+   font-size en el mismo renglón que el td se lo aplicaba también al th, y con
+   más peso que `table.t th`: apretar la tabla le subía la letra al encabezado de
+   10.5 a 12 px, o sea justo al revés de lo que dice el botón. */
+table.t.compacta th,table.t.compacta td{padding:6px 10px}
+table.t.compacta td{font-size:12px}
+table.t.compacta .carp{padding:2px 7px;font-size:11px}
+table.t.compacta .carp svg{display:none}
+
+/* Conmutador de dos estados: densidad de la tabla. */
+.seg{display:flex;border:1px solid var(--brd2);border-radius:11px;overflow:hidden;background:var(--surf)}
+.seg button{border:0;background:transparent;color:var(--tx2);font-family:inherit;font-size:12.5px;
+  font-weight:600;padding:0 14px;min-height:42px;cursor:pointer;transition:.16s}
+.seg button:hover{color:var(--nar2);background:var(--surf2)}
+.seg button[data-on="1"]{background:var(--azul);color:#fff}
+.seg button[data-on="1"]:hover{background:var(--azul2);color:#fff}
+html[data-theme="oscuro"] .seg button[data-on="1"]{color:var(--sideB)}
 table.t tfoot td{padding:12px 13px;background:var(--surf2);border-top:2px solid var(--brd2);
   font-weight:700;font-family:var(--ttl);font-variant-numeric:tabular-nums}
 .falta{color:var(--tx3);font-style:italic;font-weight:400}
@@ -259,7 +295,10 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
   text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
 .etq.rec{background:var(--okL);color:var(--ok)}
 .etq.prox{background:var(--narL);color:var(--nar2)}
-.etq.fuera{background:var(--surf2);color:var(--tx3)}
+/* La de "fuera de toda suma" lleva contorno porque su fondo es el mismo gris de
+   la franja de la tabla: sin él, en los renglones pares la pastilla desaparece y
+   el estatus queda como una palabra suelta a media tabla. */
+.etq.fuera{background:var(--surf2);color:var(--tx3);box-shadow:inset 0 0 0 1px var(--brd2)}
 
 /* Los pasos del avance: un punto por paso, verde sólo con evidencia. */
 .pasos{display:flex;gap:4px;align-items:center}
@@ -272,6 +311,24 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
   margin:2px 3px 2px 0}
 .carp:hover{border-color:var(--nar);color:var(--nar2);text-decoration:none}
 .carp.no{background:var(--surf2);color:var(--tx3);border-style:dashed;cursor:default}
+.carp svg{flex:none;opacity:.9}
+
+/* Las carpetas de la casa, como botones y no como etiquetas de texto: el
+   expediente digital (columna B del maestro) manda, y debajo van los
+   comprobantes (AL) y la evidencia (AM). Punteado cuando el maestro no
+   trae la liga: la casilla existe, lo que falta es la carpeta. */
+.carpBtns{display:flex;flex-wrap:wrap;gap:8px}
+.carpBtn{flex:1 1 132px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;
+  gap:8px;padding:0 13px;border:1px solid var(--brd2);border-radius:11px;background:var(--surf);
+  color:var(--azul);font-size:13px;font-weight:700;text-decoration:none;transition:.16s}
+.carpBtn:hover{border-color:var(--nar);color:var(--nar2);text-decoration:none}
+.carpBtn.pri,.carpBtn.ancho{flex-basis:100%}
+.carpBtn.pri{background:var(--azul);border-color:var(--azul);color:#fff}
+.carpBtn.pri:hover{background:var(--azul2);border-color:var(--azul2);color:#fff}
+.carpBtn.no{background:var(--surf2);border-style:dashed;color:var(--tx3);cursor:default}
+.carpBtn.no:hover{border-color:var(--brd2);color:var(--tx3)}
+.carpBtn svg{flex:none}
+html[data-theme="oscuro"] .carpBtn.pri{color:var(--sideB)}
 
 /* ---------- casas (fichas de pantalla) ---------- */
 .casas{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
@@ -311,11 +368,106 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 @media(max-width:1100px){.g3,.g4{grid-template-columns:1fr 1fr}}
-@media(max-width:720px){
-  #lado{position:static;width:100%;flex-basis:auto}
+
+/* ============================================================
+   EL CELULAR · un iPhone 13 son 390 px de ancho
+   La barra lateral azul se llevaba la primera pantalla completa y
+   las cifras empezaban abajo del pliegue. En el celular la lateral
+   se convierte en barra de pestañas al pie —ahi llega el pulgar, no
+   arriba— y la marca se queda en un encabezado de una sola línea.
+   Va en `screen` a propósito: al imprimir, la hoja de 816 px cae
+   dentro de este ancho y no debe heredar nada de esto.
+   ============================================================ */
+#encMovil{display:none}
+@media screen and (max-width:720px){
   #app{flex-direction:column}
-  main{margin-left:0;padding:22px 18px 70px}
+  main{margin-left:0;padding:0 16px 178px}
+
+  #lado{top:auto;bottom:0;left:0;right:0;width:100%;flex-basis:auto;height:auto;
+    flex-direction:row;background:var(--surf);border-top:1px solid var(--brd);
+    box-shadow:0 -6px 22px rgba(16,38,56,.09);z-index:90;
+    padding-bottom:env(safe-area-inset-bottom)}
+  #ladoMarca,#ladoFondo,#ladoPie,#navPill{display:none}
+  #nav{display:flex;flex-direction:row;padding:0;overflow:visible;flex:1}
+  .navlink{flex:1;flex-direction:column;justify-content:center;gap:3px;padding:8px 2px 7px;
+    min-height:56px;color:var(--tx3);font-size:10px;line-height:1.2;text-align:center}
+  .navlink span{font-weight:600}
+  .navlink .ct{display:none}
+  .navlink svg{width:21px;height:21px;opacity:1}
+  .navlink:hover:not(:disabled){background:transparent;color:var(--nar2);padding-left:2px}
+  .navlink[data-on="1"]{background:transparent;color:var(--azul);box-shadow:inset 0 3px 0 0 var(--nar)}
+  html[data-theme="oscuro"] .navlink[data-on="1"]{color:var(--azul2)}
+
+  /* La marca y el cambio de tema, que vivían al pie de la lateral. */
+  #encMovil{display:flex;align-items:center;gap:11px;position:sticky;top:0;z-index:60;
+    margin:0 -16px 14px;padding:10px 16px;background:var(--surf);border-bottom:1px solid var(--brd)}
+  /* Se manda el alto, no el ancho: las dos marcas no tienen la misma
+     proporción, y con el ancho fijo el encabezado medía 86 px en el tema claro
+     y 82 en el oscuro. De ese alto depende el `top:82px` con el que la barra de
+     carteras se queda pegada aquí abajo, así que tiene que ser el mismo número
+     en los dos temas. 61 + 10 + 10 de aire + 1 de línea = los 82. */
+  #encMovil img{height:61px;width:auto;display:block}
+  #encMovil .mOs{display:none}
+  html[data-theme="oscuro"] #encMovil .mCl{display:none}
+  html[data-theme="oscuro"] #encMovil .mOs{display:block}
+  #encMovil b{font:700 9px var(--txt);letter-spacing:.16em;text-transform:uppercase;
+    color:var(--tx3);line-height:1.35}
+  #encMovil button{margin-left:auto;min-height:40px;min-width:44px;display:flex;align-items:center;
+    justify-content:center;border:1px solid var(--brd2);background:var(--surf);color:var(--tx2);
+    border-radius:11px;padding:0 12px;cursor:pointer}
+
+  .tit{margin-bottom:16px}
+  .tit h1{font-size:23px}
+  .tit p{font-size:13.5px}
+  .card{padding:15px 16px;border-radius:14px}
   .g2,.g3,.g4{grid-template-columns:1fr}
+
+  /* Las cifras: la inversión total manda y las demás van de dos en dos.
+     Cinco tarjetas iguales en una columna son cinco pantallas de scroll. */
+  .kpis{grid-template-columns:1fr 1fr;gap:10px}
+  .kpi{padding:13px 14px;border-radius:13px}
+  .kpi .v{font-size:21px}
+  .kpi .n{font-size:10.5px}
+  /* Sólo en el Tablero: ahí el cuadro naranja es la inversión total, y es la
+     cifra que manda. En el Resumen el naranja le toca a "Próximas a recuperar",
+     que es lo que todavía NO se entrega: agrandarla ahí ponía de portada la
+     cifra contraria a la que el resto del tablero se cuida de no exagerar. */
+  #kpisRec .kpi.oro{grid-column:1 / -1}
+  #kpisRec .kpi.oro .v{font-size:32px}
+  /* Con cinco cuadros de dos en dos y la inversión hasta abajo a todo lo ancho,
+     el quinto se quedaba solo y dejaba un hueco a su derecha. Que se estire. */
+  #kpisRec .kpi:nth-last-child(2):nth-child(odd){grid-column:1 / -1}
+
+  /* La tabla se queda tabla, pero el folio no se va con el scroll.
+
+     La caja conserva su tope de alto también en el celular, a propósito. Con
+     `max-height:none` la tabla dejaba de tener scroll propio y entonces sus dos
+     renglones de encabezado —que se pegan contra la caja— ya no se pegaban
+     contra nada: a los seis renglones desaparecían debajo del encabezado del
+     celular y el inversionista leía cinco columnas de cifras sin saber cuál era
+     cuál. Con el tope, el encabezado se queda arriba igual que en computadora.
+
+     El folio se pega, y nada más el folio: la regla se acota al renglón de
+     nombres de columna y a las celdas que valen por una sola columna. Sin
+     acotarla agarraba también la primera celda del renglón de grupos —que vale
+     por tres— y la del subtotal —que vale por cuatro—, así que al recorrer la
+     tabla a lo ancho el letrero "Identificación" se quedaba clavado encima de
+     "Desalojo" y "Dinero", y "Total recuperadas" encima de sus propias cifras. */
+  table.t{font-size:12px}
+  table.t th,table.t td{padding:9px 10px}
+  table.t tr.cols th:first-child,table.t td:first-child:not([colspan]){position:sticky;left:0;z-index:1;
+    background:var(--surf);box-shadow:1px 0 0 var(--brd)}
+  table.t tr.cols th:first-child{z-index:3;background:var(--surf2)}
+  table.t tbody tr:hover td:first-child:not([colspan]){background:var(--surf2)}
+  .carp{min-height:34px;padding:6px 11px}
+
+  /* Los códigos para escanear sirven impresos, no en el celular. */
+  .casa{padding:15px 16px}
+  .casa .qrs{display:none}
+
+  #carteras{width:100%;max-width:none;flex-wrap:nowrap;overflow-x:auto;
+    position:sticky;top:82px;z-index:55}
+  .cartTab{padding:9px 14px;font-size:13.5px}
 }
 
 /* La barra de abajo: lo que se aprieta para imprimir, siempre a la vista. */
@@ -326,12 +478,29 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
 #barra .info{font-size:13px;color:var(--tx2);line-height:1.45}
 #barra .info b{color:var(--tx)}
 #barra .der{margin-left:auto;display:flex;gap:10px;align-items:center}
-@media(max-width:720px){#barra{left:0;padding:11px 18px}}
 
+/* Los avisos van escritos ANTES del bloque del celular, a propósito: los dos
+   selectores son `#toasts` y pesan lo mismo, y una consulta de medios no suma
+   peso. Manda el último que se escriba. Con el orden al revés, el aviso del
+   celular nunca subía y aterrizaba encima de "Imprimir o guardar PDF". */
 #toasts{position:fixed;right:20px;bottom:78px;z-index:120;display:flex;flex-direction:column;gap:9px}
 #toasts div{background:var(--surf);border:1px solid var(--brd);border-left:4px solid var(--ok);
   border-radius:11px;box-shadow:var(--sh2);padding:11px 16px;font-size:13px;color:var(--tx);max-width:340px}
 #toasts div.mal{border-left-color:var(--al)}
+
+@media screen and (max-width:720px){
+  /* La barra de imprimir se sube arriba de las pestañas y se parte en dos
+     renglones: el dato arriba, los dos botones abajo, de 46 px cada uno. */
+  #barra{left:0;right:0;bottom:56px;padding:10px 16px;flex-wrap:wrap;gap:9px;
+    border-bottom:1px solid var(--brd)}
+  #barra .info{flex:1 1 100%;font-size:12px}
+  #barra .der{margin-left:0;width:100%;gap:8px}
+  #barra .der .btn{flex:1;min-height:46px}
+  /* Arriba de la barra de imprimir, no encima: 56 px de las pestañas más los
+     ~120 que ocupa la barra partida en dos renglones. */
+  #toasts{left:12px;right:12px;bottom:184px}
+  #toasts div{max-width:none}
+}
 </style>
 
 <style>
@@ -508,6 +677,21 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
 
 <main>
 
+<!-- El encabezado del celular. En computadora no existe: la marca y el
+     cambio de tema viven en la barra lateral. -->
+<header id="encMovil">
+  <!-- Dos marcas, una por tema. La de la barra lateral está dibujada en blanco
+       —ahí el fondo es azul oscuro— y en este encabezado, que es blanco, se
+       volvía invisible: sólo se alcanzaba a ver el galón naranja. La de las
+       hojas impresas es la misma marca en azul, que es la que sirve aquí. -->
+  <img class="mCl" src="img/thiqa-hoja.png" alt="THIQA" width="360" height="195">
+  <img class="mOs" src="img/thiqa-marca.png" alt="THIQA" width="1390" height="704">
+  <b>Casas<br>recuperadas</b>
+  <button id="temaBtnMovil" type="button" aria-label="Cambiar el tema">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg>
+  </button>
+</header>
+
 <!-- ══════════════════ DATOS ══════════════════ -->
 <section class="vista" id="vDatos" data-on="1">
   <div class="tit">
@@ -637,12 +821,16 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
         <h3 style="margin:0">Detalle por casa</h3>
         <p style="margin:4px 0 0;font-size:12.5px;color:var(--tx2)" id="detSub"></p>
       </div>
+      <div id="densidad" class="seg">
+        <button type="button" data-d="comoda">Cómoda</button>
+        <button type="button" data-d="compacta">Compacta</button>
+      </div>
       <button class="btn gh" id="copiaTabla" type="button">Copiar la tabla</button>
       <button class="btn gh" id="bajaCsv" type="button">Bajar CSV</button>
     </div>
     <div class="tablaBox" style="border:0;border-top:1px solid var(--brd);border-radius:0;max-height:70vh">
       <table class="t" id="tabla">
-        <thead><tr id="tablaEnc"></tr></thead>
+        <thead><tr class="grp" id="tablaGrupos"></tr><tr class="cols" id="tablaEnc"></tr></thead>
         <tbody id="tablaCuerpo"></tbody>
         <tfoot id="tablaPie"></tfoot>
       </table>
@@ -657,6 +845,7 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
     <p>Lo mismo del tablero pero en fichas, con las carpetas y sus códigos para escanear.
       Palomea las que quieres imprimir.</p>
   </div>
+  <div id="avisoCasas"></div>
   <div class="card" style="padding:14px 18px;display:flex;flex-wrap:wrap;gap:10px;align-items:center">
     <button class="btn gh" id="selTodas" type="button">Elegir todas</button>
     <button class="btn gh" id="selNinguna" type="button">Ninguna</button>
@@ -918,6 +1107,20 @@ const CAMPOS_CARPETA = ['CARPETA_EXP','CARPETA_MATERIALES','CARPETA_EVIDENCIAS']
 const ROT_CARPETA = { CARPETA_EXP:'Expediente digital',
                       CARPETA_MATERIALES:'Materiales de tapeo',
                       CARPETA_EVIDENCIAS:'Evidencias de tapeo' };
+/* El nombre corto para los botones, el que trae el maestro en su encabezado:
+   COMPROBANTES es la columna AL y EVIDENCIA la AM. En los códigos impresos y
+   en las hojas se sigue usando el rótulo largo de arriba. */
+const ROT_CORTO = { CARPETA_EXP:'Expediente digital',
+                    CARPETA_MATERIALES:'Comprobantes',
+                    CARPETA_EVIDENCIAS:'Evidencia' };
+/* Un trazo por carpeta: carpeta, recibo y cámara. Van incrustados, sin CDN. */
+const SVG_ABRE = 'width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+  'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+const ICO_CARPETA = {
+  CARPETA_EXP: '<svg ' + SVG_ABRE + '><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  CARPETA_MATERIALES: '<svg ' + SVG_ABRE + '><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/></svg>',
+  CARPETA_EVIDENCIAS: '<svg ' + SVG_ABRE + '><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.4-2h5.2L16 6"/></svg>',
+};
 
 /* Dos pasadas globales: primero se reparten TODOS los nombres que coinciden
    exactos y hasta después se intenta el parecido. Si fuera una sola pasada por
@@ -975,6 +1178,7 @@ const AJ_DEF = { tope:40000, topeCP:80000, bonoPct:10, honorario:null, grupos:{}
 const S = { wb:null, rows:[], headers:[], todas:[], map:{}, obra:[], obraHoja:'', obraArchivo:'',
             etapaOff:new Set(), sel:new Set(), orden:{col:'FOLIO', dir:'asc'},
             doc:'cuenta', zoom:.62, carpetasExtra:[], fotos:{}, fotoActiva:'',
+            origen:'',
             cartera:'PIC', sync:null };
 let AJ = Object.assign({}, AJ_DEF);
 
@@ -1632,6 +1836,7 @@ function desdeMaestro(j){
   rows.__links = L;
   rows.__fcols = new Set();
   S.wb = null;
+  S.origen = 'maestro';
   S.rows = rows;
   $('cajaHoja').style.display = 'none';
   $('filaEnc').value = '1';
@@ -1765,6 +1970,7 @@ async function cargar(f){
     }
     if (ext === 'csv' || ext === 'txt'){
       S.wb = null;
+      S.origen = 'csv';
       S.rows = window.parseCSV(await f.text());
       $('cajaHoja').style.display = 'none';
       $('estadoArchivo').textContent = f.name + ' · ' + (f.size/1024).toFixed(0) + ' KB · CSV, una sola hoja';
@@ -1780,6 +1986,7 @@ async function cargar(f){
       return;
     }
     S.wb = await window.XLSXReader.parse(await f.arrayBuffer());
+    S.origen = 'xlsx';
     $('estadoArchivo').textContent = f.name + ' · ' + (f.size/1024).toFixed(0) + ' KB · ' +
       S.wb.sheets.length + (S.wb.sheets.length === 1 ? ' hoja' : ' hojas');
     $('selHoja').innerHTML = S.wb.sheets.map((n,i) => '<option value="'+i+'">'+esc(n)+'</option>').join('');
@@ -2067,7 +2274,7 @@ $('obraQuita').onclick = () => {
    9 · El tablero
    ============================================================ */
 const sinDato = t => '<span class="falta">' + (t || 'sin capturar') + '</span>';
-const dinT = v => isNaN(v) ? sinDato() : fmtMoney(v);
+const dinT = v => isNaN(v) ? sinDato() : '<span class="pesos">$</span>' + fmtMoney(v).slice(1);
 
 function filtradas(){
   const q = norm($('busca').value).split(' ').filter(Boolean);
@@ -2464,18 +2671,30 @@ function pintarKPIs(){
 }
 
 /* ---------- la tabla ---------- */
+/* Cada columna dice a qué bloque pertenece: el encabezado de arriba los agrupa
+   y así lo que costó la casa se lee como un solo bloque, no como cinco columnas
+   sueltas entre el domicilio y las carpetas. Son cinco y no cuatro porque en el
+   bloque de Dinero va también la lista de materiales del tapeo: no es una cifra,
+   pero es de lo que salieron las dos que tiene al lado. El orden no se toca:
+   filaSubtotal() cuenta las celdas de dinero por posición. */
 const COLS = [
-  { k:'FOLIO',      r:'Folio THIQA' },
-  { k:'CARTERA',    r:'Cartera' },
-  { k:'DOMICILIO',  r:'Domicilio' },
-  { k:'F_DESALOJO', r:'Fecha de desalojo' },
-  { k:'MONTO_CONVENIO', r:'Monto de convenio', n:true },
-  { k:'HON_BONO',   r:'Honorarios + bono', n:true },
-  { k:'MATERIALES', r:'Materiales utilizados' },
-  { k:'COSTO_MATERIALES', r:'Costo de materiales', n:true },
-  { k:'MANO_OBRA', r:'Mano de obra', n:true },
-  { k:'CARPETAS',   r:'Carpetas' },
-  { k:'AVANCE',     r:'Avance' },
+  { k:'FOLIO',      r:'Folio THIQA', g:'id' },
+  { k:'CARTERA',    r:'Cartera', g:'id' },
+  { k:'DOMICILIO',  r:'Domicilio', g:'id' },
+  { k:'F_DESALOJO', r:'Fecha de desalojo', g:'des' },
+  { k:'MONTO_CONVENIO', r:'Monto de convenio', n:true, g:'din' },
+  { k:'HON_BONO',   r:'Honorarios + bono', n:true, g:'din' },
+  { k:'MATERIALES', r:'Materiales utilizados', g:'din' },
+  { k:'COSTO_MATERIALES', r:'Costo de materiales', n:true, g:'din' },
+  { k:'MANO_OBRA', r:'Mano de obra', n:true, g:'din' },
+  { k:'CARPETAS',   r:'Carpetas', g:'car' },
+  { k:'AVANCE',     r:'Avance', g:'car' },
+];
+const GRUPOS_COL = [
+  { g:'id',  r:'Identificación' },
+  { g:'des', r:'Desalojo' },
+  { g:'din', r:'Dinero' },
+  { g:'car', r:'Carpetas y avance' },
 ];
 function ordenar(rows){
   const { col, dir } = S.orden;
@@ -2551,10 +2770,12 @@ function chipsCarpetas(r){
   const out = [];
   for (const k of CAMPOS_CARPETA){
     const u = carpeta(r,k);
-    const rot = ROT_CARPETA[k];
+    const rot = ROT_CORTO[k] || ROT_CARPETA[k];
+    const ico = ICO_CARPETA[k] || '';
     out.push(u
-      ? '<a class="carp" href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(rot) + '</a>'
-      : '<span class="carp no" title="el archivo no trae esta carpeta">' + esc(rot) + '</span>');
+      ? '<a class="carp" href="' + esc(u) + '" target="_blank" rel="noopener" title="' +
+        esc(ROT_CARPETA[k]) + '">' + ico + esc(rot) + '</a>'
+      : '<span class="carp no" title="el archivo no trae esta carpeta">' + ico + esc(rot) + '</span>');
   }
   for (const c of S.carpetasExtra){
     const u = carpetaExtra(r, c.col);
@@ -2562,8 +2783,41 @@ function chipsCarpetas(r){
   }
   return out.join('');
 }
+/* Las mismas carpetas, en botones, para la ficha de pantalla de cada casa.
+   Aquí sí se muestran las tres aunque falte la liga: que se vea que la
+   casilla existe y lo que falta es capturarla en el maestro. */
+function botonesCarpetas(r){
+  const out = [];
+  for (const k of CAMPOS_CARPETA){
+    const u = carpeta(r,k);
+    const rot = ROT_CORTO[k] || ROT_CARPETA[k];
+    const ico = ICO_CARPETA[k] || '';
+    /* El expediente va a ancho completo tenga liga o no. Si el `pri` dependiera
+       de la liga, las fichas de las casas sin expediente se acomodarían de otro
+       modo —tres botones chiquitos en fila— y el expediente dejaría de leerse
+       como el que manda justo en las casas donde falta, que son las que hay que
+       ir a capturar. */
+    const mandaEste = k === 'CARPETA_EXP';
+    out.push(u
+      ? '<a class="carpBtn' + (mandaEste ? ' pri' : '') + '" href="' + esc(u) +
+        '" target="_blank" rel="noopener">' + ico + esc(rot) + '</a>'
+      : '<span class="carpBtn no' + (mandaEste ? ' ancho' : '') +
+        '" title="el maestro no trae la liga de esta carpeta">' + ico + esc(rot) + '</span>');
+  }
+  for (const c of S.carpetasExtra){
+    const u = carpetaExtra(r, c.col);
+    if (u) out.push('<a class="carpBtn" href="' + esc(u) + '" target="_blank" rel="noopener">' +
+      esc(c.rot) + '</a>');
+  }
+  return out.join('');
+}
 function pintarTabla(){
   const rows = ordenar(enJuego(filtradas()));
+  $('tablaGrupos').innerHTML = GRUPOS_COL.map(x => {
+    const n = COLS.filter(c => c.g === x.g).length;
+    return n ? '<th colspan="' + n + '"' + (x.g === 'din' ? ' class="oro"' : '') + '>' +
+      esc(x.r) + '</th>' : '';
+  }).join('');
   $('tablaEnc').innerHTML = COLS.map(c =>
     '<th class="ord"' + (c.n ? ' style="text-align:right"' : '') +
     (S.orden.col === c.k ? ' data-dir="' + S.orden.dir + '"' : '') +
@@ -2691,12 +2945,53 @@ function podarSeleccion(){
   const vivas = new Set(enJuego(filtradas()).map(llave));
   for (const k of [...S.sel]) if (!vivas.has(k)) S.sel.delete(k);
 }
+/* Cuando NINGUNA casa trae la liga de una carpeta, casi nunca es que las casas
+   estén incompletas: es que el archivo no la trajo. Vale decirlo aquí, junto a
+   los botones punteados, y no sólo en la pantalla de Datos que el usuario ya
+   dejó atrás hace tres pantallas. El motivo depende de por dónde entraron los
+   datos, y cada uno se arregla en otro lado. */
+function avisoCarpetas(rows){
+  if (!rows.length) return '';
+  const sinColumna = [], sinLiga = [];
+  for (const k of CAMPOS_CARPETA){
+    if (S.map[k] === undefined) sinColumna.push(ROT_CORTO[k] || ROT_CARPETA[k]);
+    else if (!rows.some(r => carpeta(r,k))) sinLiga.push(ROT_CORTO[k] || ROT_CARPETA[k]);
+  }
+  if (!sinColumna.length && !sinLiga.length) return '';
+  const y = a => a.length > 1 ? a.slice(0,-1).join(', ') + ' y ' + a[a.length-1] : a[0];
+  let h = '';
+  if (sinLiga.length){
+    const porQue = S.origen === 'csv'
+      ? 'Es el formato: un CSV no guarda las ligas, viven fuera de la celda. ' +
+        'Baja el Sheet como <b>.xlsx</b> y vuelve a soltarlo.'
+      : S.origen === 'maestro'
+        ? 'El maestro sí puede traerlas: si en el Sheet ya están capturadas, es que el ' +
+          'sincronizador todavía no las manda. Se agregan a la lista <b>CON_LIGA</b> de ' +
+          '<code>Sincronizar.gs</code> y se publica una nueva versión del script — ' +
+          'guardar no es publicar.'
+        : 'O no están capturadas en el maestro, o la descarga se hizo sin las ligas.';
+    h += '<div class="aviso ojo"><b>Ninguna de estas ' + rows.length + ' casas trae la liga de ' +
+      esc(y(sinLiga)) + '.</b><br>' + porQue + '</div>';
+  }
+  if (sinColumna.length)
+    h += '<div class="aviso"><b>El archivo no trae la columna de ' + esc(y(sinColumna)) + '.</b><br>' +
+      'Los botones salen punteados porque no hay de dónde sacar la carpeta. Si el maestro ya la ' +
+      'tiene, apúntala en <b>Revisar columnas</b>, en la pantalla de Datos.</div>';
+  return h;
+}
 function pintarCasas(){
   const rows = ordenar(enJuego(filtradas()));
+  $('avisoCasas').innerHTML = avisoCarpetas(rows);
   $('casas').innerHTML = rows.length ? rows.map(r => {
     const d = dineroDe(r), a = avanceDe(r, d), et = etapaDe(r), k = llave(r);
     const mats = d.materiales;
-    const carps = CAMPOS_CARPETA.map(c => ({ rot: ROT_CARPETA[c], u: carpeta(r,c) }))
+    /* Los pies de los códigos llevan el nombre corto, el mismo de los botones
+       que están tres dedos arriba en la misma ficha. Con el rótulo largo, la
+       misma carpeta salía nombrada dos veces y distinto —"Comprobantes" en el
+       botón, "Materiales de tapeo" en el pie— y quien lo lee no tiene manera de
+       saber que es la misma. En la hoja impresa sí se queda el nombre largo:
+       ahí no hay botones y el rótulo largo dice mejor qué trae adentro. */
+    const carps = CAMPOS_CARPETA.map(c => ({ rot: ROT_CORTO[c] || ROT_CARPETA[c], u: carpeta(r,c) }))
       .concat(S.carpetasExtra.map(c => ({ rot:c.rot, u: carpetaExtra(r, c.col) })))
       .filter(x => x.u);
     return '<article class="casa">' +
@@ -2733,11 +3028,12 @@ function pintarCasas(){
         (mats.elementos.length
           ? '<br><b>Tapeo:</b> ' + esc(mats.elementos.join(' · '))
           : '') + '</div>' +
+      '<div class="carpBtns">' + botonesCarpetas(r) + '</div>' +
       (carps.length
         ? '<div class="qrs">' + carps.map(c =>
             '<figure>' + window.qrSvg(c.u) + '<figcaption>' + esc(c.rot) + '</figcaption></figure>').join('') +
           '</div>'
-        : '<div class="mats">' + sinDato('el archivo no trae ninguna carpeta de esta casa') + '</div>') +
+        : '') +
       '<div class="fotoBox' + (S.fotoActiva === k ? ' activa' : '') + '" data-foto="' + esc(k) + '">' +
         (S.fotos[k]
           ? '<img src="' + esc(S.fotos[k]) + '" alt="Foto del domicilio">'
@@ -3361,8 +3657,24 @@ function ponTema(t){
   $('temaTxt').textContent = t === 'oscuro' ? 'Claro' : 'Oscuro';
   guardar();
 }
-$('temaBtn').onclick = () =>
+const voltearTema = () =>
   ponTema(document.documentElement.dataset.theme === 'oscuro' ? 'claro' : 'oscuro');
+$('temaBtn').onclick = voltearTema;
+$('temaBtnMovil').onclick = voltearTema;
+
+/* ---------- densidad de la tabla ----------
+   Cómoda para proyectar en junta, compacta para revisar de cerca. Se guarda en
+   este navegador, como el tema: quien la cambia es porque así la quiere ver. */
+function ponDensidad(d){
+  const compacta = d === 'compacta';
+  $('tabla').classList.toggle('compacta', compacta);
+  for (const b of $('densidad').querySelectorAll('[data-d]'))
+    b.dataset.on = b.dataset.d === (compacta ? 'compacta' : 'comoda') ? '1' : '';
+  try { localStorage.setItem('thiqaDensidad', compacta ? 'compacta' : 'comoda'); } catch(e){}
+}
+for (const b of $('densidad').querySelectorAll('[data-d]'))
+  b.onclick = () => ponDensidad(b.dataset.d);
+ponDensidad((() => { try { return localStorage.getItem('thiqaDensidad'); } catch(e){ return ''; } })());
 
 /* ---------- arranque ---------- */
 (function inicio(){

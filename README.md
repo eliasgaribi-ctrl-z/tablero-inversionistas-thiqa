@@ -106,7 +106,7 @@ Por cada casa, lo que le interesa a un inversionista:
 | **Materiales utilizados** | la columna de material utilizado del maestro, con su unidad (`230 blocks`, `4 bultos`) |
 | **Gasto de material** | lo que costó el material de ese tapeo |
 | **Gasto de mano de obra** | lo que costó la mano de obra de ese tapeo |
-| **Carpetas del expediente** | expediente digital, comprobantes de tapeo y evidencias, cada una con su código QR |
+| **Carpetas del expediente** | expediente digital, comprobantes y evidencia — con los mismos nombres que trae el maestro, cada una con su botón y su código QR |
 
 Más lo que se deduce de esos datos: la **inversión total** por casa (convenio + honorarios y bono +
 material + mano de obra) y el **avance**, que son cinco cuadros que se prenden nada más con
@@ -140,6 +140,15 @@ evidencia en el archivo.
   impresa en su ficha.
 - **Copiar la tabla** al portapapeles para pegarla en un correo o en Excel, y **bajar el CSV** con
   punto y coma y BOM, que es lo que Excel en español abre sin preguntar nada.
+- **Se abre bien en el celular.** Abajo de 720 px la barra lateral azul se convierte en barra de
+  pestañas al pie —ahí llega el pulgar— y la marca se queda en un encabezado de un solo renglón.
+  Las cifras se acomodan de dos en dos con la inversión total a todo lo ancho, la barra de imprimir
+  se parte en dos renglones con botones de 46 px, y en la tabla el folio se queda pegado a la
+  izquierda mientras las demás columnas se recorren.
+- **La tabla, en dos densidades.** *Cómoda* para proyectar en junta y *Compacta* para revisar de
+  cerca; se recuerda en tu navegador. Y un renglón arriba que agrupa las columnas en cuatro
+  bloques —Identificación, Desalojo, Dinero, Carpetas y avance— que se queda pegado al hacer
+  scroll, para saber siempre en cuál estás parado.
 - **Modo oscuro**, y todo lo que ajustes se recuerda en tu navegador.
 
 ## 🧭 El resumen del programa
@@ -396,12 +405,26 @@ Los formatos en blanco, para imprimirlos y llenarlos a mano sin pasar por el Exc
 
 Cada casa tiene su carpeta en Drive, y desde el 13 de agosto de 2026 la columna del **expediente
 digital** es la única: ahí van convenios, recibos, expediente escaneado y expediente judicial. El
-tablero lee esa columna y también las de **materiales de tapeo** y **evidencias**, si el maestro ya
-las trae.
+tablero lee esa columna y también las de **comprobantes** y **evidencia**, si el maestro ya las
+trae capturadas.
 
-Las tres salen como etiqueta con liga en la tabla, y como **código QR** en la ficha impresa. En
-papel una liga no sirve de nada; la idea es escanear con el celular en lugar de ir a buscar el
-folio al Sheet.
+Se llaman como se llaman en el maestro: **Expediente digital** (columna B), **Comprobantes**
+(columna AL) y **Evidencia** (columna AM). El mismo nombre en el botón, en la etiqueta de la tabla y
+en el pie del código, para que nadie tenga que adivinar que son la misma carpeta.
+
+En la ficha de cada casa salen como **tres botones**: el expediente a todo lo ancho, porque es el
+que manda, y debajo comprobantes y evidencia. Cuando el maestro no trae la liga el botón se queda
+igual pero **punteado en gris**: la casilla existe, lo que falta es capturar la carpeta. En la tabla
+van como etiquetas con liga, y en la ficha impresa como **código QR** — en papel una liga no sirve
+de nada, y la idea es escanear con el celular en lugar de ir a buscar el folio al Sheet.
+
+> **Las ligas de Comprobantes y Evidencia sólo llegan por dos caminos.** En el maestro esas dos son
+> hipervínculo pegado a la celda, no fórmula: el **`.xlsx`** las guarda y el **`.csv` no** — si
+> sueltas un CSV, los tres botones salen punteados y el tablero te lo dice ahí mismo, junto a los
+> botones. Y por el botón de sincronizar sólo llegan si las dos columnas están en la lista
+> **`CON_LIGA`** de [`apps-script/Sincronizar.gs`](apps-script/Sincronizar.gs) — estar en `COLUMNAS`
+> no basta: eso manda el texto de la celda, no la carpeta. Después de tocar el script hay que
+> publicar una **nueva versión**; guardar no es publicar.
 
 Y hay una red de seguridad: **cualquier otra columna del archivo que traiga ligas y que no empate
 con un campo conocido aparece sola como carpeta extra**. El día que el maestro estrene una columna
