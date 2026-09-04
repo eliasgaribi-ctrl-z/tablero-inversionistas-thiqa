@@ -1706,11 +1706,14 @@ async function cargar(f){
       $('cajaHoja').style.display = 'none';
       $('estadoArchivo').textContent = f.name + ' · ' + (f.size/1024).toFixed(0) + ' KB · CSV, una sola hoja';
       /* Un CSV no trae hipervínculos: la liga vive fuera de la celda y ese
-         formato no la guarda. Vale decirlo, porque es justo lo que se pierde. */
-      construir(mejorEncabezado(S.rows).hr);
-      aviso('avisoCarga','ojo','<b>Es un CSV, así que no trae las ligas.</b><br>' +
-        'Las carpetas de Drive y los mapas cuelgan de la celda, y ese formato no las guarda. ' +
-        'Para que salgan las carpetas hay que bajar el Sheet como <b>.xlsx</b>.');
+         formato no la guarda. Vale decirlo, porque es justo lo que se pierde.
+         Pero sólo si el archivo entró: aviso() reemplaza la caja entera, así que
+         escribir esto encima de un error de construir() borraba la única señal
+         de que el CSV no se pudo leer y la carga parecía exitosa. */
+      if (construir(mejorEncabezado(S.rows).hr))
+        aviso('avisoCarga','ojo','<b>Es un CSV, así que no trae las ligas.</b><br>' +
+          'Las carpetas de Drive y los mapas cuelgan de la celda, y ese formato no las guarda. ' +
+          'Para que salgan las carpetas hay que bajar el Sheet como <b>.xlsx</b>.');
       return;
     }
     S.wb = await window.XLSXReader.parse(await f.arrayBuffer());
@@ -1794,7 +1797,7 @@ function construir(hr){
   while (head.length && head[head.length-1] === '') head.pop();
   if (!head.length){
     aviso('avisoCarga','ojo','<b>La fila ' + hr + ' está vacía.</b> Prueba con otra fila de encabezados.');
-    return;
+    return false;
   }
   S.headers = head;
   S.todas = [];
@@ -1819,7 +1822,7 @@ function construir(hr){
     S.map = {}; S.obra = S.obra || [];
     refrescarTodo();
     aviso('avisoCarga','ojo','<b>No encontré filas de datos debajo del encabezado.</b>');
-    return;
+    return false;
   }
 
   /* El empate: primero el que se guardó a mano la vez pasada, por nombre de
@@ -1849,6 +1852,7 @@ function construir(hr){
   pintarColumnas(restauradas);
   refrescarTodo();
   irA('resumen', true);
+  return true;
 }
 
 /* Cualquier otra columna del archivo que traiga ligas y que no se haya empatado
@@ -2071,7 +2075,19 @@ function pintarCarteras(){
     '<button class="cartTab" data-cart="' + k + '"' + (S.cartera === k ? ' data-on="1"' : '') + '>' +
     esc(rot) + '<b>' + cuenta(k) + '</b></button>').join('');
   for (const b of $('carteras').querySelectorAll('[data-cart]'))
-    b.onclick = () => { S.cartera = b.dataset.cart; refrescarTodo(); window.scrollTo({top:0,behavior:'smooth'}); };
+    b.onclick = () => {
+      S.cartera = b.dataset.cart;
+      /* Lo palomeado se poda a las casas que siguen en pantalla. Sin esto, al
+         cambiar de cartera la selección de la anterior seguía puesta y
+         paraReporte() la intersectaba con casas que ya no están: el reporte se
+         quedaba en cero, la barra de imprimir se escondía sola y el contador
+         seguía diciendo "69 palomeadas" de una lista de 27. No se vacía del
+         todo a propósito — quien palomeó dentro de esta cartera no tiene por
+         qué perder su trabajo por ir a asomarse a la de al lado y volver. */
+      podarSeleccion();
+      refrescarTodo();
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
 
   /* El aviso sólo aparece cuando NO estás en PIC. Es la salvaguarda de que
      nadie mande por correo un estado de cuenta creyendo que es de PIC. */
@@ -2588,6 +2604,14 @@ function paraReporte(){
   const base = enJuego(filtradas());
   if (!S.sel.size) return ordenar(base);
   return ordenar(base.filter(r => S.sel.has(llave(r))));
+}
+/* Deja en la selección nada más las casas que de veras están en pantalla. Se
+   llama al cambiar de cartera; el resto de los filtros no la tocan, porque ahí
+   sí se espera que buscar y volver a borrar el buscador devuelva lo palomeado. */
+function podarSeleccion(){
+  if (!S.sel.size) return;
+  const vivas = new Set(enJuego(filtradas()).map(llave));
+  for (const k of [...S.sel]) if (!vivas.has(k)) S.sel.delete(k);
 }
 function pintarCasas(){
   const rows = ordenar(enJuego(filtradas()));
