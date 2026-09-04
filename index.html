@@ -191,6 +191,23 @@ table.t tfoot td{padding:12px 13px;background:var(--surf2);border-top:2px solid 
 .chip.off i{background:var(--brd2)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 
+/* Las pestañas de cartera. Van arriba de todo y no como un desplegable más:
+   este tablero es de PIC, y de qué cartera son las cifras que estás viendo no
+   puede ser un dato que haya que ir a buscar en un menú. */
+#carteras{display:flex;gap:0;flex-wrap:wrap;border:1px solid var(--brd2);border-radius:13px;
+  background:var(--surf);padding:4px;box-shadow:var(--sh1);margin-bottom:16px;width:fit-content;max-width:100%}
+.cartTab{border:0;background:transparent;color:var(--tx2);border-radius:10px;cursor:pointer;
+  padding:9px 17px;font-family:var(--ttl);font-size:14px;font-weight:700;letter-spacing:-.01em;
+  display:flex;align-items:center;gap:8px;transition:.16s;white-space:nowrap}
+.cartTab:hover{color:var(--nar2);background:var(--surf2)}
+.cartTab b{font-size:11px;font-weight:700;background:var(--surf2);color:var(--tx3);
+  border-radius:999px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.cartTab[data-on="1"]{background:var(--azul);color:#fff}
+.cartTab[data-on="1"]:hover{background:var(--azul2);color:#fff}
+.cartTab[data-on="1"] b{background:rgba(255,255,255,.2);color:#fff}
+html[data-theme="oscuro"] .cartTab[data-on="1"]{color:var(--sideB)}
+html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);color:var(--sideB)}
+
 .etq{display:inline-block;border-radius:999px;padding:2px 9px;font-size:10.5px;font-weight:700;
   text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
 .etq.rec{background:var(--okL);color:var(--ok)}
@@ -440,8 +457,24 @@ table.t tfoot td{padding:12px 13px;background:var(--surf2);border-top:2px solid 
       navegador: ni el archivo ni las cifras salen de esta computadora.</p>
   </div>
 
+  <div class="card" id="cajaSync" style="border-left:4px solid var(--nar)">
+    <h3>Sincronizar con el maestro</h3>
+    <p>Trae las casas directo del Sheet, sin bajar el Excel. Necesita el
+      <code>Sincronizar.gs</code> publicado en el maestro una sola vez — las instrucciones están en
+      <b>Ajustes</b>, y en el archivo <code>apps-script/Sincronizar.gs</code> del repositorio.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+      <button class="btn pri" id="syncBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>
+        Sincronizar con el maestro
+      </button>
+      <button class="btn gh" id="syncAjustes" type="button">Poner la liga y la clave</button>
+    </div>
+    <div id="estadoSync" style="margin-top:11px;font-size:13px;color:var(--tx3);line-height:1.6"></div>
+    <div id="avisoSync"></div>
+  </div>
+
   <div class="card">
-    <h3>1 · El maestro de remates</h3>
+    <h3>1 · El maestro de remates, a mano</h3>
     <p>Bájalo del Sheet con <i>Archivo → Descargar → Microsoft Excel (.xlsx)</i>. Descárgalo, no lo
       copies a mano: es la descarga la que trae las ligas de las carpetas de Drive colgadas de cada
       celda, y de ahí sale el expediente de cada casa.</p>
@@ -493,15 +526,14 @@ table.t tfoot td{padding:12px 13px;background:var(--surf2);border-top:2px solid 
     <p id="tabSub">El estatus de la recuperación, casa por casa y por cartera.</p>
   </div>
 
+  <div id="carteras"></div>
+  <div id="avisoCartera"></div>
+
   <div class="card" style="padding:15px 18px">
     <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
       <div style="flex:1 1 240px">
         <span class="rot">Buscar</span>
         <input type="text" id="busca" placeholder="folio, calle, colonia, cuadrilla…">
-      </div>
-      <div style="flex:0 1 210px">
-        <span class="rot">Cartera</span>
-        <select id="filtroCartera"><option value="">Todas</option></select>
       </div>
       <div style="flex:0 1 210px">
         <span class="rot">Cuadrilla</span>
@@ -599,6 +631,29 @@ table.t tfoot td{padding:12px 13px;background:var(--surf2);border-top:2px solid 
     <h1>Ajustes</h1>
     <p>Las reglas con las que se calcula el dinero y a qué cartera pertenece cada fuente. Se guardan
       en este navegador.</p>
+  </div>
+
+  <div class="card">
+    <h3>La liga para sincronizar</h3>
+    <p>Sale de publicar el archivo <code>apps-script/Sincronizar.gs</code> en el Apps Script del
+      maestro: <i>Extensiones → Apps Script</i>, pegas el archivo, cambias la clave y le das
+      <i>Implementar → Nueva implementación → Aplicación web</i>, con <b>Ejecutar como: Yo</b> y
+      <b>Quién tiene acceso: Cualquier usuario</b>. Copias la dirección que termina en
+      <code>/exec</code> y la pegas aquí con la misma clave.</p>
+    <div class="g2">
+      <label><span class="rot">Dirección que termina en /exec</span>
+        <input type="text" id="ajSync" placeholder="https://script.google.com/macros/s/…/exec"></label>
+      <label><span class="rot">La clave del script</span>
+        <input type="password" id="ajSyncKey" placeholder="la misma que pusiste en CLAVE"></label>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="probarSync" type="button">Probar la liga</button>
+      <span id="pruebaSync" style="font-size:12.5px;color:var(--tx3)"></span>
+    </div>
+    <div class="aviso" style="margin-top:14px"><b>Del Sheet sale lo mínimo.</b> El script manda nada
+      más las columnas que el tablero usa: el nombre del acreditado, el crédito y el expediente
+      judicial no están en su lista, así que no salen del maestro ni por accidente. La liga y la
+      clave se guardan en este navegador, no en el repositorio.</div>
   </div>
 
   <div class="card">
@@ -809,10 +864,12 @@ function fmt(v, campo){
    3 · Estado y ajustes
    ============================================================ */
 const LSKEY = 'thiqa_tablero_v1';
-const AJ_DEF = { tope:40000, topeCP:80000, bonoPct:10, honorario:null, grupos:{} };
+const AJ_DEF = { tope:40000, topeCP:80000, bonoPct:10, honorario:null, grupos:{},
+                 sync:'', syncKey:'' };
 const S = { wb:null, rows:[], headers:[], todas:[], map:{}, obra:[], obraHoja:'', obraArchivo:'',
             etapaOff:new Set(), sel:new Set(), orden:{col:'FOLIO', dir:'asc'},
-            doc:'cuenta', zoom:.62, carpetasExtra:[], fotos:{}, fotoActiva:'' };
+            doc:'cuenta', zoom:.62, carpetasExtra:[], fotos:{}, fotoActiva:'',
+            cartera:'PIC', sync:null };
 let AJ = Object.assign({}, AJ_DEF);
 
 function leerGuardado(){
@@ -1322,6 +1379,135 @@ function avanceDe(r, d){
 }
 
 /* ============================================================
+   7a · Sincronizar con el maestro
+   ------------------------------------------------------------
+   Una página estática no puede leer un Sheet privado: no tiene dónde
+   guardar una contraseña, la descarga .../export?format=xlsx la bloquea
+   el navegador por CORS, y publicar el Sheet como CSV pierde todas las
+   ligas —que es justo lo que le da valor a esto—.
+
+   Por eso del otro lado hay un Apps Script pegado al maestro
+   (apps-script/Sincronizar.gs) que corre con el permiso de su dueño,
+   saca las URLs de las ligas de donde de veras están y devuelve JSON con
+   SÓLO las columnas que el tablero usa. Aquí nada más se pide y se mete
+   por el mismo camino que el Excel: se arma un S.rows igual al que
+   devolvería el lector, con sus __links, y de ahí todo sigue igual.
+   ============================================================ */
+function ligaSync(){
+  const u = String(AJ.sync || '').trim();
+  if (!u) return '';
+  return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'k=' + encodeURIComponent(AJ.syncKey || '');
+}
+/* Los errores se traducen a lo que hay que ir a arreglar. "Failed to fetch" no
+   le dice nada a nadie; "la implementación no está en Cualquier usuario" sí. */
+function explicaSync(e){
+  const m = String((e && e.message) || e);
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m))
+    return '<b>No pude llegar a esa dirección.</b><br>Suele ser una de tres: la dirección no ' +
+      'termina en <code>/exec</code>, la implementación no está puesta en <b>Quién tiene acceso: ' +
+      'Cualquier usuario</b>, o no hay internet. Pega la dirección en una pestaña del navegador: ' +
+      'si ahí tampoco sale JSON, el problema está en la implementación.';
+  if (m === 'NO_JSON')
+    return '<b>Esa dirección contestó una página, no datos.</b><br>Casi siempre es que la ' +
+      'implementación está pidiendo iniciar sesión. En <i>Implementar → Administrar ' +
+      'implementaciones → editar</i>, deja <b>Ejecutar como: Yo</b> y <b>Quién tiene acceso: ' +
+      'Cualquier usuario</b>, y publica una <b>nueva versión</b> — guardar no es publicar.';
+  return '<b>No se pudo sincronizar.</b><br>Detalle: ' + esc(m);
+}
+async function pedirMaestro(){
+  const u = ligaSync();
+  if (!u) throw new Error('SIN_LIGA');
+  const res = await fetch(u, { redirect:'follow', cache:'no-store' });
+  const txt = await res.text();
+  let j;
+  try { j = JSON.parse(txt); } catch(e){ throw new Error('NO_JSON'); }
+  return j;
+}
+/* Del JSON al mismo S.rows que devolvería el lector de Excel: los encabezados en
+   el renglón 0 y los datos abajo, con las ligas en __links indexadas por el
+   mismo número de renglón que usa liga(). Así construir() no distingue si los
+   datos vinieron de un archivo o del Sheet. */
+function desdeMaestro(j){
+  const filas = j.filas || [];
+  const rows = [(j.encabezados || []).slice()];
+  for (const f of filas) rows.push(f.slice());
+  const L = [];
+  for (const rk in (j.ligas || {})){
+    const fila = (+rk) + 1;
+    L[fila] = L[fila] || [];
+    for (const ck in j.ligas[rk]) L[fila][+ck] = j.ligas[rk][ck];
+  }
+  rows.__links = L;
+  rows.__fcols = new Set();
+  S.wb = null;
+  S.rows = rows;
+  $('cajaHoja').style.display = 'none';
+  $('filaEnc').value = '1';
+  construir(1);
+}
+function pintarEstadoSync(){
+  const listo = !!String(AJ.sync || '').trim();
+  $('syncBtn').disabled = !listo;
+  if (!listo){
+    $('estadoSync').innerHTML = 'Todavía no está puesta la liga. Pícale a ' +
+      '<b style="color:var(--tx)">Poner la liga y la clave</b> y sigue los tres pasos.';
+    return;
+  }
+  $('estadoSync').innerHTML = S.sync
+    ? '<b style="color:var(--tx)">' + S.sync.n + (S.sync.n === 1 ? ' casa' : ' casas') +
+      '</b> del maestro, de la pestaña <b style="color:var(--tx)">' + esc(S.sync.hoja) +
+      '</b>. Sincronizado a las ' + S.sync.hora + '.' +
+      (S.sync.faltan && S.sync.faltan.length
+        ? '<br><span style="color:var(--nar2)">El script no encontró estas columnas en el maestro: ' +
+          esc(S.sync.faltan.join(' · ')) + '.</span>'
+        : '')
+    : 'Liga puesta. Pícale al botón para traer las casas.';
+}
+async function sincronizar(){
+  limpiaAviso('avisoSync');
+  const b = $('syncBtn');
+  const antes = b.innerHTML;
+  b.disabled = true;
+  b.innerHTML = 'Trayendo del maestro…';
+  try {
+    const j = await pedirMaestro();
+    if (!j.ok){
+      const t = j.error === 'clave'
+        ? '<b>La clave no coincide.</b><br>Tiene que ser la misma que pusiste en <code>CLAVE</code> ' +
+          'dentro del script. Si la cambiaste allá, acuérdate de publicar una nueva versión.'
+        : '<b>El script contestó, pero no pudo leer el maestro.</b><br>' +
+          esc(j.mensaje || j.error || '') ;
+      aviso('avisoSync','mal',t);
+      toast('El maestro contestó con un error.', true);
+      return;
+    }
+    desdeMaestro(j);
+    const d = new Date();
+    S.sync = { n: S.todas.length, hoja: j.hoja || '', faltan: j.faltan || [],
+               hora: pad(d.getHours()) + ':' + pad(d.getMinutes()) };
+    pintarEstadoSync();
+    aviso('avisoSync','ok','<b>Listo: traje ' + S.todas.length +
+      (S.todas.length === 1 ? ' casa' : ' casas') + ' del maestro.</b>' +
+      (j.renglonesVacios ? ' Salté ' + j.renglonesVacios + ' renglones vacíos.' : '') +
+      '<br>Si el control de obra cambió, vuelve a subir el Excel de tapeados aquí abajo — ese no ' +
+      'viene del maestro.');
+    toast('Sincronizado: ' + S.todas.length + ' casas.');
+  } catch(e){
+    if (String(e.message) === 'SIN_LIGA'){
+      aviso('avisoSync','ojo','<b>Falta la liga.</b><br>Ponla en Ajustes.');
+    } else {
+      aviso('avisoSync','mal', explicaSync(e));
+      toast('No se pudo sincronizar.', true);
+    }
+  } finally {
+    b.innerHTML = antes;
+    pintarEstadoSync();
+  }
+}
+$('syncBtn').onclick = sincronizar;
+$('syncAjustes').onclick = () => { irA('ajustes'); setTimeout(() => $('ajSync').focus(), 380); };
+
+/* ============================================================
    7 · Carga del archivo
    ============================================================ */
 const suelta = $('suelta');
@@ -1444,6 +1630,7 @@ function construir(hr){
   S.todas = [];
   S.etapaOff = new Set(['fuera']);
   S.sel.clear();
+  S.cartera = CARTERA_CASA;
   /* Se barre hasta el final del rango, no hasta la primera fila vacía: en el
      maestro hay 212 casas seguidas y dos más allá abajo, separadas por
      cientos de renglones vacíos. Cortar en el primer hueco las perdía. */
@@ -1628,7 +1815,7 @@ const dinT = v => isNaN(v) ? sinDato() : fmtMoney(v);
 
 function filtradas(){
   const q = norm($('busca').value).split(' ').filter(Boolean);
-  const car = $('filtroCartera').value, cua = $('filtroCuadrilla').value;
+  const car = S.cartera, cua = $('filtroCuadrilla').value;
   return S.todas.filter(r => {
     if (car && grupoCartera(valor(r,'CARTERA')) !== car) return false;
     if (cua && valor(r,'CUADRILLA') !== cua) return false;
@@ -1675,14 +1862,42 @@ const deQuedan = (falta, n) => (n - falta) === 0
              ' sin capturar</b>'
            : 'de las ' + n + ', completo');
 
-function pintarFiltros(){
-  const car = [...new Set(S.todas.map(r => grupoCartera(valor(r,'CARTERA'))))]
+/* Este tablero es de PIC. Se abre en PIC siempre —no se recuerda la última que
+   viste—, porque la pregunta "¿de qué cartera son estas cifras?" no se puede
+   contestar con "depende de dónde te quedaste ayer". Infonavit está a un clic,
+   y cuando no estás en PIC la pantalla lo dice con letras. */
+const CARTERA_CASA = 'PIC';
+function carterasDelArchivo(){
+  return [...new Set(S.todas.map(r => grupoCartera(valor(r,'CARTERA'))))]
     .sort((a,b) => ORDEN_GRUPO.indexOf(a) - ORDEN_GRUPO.indexOf(b));
-  const antesCar = $('filtroCartera').value;
-  $('filtroCartera').innerHTML = '<option value="">Todas</option>' +
-    car.map(k => '<option value="'+k+'">'+esc(ROT_GRUPO[k] || k)+'</option>').join('');
-  if (car.indexOf(antesCar) >= 0) $('filtroCartera').value = antesCar;
+}
+function pintarCarteras(){
+  const car = carterasDelArchivo();
+  /* Si el archivo no trae ni una casa de PIC, quedarse en PIC sería una pantalla
+     vacía sin explicación. Se pasa a Todas y se dice por qué. */
+  if (S.cartera && car.indexOf(S.cartera) < 0) S.cartera = '';
+  const cuenta = k => k ? S.todas.filter(r => grupoCartera(valor(r,'CARTERA')) === k).length : S.todas.length;
+  const tabs = car.map(k => [k, ROT_GRUPO[k] || k]);
+  tabs.push(['', 'Todas']);
+  $('carteras').innerHTML = tabs.map(([k, rot]) =>
+    '<button class="cartTab" data-cart="' + k + '"' + (S.cartera === k ? ' data-on="1"' : '') + '>' +
+    esc(rot) + '<b>' + cuenta(k) + '</b></button>').join('');
+  for (const b of $('carteras').querySelectorAll('[data-cart]'))
+    b.onclick = () => { S.cartera = b.dataset.cart; refrescarTodo(); window.scrollTo({top:0,behavior:'smooth'}); };
 
+  /* El aviso sólo aparece cuando NO estás en PIC. Es la salvaguarda de que
+     nadie mande por correo un estado de cuenta creyendo que es de PIC. */
+  $('avisoCartera').innerHTML = (S.cartera === CARTERA_CASA || !car.length)
+    ? ''
+    : '<div class="aviso ojo" style="margin-bottom:16px"><b>No estás viendo PIC.</b> ' +
+      (S.cartera
+        ? 'Todo lo de abajo —las cifras, la tabla y los dos documentos— es de <b>' +
+          esc(ROT_GRUPO[S.cartera] || S.cartera) + '</b> nada más.'
+        : 'Todo lo de abajo junta <b>todas las carteras</b> en las mismas sumas: ' +
+          esc(car.map(k => ROT_GRUPO[k] || k).join(', ')) + '.') +
+      ' Los documentos impresos lo dicen en el encabezado, pero conviene saberlo antes de mandarlos.</div>';
+}
+function pintarFiltros(){
   const cua = [...new Set(S.todas.map(r => valor(r,'CUADRILLA')).filter(Boolean))].sort();
   const antesCua = $('filtroCuadrilla').value;
   $('filtroCuadrilla').innerHTML = '<option value="">Todas</option>' +
@@ -1733,15 +1948,15 @@ function pintarKPIs(){
      mías, y cuánto de las mías. */
   const grupos = [...new Set(g.rec.map(r => grupoCartera(valor(r,'CARTERA'))))]
     .sort((a,b) => ORDEN_GRUPO.indexOf(a) - ORDEN_GRUPO.indexOf(b));
-  let html = '<div class="card"><h3>Por cartera</h3><p>Sólo las recuperadas. Cada cartera con lo suyo, ' +
+  /* Con una sola cartera en pantalla esta tabla es un renglón y su total
+     idéntico: puro ruido. Sale nada más cuando de veras hay algo que comparar. */
+  let html = grupos.length <= 1 ? '' :
+    '<div class="card"><h3>Por cartera</h3><p>Sólo las recuperadas. Cada cartera con lo suyo, ' +
     'y al final la suma.</p><div class="tablaBox"><table class="t"><thead><tr>' +
     '<th>Cartera</th><th style="text-align:right">Casas</th><th style="text-align:right">Monto de convenio</th>' +
     '<th style="text-align:right">Honorarios + bono</th><th style="text-align:right">Costo de materiales</th>' +
     '<th style="text-align:right">Inversión</th></tr></thead><tbody>';
-  if (!grupos.length){
-    html += '<tr><td colspan="6" style="color:var(--tx3);text-align:center;padding:22px">' +
-      'Ninguna casa recuperada con los filtros de arriba.</td></tr>';
-  } else for (const k of grupos){
+  if (grupos.length > 1) for (const k of grupos){
     const rows = g.rec.filter(r => grupoCartera(valor(r,'CARTERA')) === k);
     const s = totales(rows);
     const fuentes = [...new Set(rows.map(r => valor(r,'CARTERA')).filter(Boolean))];
@@ -1752,9 +1967,10 @@ function pintarKPIs(){
       '<td class="n">' + fmtMoney(s.hb) + '</td><td class="n">' + fmtMoney(s.mat) + '</td>' +
       '<td class="n" style="color:var(--nar2)">' + fmtMoney(s.inversion) + '</td></tr>';
   }
-  html += '</tbody><tfoot><tr><td>Total</td><td class="n">' + t.n + '</td><td class="n">' +
-    fmtMoney(t.convenio) + '</td><td class="n">' + fmtMoney(t.hb) + '</td><td class="n">' +
-    fmtMoney(t.mat) + '</td><td class="n">' + fmtMoney(t.inversion) + '</td></tr></tfoot></table></div></div>';
+  if (grupos.length > 1)
+    html += '</tbody><tfoot><tr><td>Total</td><td class="n">' + t.n + '</td><td class="n">' +
+      fmtMoney(t.convenio) + '</td><td class="n">' + fmtMoney(t.hb) + '</td><td class="n">' +
+      fmtMoney(t.mat) + '</td><td class="n">' + fmtMoney(t.inversion) + '</td></tr></tfoot></table></div></div>';
 
   /* Las próximas recuperaciones, aparte y con su aviso. */
   const p = totales(g.prox);
@@ -1764,9 +1980,9 @@ function pintarKPIs(){
     (p.n
       ? '<div class="g4">' + [
           ['Casas', String(p.n)],
-          ['Monto de convenio', fmtCorto(p.convenio)],
-          ['Honorarios + bono', fmtCorto(p.hb)],
-          ['Costo de materiales', fmtCorto(p.mat)],
+          ['Monto de convenio', sumaT(p.convenio, p.sinConvenio, p.n)],
+          ['Honorarios + bono', sumaT(p.hb, p.sinHB, p.n)],
+          ['Costo de materiales', sumaT(p.mat, p.sinMat, p.n)],
         ].map(x => '<div><span class="rot">' + x[0] + '</span>' +
              '<div class="num" style="font-size:20px;font-weight:700">' + x[1] + '</div></div>').join('') + '</div>'
       : '<p style="margin:0;color:var(--tx3)">Ninguna con los filtros de arriba.</p>') + '</div>';
@@ -1954,7 +2170,7 @@ function pintarTabla(){
 
 $('busca').oninput = () => { pintarChips(); pintarKPIs(); pintarTabla(); pintarCasas();
   actualizarContadores(); actualizarBarra(); };
-$('filtroCartera').onchange = $('filtroCuadrilla').onchange = () => refrescarTodo();
+$('filtroCuadrilla').onchange = () => refrescarTodo();
 
 /* ---------- copiar y bajar ---------- */
 function tablaPlana(){
@@ -2211,12 +2427,16 @@ function armarCuenta(rows){
   const { items, etapas } = agrupado(rows);
   const t = totales(rows.filter(r => etapaDe(r) === 'rec'));
   const prox = totales(rows.filter(r => etapaDe(r) === 'prox'));
-  const car = [...new Set(rows.map(r => ROT_GRUPO[grupoCartera(valor(r,'CARTERA'))]))].filter(Boolean);
+  /* La cartera va con su nombre en el encabezado, no como "3 carteras": esta
+     hoja se manda por correo y tiene que poder leerse sola. */
+  const car = ORDEN_GRUPO.filter(k => rows.some(r => grupoCartera(valor(r,'CARTERA')) === k))
+    .map(k => ROT_GRUPO[k]).filter(Boolean);
   const sub = 'Programa de Recuperación de Viviendas · <b>' +
-    esc(car.length === 1 ? car[0] : car.length + ' carteras') + '</b>';
+    esc(car.length === 0 ? 'sin cartera'
+        : car.length <= 3 ? 'Cartera ' + car.join(' + ')
+        : car.length + ' carteras') + '</b>';
   const der = '<b>' + t.n + (t.n === 1 ? ' casa recuperada' : ' casas recuperadas') + '</b>' +
-    (prox.n ? prox.n + ' próxima' + (prox.n === 1 ? '' : 's') + ' recuperación' +
-      (prox.n === 1 ? '' : 'es') + '<br>' : '') +
+    (prox.n ? prox.n + (prox.n === 1 ? ' próxima recuperación' : ' próximas recuperaciones') + '<br>' : '') +
     'Corte al ' + fechaLarga(hoy());
 
   const medidor = document.createElement('div');
@@ -2299,7 +2519,7 @@ function armarFichas(rows){
     h.className = 'hoja';
     h.innerHTML =
       encabezadoHoja(TITULO_FICHA[etapaDe(r)] || 'Ficha de casa',
-        'Programa de Recuperación de Viviendas · <b>' +
+        'Programa de Recuperación de Viviendas · <b>Cartera ' +
           esc(ROT_GRUPO[grupoCartera(valor(r,'CARTERA'))] || 'sin cartera') + '</b>',
         '<b>' + (esc(valor(r,'FOLIO')) || 'sin folio') + '</b>' +
         esc(valor(r,'ESTATUS') || 'sin estatus') + '<br>' + fechaLarga(hoy())) +
@@ -2465,6 +2685,8 @@ window.addEventListener('afterprint', () => {
    12 · Ajustes
    ============================================================ */
 function pintarAjustes(){
+  $('ajSync').value = AJ.sync || '';
+  $('ajSyncKey').value = AJ.syncKey || '';
   $('ajTope').value = AJ.tope;
   $('ajTopeCP').value = AJ.topeCP;
   $('ajBono').value = AJ.bonoPct;
@@ -2492,11 +2714,46 @@ function leerAjustes(){
   AJ.bonoPct = n('ajBono', AJ_DEF.bonoPct);
   const h = $('ajHonorario').value.trim();
   AJ.honorario = h === '' ? null : (isNaN(parseFloat(h)) ? null : parseFloat(h));
+  AJ.sync = $('ajSync').value.trim();
+  AJ.syncKey = $('ajSyncKey').value.trim();
   guardar();
   pintarAjustes();
+  pintarEstadoSync();
   refrescarTodo();
 }
-for (const id of ['ajTope','ajTopeCP','ajBono','ajHonorario']) $(id).onchange = leerAjustes;
+for (const id of ['ajTope','ajTopeCP','ajBono','ajHonorario','ajSync','ajSyncKey'])
+  $(id).onchange = leerAjustes;
+
+/* Probar la liga sin traerse el maestro entero: contesta de una vez si la
+   implementación y la clave están bien, que es donde se atora todo el mundo. */
+$('probarSync').onclick = async () => {
+  AJ.sync = $('ajSync').value.trim();
+  AJ.syncKey = $('ajSyncKey').value.trim();
+  guardar();
+  const el = $('pruebaSync');
+  if (!AJ.sync){ el.innerHTML = '<span style="color:var(--nar2)">Falta la dirección.</span>'; return; }
+  el.textContent = 'Probando…';
+  try {
+    const j = await pedirMaestro();
+    if (j.ok)
+      el.innerHTML = '<span style="color:var(--ok);font-weight:600">Funciona: ' +
+        (j.filas || []).length + ' casas, pestaña ' + esc(j.hoja || '') + '.</span>' +
+        ((j.faltan || []).length ? ' <span style="color:var(--nar2)">Le faltan columnas: ' +
+          esc(j.faltan.join(', ')) + '.</span>' : '');
+    else if (j.error === 'clave')
+      el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero la clave no ' +
+        'coincide.</span>';
+    else
+      el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero: ' +
+        esc(j.mensaje || j.error || '') + '</span>';
+  } catch(e){
+    el.innerHTML = String(e.message) === 'NO_JSON'
+      ? '<span style="color:var(--al);font-weight:600">Contestó una página, no datos: la ' +
+        'implementación está pidiendo iniciar sesión.</span>'
+      : '<span style="color:var(--al);font-weight:600">No pude llegar a esa dirección.</span>';
+  }
+  pintarEstadoSync();
+};
 
 /* Cada fuente del archivo con su grupo, y se puede mover. Si mañana llega
    "PIC_QNO-ZAPOPAN" va a aparecer aquí sola, no se va a perder en "Otras" sin
@@ -2578,6 +2835,7 @@ function refrescarTodo(){
   for (const b of links)
     if (['tablero','casas','reporte'].indexOf(b.dataset.v) >= 0) b.disabled = !hay;
   if (!hay){ actualizarContadores(); actualizarBarra(); return; }
+  pintarCarteras();
   pintarFiltros();
   pintarKPIs();
   pintarTabla();
@@ -2587,8 +2845,11 @@ function refrescarTodo(){
   actualizarContadores();
   actualizarBarra();
   if (vista === 'reporte') pintarPrevia();
-  $('tabSub').innerHTML = 'El estatus de la recuperación, casa por casa y por cartera. ' +
-    'Del maestro salieron <b>' + S.todas.length + ' casas</b>' +
+  $('tabSub').innerHTML = 'El estatus de la recuperación, casa por casa. ' +
+    (S.cartera
+      ? 'Estás viendo la cartera <b>' + esc(ROT_GRUPO[S.cartera] || S.cartera) + '</b>.'
+      : 'Estás viendo <b>todas las carteras juntas</b>.') +
+    ' Del maestro salieron <b>' + S.todas.length + ' casas</b> en total' +
     (S.obra.length ? ' y del control de obra <b>' + S.obra.length + ' viviendas con tapeo</b>' : '') + '.';
 }
 
@@ -2617,6 +2878,7 @@ $('temaBtn').onclick = () =>
         'Vuelve a subir el maestro y reaparecen solas, atadas a su casa: no hay que volver a ponerlas.');
   });
   pintarAjustes();
+  pintarEstadoSync();
   pintarGrupos();
   refrescarTodo();
   irA('datos', true);

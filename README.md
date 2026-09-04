@@ -36,15 +36,19 @@ navegador y ahí se queda.
 ## 🚀 Usar la app
 
 1. Entra a **[eliasgaribi-ctrl-z.github.io/tablero-inversionistas-thiqa](https://eliasgaribi-ctrl-z.github.io/tablero-inversionistas-thiqa/)**
-2. Baja el maestro del Sheet con **Archivo → Descargar → Microsoft Excel (.xlsx)** y súbelo.
-   Descárgalo, no lo copies a mano: es la descarga la que trae las ligas de las carpetas de Drive
-   colgadas de cada celda.
+2. Pícale a **Sincronizar con el maestro** y las casas llegan solas. La primera vez hay que
+   publicar el script una única vez — está abajo, en [Sincronizar con el
+   maestro](#-sincronizar-con-el-maestro).
+   *O bien*, si prefieres no publicar nada: baja el maestro con **Archivo → Descargar → Microsoft
+   Excel (.xlsx)** y súbelo. Descárgalo, no lo copies a mano: es la descarga la que trae las ligas
+   de las carpetas de Drive colgadas de cada celda.
 3. Si tienes a mano el **Excel de tapeados** del área de obras, súbelo también. De ahí salen los
-   materiales utilizados y su costo — el maestro no los trae.
+   materiales utilizados y su costo — el maestro no los trae, y ese archivo sí se sube a mano.
 4. Captura el **honorario fijo** en Ajustes la primera vez. El bono se calcula solo; el honorario
    fijo no se adivina.
-5. Mira el **Tablero**, y de ahí a **Reporte** para imprimir o guardar el PDF (`Ctrl/Cmd + P`
-   también sirve, y arma lo mismo que el botón).
+5. El tablero abre en **PIC**. Infonavit está en la pestaña de al lado.
+6. De ahí a **Reporte** para imprimir o guardar el PDF (`Ctrl/Cmd + P` también sirve, y arma lo
+   mismo que el botón).
 
 Hay dos archivos de ejemplo en [`ejemplo/`](ejemplo/) para probar la app sin datos reales.
 Los domicilios, los folios y los montos son inventados; lo que sí reproducen es la forma del
@@ -71,6 +75,8 @@ archivo.
 
 ## ✨ Características
 
+- **Un botón que trae las casas del maestro**, sin bajar el Excel ni pasar por Drive. Con un
+  script publicado una sola vez en el Sheet — y que manda nada más las columnas del tablero.
 - **Separa PIC de Infonavit sin que se lo digas.** El maestro escribe la cartera con su nombre
   largo —`PIC_QNO-TLAJO`, `PRV_INFVT-_TLAJO`, `CART_SOJI_TLAJO`— y el tablero las agrupa: PIC,
   Infonavit (donde entra también SOJI, que es Soluciones Jurídicas Infonavit), Bancaria y Otras.
@@ -93,6 +99,89 @@ archivo.
 - **Copiar la tabla** al portapapeles para pegarla en un correo o en Excel, y **bajar el CSV** con
   punto y coma y BOM, que es lo que Excel en español abre sin preguntar nada.
 - **Modo oscuro**, y todo lo que ajustes se recuerda en tu navegador.
+
+## 🗂️ PIC al frente, Infonavit en su pestaña
+
+El tablero **abre siempre en PIC**. No en la última cartera que viste: abre en PIC, aunque ayer
+hayas cerrado la página en Infonavit. La pregunta *«¿de qué cartera son estas cifras?»* no se puede
+contestar con *«depende de dónde te quedaste»*, y menos si lo que tienes abierto es un estado de
+cuenta que estás por mandar.
+
+Arriba del tablero hay una pestaña por cartera, con su número de casas: **PIC**, **Infonavit**,
+las demás que traiga el archivo, y **Todas**. La elección arrastra todo —las cifras de arriba, la
+tabla, las fichas y los dos documentos impresos—, así que no hay manera de imprimir un estado de
+cuenta de PIC creyendo que es de Infonavit.
+
+Y en cuanto sales de PIC, la pantalla lo dice con letras: *«No estás viendo PIC»*, y de qué es lo
+que estás viendo. En **Todas** el aviso avisa lo que de veras importa: que las sumas están juntando
+carteras. Los documentos impresos lo llevan en el encabezado —*Cartera PIC*, *Cartera Infonavit*,
+o los nombres de las que se juntaron—, para que la hoja se pueda leer sola cuando ya no estés
+enfrente.
+
+Infonavit incluye **SOJI** (Soluciones Jurídicas Infonavit, antes CART_DAPA). Si mañana llega una
+cartera nueva, aparece con su nombre en Ajustes para decirle a qué grupo va, en lugar de caer en
+«Otras» sin que nadie se dé cuenta.
+
+## 🔄 Sincronizar con el maestro
+
+<div align="center">
+<img src="docs/pantalla-datos.png" alt="El botón de sincronizar con el maestro" width="820">
+</div>
+
+Hay un botón que trae las casas directo del Sheet, sin bajar el Excel. Necesita publicar una vez el
+archivo [`apps-script/Sincronizar.gs`](apps-script/Sincronizar.gs) en el Apps Script del maestro:
+
+1. En el maestro: **Extensiones → Apps Script**, archivo nuevo, y pegas `Sincronizar.gs`.
+2. Cambias la `CLAVE` de arriba por una tuya, larga.
+3. **Implementar → Nueva implementación → Aplicación web**, con *Ejecutar como: **Yo*** y *Quién
+   tiene acceso: **Cualquier usuario***. Copias la dirección que termina en `/exec`.
+4. En el tablero: **Ajustes**, pegas la dirección y la clave, y le das a **Probar la liga** — te
+   dice de una vez si funciona y cuántas casas ve, sin traerse nada.
+
+Después de eso, sincronizar es un clic.
+
+> **Guardar no es publicar.** Si algún día editas el script, hay que hacer *Implementar →
+> Administrar implementaciones → editar → **Nueva versión***. Sin eso el tablero sigue recibiendo
+> la versión vieja y parece que el cambio no sirvió.
+
+### Por qué hace falta un script y no se lee el Sheet directo
+
+Porque el tablero es una página estática: no tiene servidor ni dónde guardar una contraseña. Las
+dos salidas fáciles no sirven:
+
+- La descarga `.../export?format=xlsx` **la bloquea el navegador** (CORS), y además necesita que
+  quien la pida esté firmado con una cuenta que tenga acceso al archivo.
+- Publicar el Sheet como CSV sí se puede leer, pero **pierde todas las ligas**. Las carpetas de
+  Drive no viven en la celda, cuelgan aparte, y son justamente lo que le da valor a esto.
+
+El script resuelve las dos cosas: corre con **tu** permiso —así que el maestro sigue privado— y saca
+las URLs de donde de veras están, de las dos formas en que existen (liga de la celda y fórmula
+`=HYPERLINK`).
+
+### Qué sale del maestro, y qué no
+
+El script manda **sólo las 19 columnas que el tablero usa**, y están escritas en una lista al
+principio del archivo. El **nombre del acreditado**, el **número de crédito** y el **expediente
+judicial** no están en esa lista, así que no salen del Sheet ni por accidente.
+
+Se lee **por nombre de encabezado, no por posición** — a propósito, y es la diferencia importante
+contra el otro Apps Script del maestro, el de la página de carga: ése lee por posición y cualquier
+columna que se inserte a la izquierda lo descuadra en silencio. Este busca `MONTO ACORDADO` por su
+nombre; puedes mover, insertar o borrar columnas y sigue funcionando. Si una columna no aparece, lo
+**dice** en lugar de traer el dato equivocado.
+
+Y las fechas salen ya escritas `dd/mm/aaaa` con la zona horaria del Sheet, no como número: JSON no
+tiene fechas, y mandarlas en crudo es la receta para que un desalojo del día 1 aparezca el último
+día del mes anterior.
+
+### Sobre «Cualquier usuario»
+
+Es la única opción que sirve, porque una página estática no puede firmarse con Google. Eso significa
+que **quien tenga la dirección y la clave puede leer esas columnas** — no el Sheet, sólo lo que el
+script manda. Por eso la clave no es adorno (sin ella el script no contesta nada), del maestro sale
+lo mínimo y nunca datos de personas, y la dirección y la clave **no van en el repositorio**: viven
+en el navegador de quien usa el tablero. Si se te salen de las manos, cambias la `CLAVE`, publicas
+nueva versión, y la anterior deja de servir en ese momento.
 
 ## 💰 La regla de dinero, en serio
 
@@ -255,13 +344,14 @@ Y abre `index.html` con Chrome o Edge. No hay nada que instalar ni que compilar.
 > es `DecompressionStream`, que es lo que hace posible leer Excel sin librerías; si el navegador no
 > la trae, la app lo dice al abrirse en lugar de fallar al subir el archivo.
 
-## 🗂️ Qué hay en el repositorio
+## 📦 Qué hay en el repositorio
 
 | Archivo | Qué es |
 |---|---|
 | `index.html` | la app entera: interfaz, tablero y los dos documentos |
 | `nucleo-xlsx.js` | el lector de XLSX/CSV, copiado sin cambios del generador de fichas |
 | `qr.js` | el generador de códigos QR, copiado sin cambios del generador de fichas |
+| `apps-script/Sincronizar.gs` | el script que va pegado al maestro y le sirve las casas al botón de sincronizar |
 | `plantilla-estado-de-cuenta.html` | el estado de cuenta en blanco, para llenar a mano |
 | `plantilla-ficha-de-casa.html` | la ficha en blanco, para llenar a mano |
 | `ejemplo/` | dos Excel de prueba con datos inventados |
