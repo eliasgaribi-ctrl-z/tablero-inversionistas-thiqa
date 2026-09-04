@@ -304,7 +304,11 @@ function qrSvg(texto){
   }
   const lado = tam + borde * 2;
   return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + lado + ' ' + lado + '" ' +
-         'shape-rendering="crispEdges" role="img"><rect width="' + lado + '" height="' + lado +
+         /* Con role="img" y sin nombre, un lector de pantalla anuncia "imagen" y
+            ya. El código no se puede leer en voz alta, pero sí se puede decir
+            qué es y a dónde va. */
+         'shape-rendering="crispEdges" role="img" aria-label="Código QR"><title>' +
+         'Código QR</title><rect width="' + lado + '" height="' + lado +
          '" fill="#FFFFFF"/><path d="' + d + '" fill="#163E6B"/></svg>';
 }
 

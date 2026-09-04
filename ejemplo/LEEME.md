@@ -18,8 +18,8 @@ rompen a los programas que lo leen:
 - **Las ligas de las dos formas**: la del expediente y la del mapa como fórmula
   `=HYPERLINK("…";"…")` con **punto y coma**, que es como las escribe el Sheet en locale español; y
   las carpetas de tapeo y evidencias como hipervínculo nativo de Excel, que vive fuera de la celda.
-- **A una de cada cinco ligas de Drive le cuelga `?usp=drive_link`**, para que se vea que el código
-  QR lo recorta y todos salen del mismo tamaño.
+- **A 43 de las ligas les cuelga `?usp=drive_link`** —una de cada cinco de las que van por
+  fórmula—, para que se vea que el código QR lo recorta y todos salen del mismo tamaño.
 - **La dirección llega pegada** (`AVTEMUCO100SANTAFE45653TLAJOMULCO`) y a veces con la cola
   catastral (`NA MZ 17 LT 39 EDIF NA NIV 03`). La dirección legible está en la columna del link.
 - **`LOMAS ` con espacio al final**, en la colonia.
@@ -27,7 +27,8 @@ rompen a los programas que lo leen:
   `178 E`. Son dos casas, y el gasto de una no debe salir sumado en la otra.
 - **`ADEUDO_PREDIAL` mezcla números con el texto «Cuenta al corriente»**, que rompe cualquier suma
   directa.
-- **Los ocho estatus de ruta del catálogo**, repartidos: 85 recuperadas, 29 próximas
+- **Los ocho estatus de ruta del catálogo**, repartidos entre las 214 casas: 85 recuperadas,
+  29 próximas
   recuperaciones y 100 que no suman.
 - **Una pestaña señuelo** (`Catalogo_Carteras`) antes de la buena, para que la app tenga que
   escoger la hoja.

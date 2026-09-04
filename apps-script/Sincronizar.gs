@@ -201,15 +201,30 @@ function leerMaestro() {
   if (!valores.length) return { ok: false, error: 'vacia', mensaje: 'La pestaña está vacía.' };
 
   /* La fila de encabezados no se da por hecho: se busca la que traiga a la vez
-     el folio y la fuente, en las primeras doce. */
-  let hr = -1;
+     el folio y la fuente, en las primeras doce.
+
+     Y si ninguna las trae —porque en el Sheet renombraron una de las dos—, no
+     se muere todo: se toma la fila que más columnas de COLUMNAS reconozca. Sin
+     esto, cambiarle el nombre a UNA columna dejaba el tablero sin una sola casa
+     y con un mensaje que culpaba a la fila de encabezados, que estaba bien. */
+  const buscadas = COLUMNAS.map(norm);
+  let hr = -1, mejor = -1, mejorN = 0;
   for (let i = 0; i < Math.min(valores.length, 12); i++) {
     const h = valores[i].map(norm);
     if (h.indexOf('folio thiqa') >= 0 && h.indexOf('fuente') >= 0) { hr = i; break; }
+    let n = 0;
+    for (let k = 0; k < buscadas.length; k++) if (h.indexOf(buscadas[k]) >= 0) n++;
+    if (n > mejorN) { mejorN = n; mejor = i; }
   }
+  /* La mitad de las columnas es el mínimo para creerle a una fila que es el
+     encabezado y no un renglón de datos que coincidió por casualidad. */
+  if (hr < 0 && mejorN >= Math.ceil(COLUMNAS.length / 2)) hr = mejor;
   if (hr < 0) {
     return { ok: false, error: 'encabezados',
-             mensaje: 'No encontré la fila de encabezados (busco una que traiga FOLIO THIQA y FUENTE).' };
+             mensaje: 'No encontré la fila de encabezados. Busco una que traiga FOLIO THIQA y ' +
+                      'FUENTE, o al menos la mitad de las columnas de la lista. La que más ' +
+                      'reconocí trae ' + mejorN + ' de ' + COLUMNAS.length + '. ' +
+                      'Lo más probable es que hayan renombrado columnas en el Sheet.' };
   }
 
   const cabeza = valores[hr].map(norm);
@@ -248,8 +263,22 @@ function leerMaestro() {
           }
         }
         if (!u) {
-          const m = /^\s*=?\s*HYPERLINK\s*\(\s*"((?:[^"]|"")*)"/i.exec(String(formulas[n][0] || ''));
+          const f = String(formulas[n][0] || '');
+          const m = /^\s*=?\s*HYPERLINK\s*\(\s*"((?:[^"]|"")*)"/i.exec(f);
           if (m) u = m[1].replace(/""/g, '"');
+          else {
+            /* =HYPERLINK(B2;"texto") — la URL no está escrita en la fórmula,
+               está en otra celda. Es como quedan las ligas que se armaron
+               arrastrando una fórmula hacia abajo. Se sigue la referencia una
+               sola vez: si esa celda tampoco trae una URL, se deja pasar. */
+            const ref = /^\s*=?\s*HYPERLINK\s*\(\s*\$?([A-Z]{1,3})\$?(\d{1,7})\s*[;,)]/i.exec(f);
+            if (ref) {
+              try {
+                const v = String(hoja.getRange(ref[1] + ref[2]).getValue() || '').trim();
+                if (/^https?:\/\//i.test(v)) u = v;
+              } catch (err) { /* referencia a otra hoja o rango raro: se ignora */ }
+            }
+          }
         }
         if (u) porFila[n] = u;
       }
