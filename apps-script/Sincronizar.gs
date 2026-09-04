@@ -184,7 +184,7 @@ const COLUMNAS = [
 ];
 
 /** Las columnas de las que hay que sacar la URL de la liga, no sólo el texto. */
-const CON_LIGA = ['LINK', 'EXP. DIGITAL', 'CARPETA MATERIALES DE TAPEO', 'CARPETA DE EVIDENCIAS'];
+const CON_LIGA = ['LINK', 'EXP. DIGITAL'];
 
 /* ========================================================================= */
 
