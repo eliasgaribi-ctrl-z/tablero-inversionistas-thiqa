@@ -128,29 +128,59 @@ function libroMaestro() {
 }
 
 /**
- * Las únicas columnas que salen del Sheet, por nombre de encabezado.
+ * Las únicas columnas que salen del Sheet.
  * Agregar aquí = agregar al tablero. Quitar de aquí = que no salga nunca.
+ *
+ * Cada renglón trae el nombre con el que sale hacia el tablero y, después, los
+ * nombres con los que se busca en el Sheet. Van varios a propósito: el maestro
+ * ha renombrado columnas más de una vez —lo que antes era FUENTE hoy es CARTERA,
+ * y F. DESALOJO ACORDADA hoy es FECHA DESALOJO— y con una sola lista rígida
+ * cualquier cambio de nombre deja el tablero mudo. Con los alias sirve con el
+ * maestro de hoy y con el de antes, sin tener que acordarse de cuál es cuál.
+ *
+ * LO QUE NO ESTÁ AQUÍ NO SALE DEL SHEET, Y ES DELIBERADO: el nombre del
+ * acreditado, el número de crédito, la cuenta predial, el juzgado, el número de
+ * expediente, el acreedor y las notas no tienen renglón en esta lista, así que
+ * no pueden salir del maestro ni por accidente.
  */
 const COLUMNAS = [
-  'FOLIO THIQA',
-  'FUENTE',
-  'ESTATUS RUTA',
-  'CUADRILLA',
-  'NO. RUTA',
-  'DIRECCION',
-  'LINK',
-  'COLONIA',
-  'CP',
-  'MUNICIPIO',
-  'ENTIDAD',
-  'F. DESALOJO ACORDADA',
-  'F. CONVENIO FIRMADO',
-  'MONTO ACORDADO',
-  'CARTA PODER',
-  'MONTO MAXIMO POR CASA',
-  'EXP. DIGITAL',
-  'CARPETA MATERIALES DE TAPEO',
-  'CARPETA DE EVIDENCIAS',
+  { nombre: 'FOLIO THIQA',        busca: ['FOLIO THIQA'] },
+  { nombre: 'CARTERA',            busca: ['CARTERA', 'FUENTE'] },
+  { nombre: 'ESTATUS RUTA',       busca: ['ESTATUS RUTA'] },
+  { nombre: 'CUADRILLA',          busca: ['CUADRILLA'] },
+  { nombre: 'NO. RUTA',           busca: ['NO. RUTA'] },
+  { nombre: 'DIRECCION',          busca: ['DIRECCION'] },
+  { nombre: 'LINK',               busca: ['LINK'] },
+  { nombre: 'COLONIA',            busca: ['COLONIA'] },
+  { nombre: 'CP',                 busca: ['CP'] },
+  { nombre: 'MUNICIPIO',          busca: ['MUNICIPIO'] },
+  /* ENTIDAD ya no existe en el maestro y no se pide: dejarla en la lista hacía
+     que cada sincronización avisara de una columna faltante, y un aviso que
+     sale siempre es un aviso que nadie lee. Todas las casas son de Jalisco. */
+  { nombre: 'FECHA DESALOJO',     busca: ['FECHA DESALOJO', 'F. DESALOJO ACORDADA'] },
+  { nombre: 'FECHA CONVENIO',     busca: ['FECHA CONVENIO', 'F. CONVENIO FIRMADO'] },
+  { nombre: 'MONTO ACORDADO',     busca: ['MONTO ACORDADO'] },
+  { nombre: 'CARTA PODER',        busca: ['CARTA PODER'] },
+  { nombre: 'MONTO MAXIMO POR CASA', busca: ['MONTO MAXIMO POR CASA'] },
+  { nombre: 'MONTO HONORARIOS',   busca: ['MONTO HONORARIOS'] },
+  { nombre: 'BONO',               busca: ['BONO'] },
+
+  /* El bloque de obra. Estas seis son la corrección de fondo: el maestro SÍ
+     trae lo que se gastó en cada tapeo —material y mano de obra—, y el tablero
+     lo estaba ignorando. La mano de obra no se estaba contando en ninguna
+     inversión. */
+  { nombre: 'NÚMERO DE TAPEO',    busca: ['NÚMERO DE TAPEO', 'NUMERO DE TAPEO'] },
+  { nombre: 'FECHA DE TAPEO',     busca: ['FECHA DE TAPEO'] },
+  { nombre: 'ELEMENTOS TAPEADOS', busca: ['ELEMENTOS TAPEADOS'] },
+  { nombre: 'MATERIAL UTILIZADO', busca: ['MATERIAL UTILIZADO', 'MATERIALES UTILIZADOS'] },
+  { nombre: 'GASTO MATERIAL',     busca: ['GASTO MATERIAL', 'GASTO DE MATERIAL', 'COSTO DE MATERIALES'] },
+  { nombre: 'GASTO MANO DE OBRA', busca: ['GASTO MANO DE OBRA', 'GASTO DE MANO DE OBRA'] },
+
+  /* Las carpetas del expediente. En el maestro de hoy los materiales de tapeo
+     se llaman COMPROBANTES y las evidencias, EVIDENCIA en singular. */
+  { nombre: 'EXP. DIGITAL',       busca: ['EXP. DIGITAL'] },
+  { nombre: 'CARPETA MATERIALES DE TAPEO', busca: ['COMPROBANTES', 'CARPETA MATERIALES DE TAPEO'] },
+  { nombre: 'CARPETA DE EVIDENCIAS',       busca: ['EVIDENCIA', 'EVIDENCIAS', 'CARPETA DE EVIDENCIAS'] },
 ];
 
 /** Las columnas de las que hay que sacar la URL de la liga, no sólo el texto. */
@@ -207,13 +237,16 @@ function leerMaestro() {
      se muere todo: se toma la fila que más columnas de COLUMNAS reconozca. Sin
      esto, cambiarle el nombre a UNA columna dejaba el tablero sin una sola casa
      y con un mensaje que culpaba a la fila de encabezados, que estaba bien. */
-  const buscadas = COLUMNAS.map(norm);
   let hr = -1, mejor = -1, mejorN = 0;
   for (let i = 0; i < Math.min(valores.length, 12); i++) {
     const h = valores[i].map(norm);
-    if (h.indexOf('folio thiqa') >= 0 && h.indexOf('fuente') >= 0) { hr = i; break; }
+    /* CARTERA es como se llama hoy; FUENTE es como se llamaba. Se aceptan las
+       dos, porque de esta fila depende que se lea el archivo entero. */
+    if (h.indexOf('folio thiqa') >= 0 &&
+        (h.indexOf('cartera') >= 0 || h.indexOf('fuente') >= 0)) { hr = i; break; }
     let n = 0;
-    for (let k = 0; k < buscadas.length; k++) if (h.indexOf(buscadas[k]) >= 0) n++;
+    for (let k = 0; k < COLUMNAS.length; k++)
+      if (COLUMNAS[k].busca.some(function (b) { return h.indexOf(norm(b)) >= 0; })) n++;
     if (n > mejorN) { mejorN = n; mejor = i; }
   }
   /* La mitad de las columnas es el mínimo para creerle a una fila que es el
@@ -229,9 +262,13 @@ function leerMaestro() {
 
   const cabeza = valores[hr].map(norm);
   const cols = [], faltan = [];
-  COLUMNAS.forEach(function (nombre) {
-    const i = cabeza.indexOf(norm(nombre));
-    if (i < 0) faltan.push(nombre); else cols.push({ nombre: nombre, i: i });
+  COLUMNAS.forEach(function (c) {
+    /* Se prueban los alias en orden: gana el nombre de hoy, y si no está, el
+       de antes. Así el mismo script sirve para el maestro actual y para una
+       descarga vieja sin cambiarle una línea. */
+    let i = -1;
+    for (let k = 0; k < c.busca.length && i < 0; k++) i = cabeza.indexOf(norm(c.busca[k]));
+    if (i < 0) faltan.push(c.nombre); else cols.push({ nombre: c.nombre, i: i });
   });
   if (!cols.length) {
     return { ok: false, error: 'columnas',

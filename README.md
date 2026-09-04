@@ -56,8 +56,9 @@ nadie más después:
 
 Dos cosas siguen siendo a mano, y están plegadas en *«¿Prefieres subir los archivos a mano?»*:
 
-- El **Excel de tapeados** del área de obras. De ahí salen los materiales utilizados y su costo —
-  el maestro no los trae, así que ése sí se sube a mano.
+- El **Excel de tapeados** del área de obras. Hoy es un respaldo, no un requisito: el maestro ya
+  trae el material utilizado, el gasto de material y el gasto de mano de obra en sus últimas
+  columnas. El de tapeados sólo se usa para las casas en las que el maestro venga sin capturar.
 - El **maestro en `.xlsx`**, por si el script no contesta. Bájalo con **Archivo → Descargar →
   Microsoft Excel (.xlsx)**; descárgalo, no lo copies a mano, porque es la descarga la que trae
   las ligas de las carpetas de Drive colgadas de cada celda.
@@ -101,14 +102,15 @@ Por cada casa, lo que le interesa a un inversionista:
 | **Domicilio (con liga)** | el texto de la columna *Link*, con su liga de Maps viva |
 | **Fecha de desalojo** | la fecha de desalojo acordada |
 | **Monto de convenio** | el monto acordado con el ocupante |
-| **Monto de honorarios + bono** | del archivo si lo trae; si no, se calcula y se dice que se calculó |
-| **Materiales utilizados** | del Excel de tapeados, con su unidad (`260 pz`, `13 sacos`) |
-| **Costo de materiales** | el gasto de material de ese tapeo |
-| **Carpetas del expediente** | expediente digital, materiales de tapeo y evidencias, cada una con su código QR |
+| **Monto de honorarios + bono** | las columnas de honorarios y bono del maestro; si vienen vacías, se calcula y se dice que se calculó |
+| **Materiales utilizados** | la columna de material utilizado del maestro, con su unidad (`230 blocks`, `4 bultos`) |
+| **Gasto de material** | lo que costó el material de ese tapeo |
+| **Gasto de mano de obra** | lo que costó la mano de obra de ese tapeo |
+| **Carpetas del expediente** | expediente digital, comprobantes de tapeo y evidencias, cada una con su código QR |
 
 Más lo que se deduce de esos datos: la **inversión total** por casa (convenio + honorarios y bono +
-materiales) y el **avance**, que son cinco cuadros que se prenden nada más con evidencia en el
-archivo.
+material + mano de obra) y el **avance**, que son cinco cuadros que se prenden nada más con
+evidencia en el archivo.
 
 ## ✨ Características
 
@@ -263,15 +265,23 @@ las URLs de donde de veras están, de las dos formas en que existen (liga de la 
 
 ### Qué sale del maestro, y qué no
 
-El script manda **sólo las 19 columnas que el tablero usa**, y están escritas en una lista al
-principio del archivo. El **nombre del acreditado**, el **número de crédito** y el **expediente
-judicial** no están en esa lista, así que no salen del Sheet ni por accidente.
+El script manda **sólo las columnas que el tablero usa**, y están escritas en una lista al
+principio del archivo. El **nombre del acreditado**, el **número de crédito**, la **cuenta
+predial**, el **juzgado**, el **número de expediente**, el **acreedor** y las **notas** no tienen
+renglón en esa lista, así que no salen del Sheet ni por accidente.
 
 Se lee **por nombre de encabezado, no por posición** — a propósito, y es la diferencia importante
 contra el otro Apps Script del maestro, el de la página de carga: ése lee por posición y cualquier
 columna que se inserte a la izquierda lo descuadra en silencio. Este busca `MONTO ACORDADO` por su
 nombre; puedes mover, insertar o borrar columnas y sigue funcionando. Si una columna no aparece, lo
 **dice** en lugar de traer el dato equivocado.
+
+**Y cada columna se busca por varios nombres.** El maestro ha renombrado columnas más de una vez:
+lo que era `FUENTE` hoy es `CARTERA`, `F. DESALOJO ACORDADA` hoy es `FECHA DESALOJO`, y las
+carpetas de tapeo y evidencias hoy son `COMPROBANTES` y `EVIDENCIA`. Con una sola lista rígida,
+cualquiera de esos cambios dejaba el tablero mudo — y con el nombre de la cartera perdido, todas
+las casas caían en «Sin cartera» y las pestañas de PIC e Infonavit se quedaban vacías. Ahora cada
+columna trae el nombre de hoy y el de antes, y sirve con los dos.
 
 Y las fechas salen ya escritas `dd/mm/aaaa` con la zona horaria del Sheet, no como número: JSON no
 tiene fechas, y mandarlas en crudo es la receta para que un desalojo del día 1 aparezca el último
@@ -357,9 +367,10 @@ cuenta.
 
 ### Estado de casas recuperadas
 
-El que se le entrega al inversionista. Arriba las cinco cifras —casas, convenio, honorarios y bono,
-materiales, inversión total—, abajo la tabla de casas con sus ocho columnas, y al cierre de cada
-bloque su subtotal. En el pie va la regla de dinero, para que la hoja se pueda leer sola.
+El que se le entrega al inversionista. Arriba las seis cifras —casas, convenio, honorarios y bono,
+gasto de material, gasto de mano de obra e inversión total—, abajo la tabla de casas con sus nueve
+columnas, y al cierre de cada bloque su subtotal. En el pie va la regla de dinero, para que la hoja
+se pueda leer sola.
 
 **Se pagina midiendo, no contando renglones.** Un domicilio largo o una lista de materiales de tres
 líneas ocupan lo que ocupan; una hoja de tamaño fijo con un número fijo de renglones se desborda o
@@ -405,11 +416,21 @@ Va lo menos apretado posible, que es lo que se lee bien en papel: nivel de corre
 `?usp=drive_link` que Drive le cuelga a sus ligas —15 caracteres que no hacen falta para abrir la
 carpeta y que brincarían el código de 33×33 módulos a 37×37—.
 
-## 🧱 Los materiales y su costo
+## 🧱 El gasto de obra
 
-El maestro no trae materiales. Vienen del **Excel de tapeados** del área de obras, y ahí no hay
-folio: lo único que une las dos tablas es la dirección, y no viene escrita igual —`CERRO LA CRUZ
-157 M-1` contra `Cerro de la Cruz 157`—.
+**El maestro trae el gasto de obra en sus últimas columnas**, y son dos cifras, no una: el
+**gasto de material** y el **gasto de mano de obra**. Las dos entran a la inversión de la casa y
+las dos salen por separado en la tabla, en la ficha y en el estado de cuenta — para el
+inversionista no es lo mismo el block que el albañil, pero las dos son dinero que salió.
+
+> Durante un tiempo el tablero sólo leyó la primera. La mano de obra no entraba en ninguna suma,
+> así que **cada casa se veía más barata de lo que costó**. Ya no.
+
+### El Excel de tapeados, de respaldo
+
+Cuando el maestro venga sin capturar el tapeo de una casa, sigue sirviendo el **Excel de tapeados**
+del área de obras. Ahí no hay folio: lo único que une las dos tablas es la dirección, y no viene
+escrita igual —`CERRO LA CRUZ 157 M-1` contra `Cerro de la Cruz 157`—.
 
 Se comparan por número de casa más las palabras de la calle, tirando el relleno (`de`, `la`, `av`)
 y la cola que arrastra el domicilio: el C.P. que viene dentro del texto de la liga de Maps y el

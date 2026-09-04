@@ -380,6 +380,9 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
 .hoja .r2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .hoja .r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 .hoja .r4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:13px}
+/* Cinco: convenio, honorarios, material, mano de obra e inversión. El gasto de
+   obra son dos cifras, no una, y en la hoja tienen que verse las dos. */
+.hoja .r5{display:grid;grid-template-columns:repeat(5,1fr);gap:11px}
 .hoja .pie{margin-top:auto;flex:none;border-top:1px solid #D5DAE0;padding-top:6px;
   display:flex;justify-content:space-between;gap:14px;font-size:7.5px;color:#8B96A1;line-height:1.5}
 .hoja .pie b{color:#5B6670}
@@ -889,12 +892,18 @@ const GRUPOS = [
   ]},
   { t:'Carpetas del expediente', f:[
     ['CARPETA_EXP','Carpeta del expediente digital','t',['exp digital','exp. digital','expediente digital','carpeta del expediente digital','carpeta del expediente','carpeta expediente','carpeta digital']],
-    ['CARPETA_MATERIALES','Carpeta de materiales de tapeo','t',['carpeta materiales de tapeo','carpeta de materiales de tapeo','carpeta de materiales','carpeta materiales','materiales de tapeo','carpeta de tapeos','carpeta tapeos','tapeos materiales']],
-    ['CARPETA_EVIDENCIAS','Carpeta de evidencias','t',['carpeta de evidencias de tapeo','carpeta de evidencias','carpeta evidencias','evidencias de tapeo','evidencia fotografica','fotos de tapeo','carpeta de fotos','evidencias']],
+    ['CARPETA_MATERIALES','Carpeta de materiales de tapeo','t',['comprobantes','carpeta materiales de tapeo','carpeta de materiales de tapeo','carpeta de materiales','carpeta materiales','materiales de tapeo','carpeta de tapeos','carpeta tapeos','tapeos materiales']],
+    ['CARPETA_EVIDENCIAS','Carpeta de evidencias','t',['evidencia','carpeta de evidencias de tapeo','carpeta de evidencias','carpeta evidencias','evidencias de tapeo','evidencia fotografica','fotos de tapeo','carpeta de fotos','evidencias']],
   ]},
-  { t:'Materiales de los tapeos', f:[
-    ['COSTO_MATERIALES','Costo de materiales','n',['costo de materiales','costo materiales','total materiales','importe materiales','gasto de material','gasto material','gasto de materiales']],
-    ['MATERIALES','Materiales utilizados','t',['materiales utilizados','material utilizado','materiales','material']],
+  /* El gasto de obra. El maestro trae las dos mitades —lo que costó el material
+     y lo que costó la mano de obra— y hasta ahora el tablero sólo leía la
+     primera: la mano de obra no entraba en ninguna inversión. Van juntas y
+     separadas, porque para el inversionista no es lo mismo el block que el
+     albañil, pero las dos son dinero que salió. */
+  { t:'Gasto de obra (los tapeos)', f:[
+    ['COSTO_MATERIALES','Costo de materiales','n',['gasto material','gasto de material','costo de materiales','costo materiales','total materiales','importe materiales','gasto de materiales']],
+    ['MANO_OBRA','Gasto de mano de obra','n',['gasto mano de obra','gasto de mano de obra','mano de obra','costo mano de obra','costo de mano de obra','manodeobra']],
+    ['MATERIALES','Materiales utilizados','t',['material utilizado','materiales utilizados','materiales','material']],
     ['ELEMENTOS','Elementos tapeados','t',['elementos a tapear','elementos tapeados','elementos','tapear','medidas de tapeo','medida de tapeo']],
   ]},
 ];
@@ -1496,9 +1505,16 @@ function dineroDe(r){
   }
 
   const mat = materialesDe(r);
-  const partes = [convenio, hb, mat.costo].filter(v => !isNaN(v));
+  /* La mano de obra del tapeo, que el maestro trae en su propia columna. Va
+     aparte del material a propósito —son dos cosas distintas y así se ven en la
+     hoja— pero las dos entran a la inversión: dejar la mano de obra fuera
+     hacía ver cada casa más barata de lo que costó. */
+  const manoObra = numDe(r,'MANO_OBRA');
+  const obra = [mat.costo, manoObra].filter(v => !isNaN(v));
+  const totalObra = obra.length ? obra.reduce((a,b) => a + b, 0) : NaN;
+  const partes = [convenio, hb, mat.costo, manoObra].filter(v => !isNaN(v));
   return { convenio, tope, cartaPoder: cp, ahorro, bono, hon, hb, deBono, deHon, deHB,
-           materiales: mat, costoMat: mat.costo,
+           materiales: mat, costoMat: mat.costo, manoObra, totalObra,
            inversion: partes.length ? partes.reduce((a,b) => a + b, 0) : NaN,
            completo: !isNaN(convenio) && !isNaN(hb) && !isNaN(mat.costo) };
 }
@@ -1983,8 +1999,9 @@ function pintarColumnas(restauradas){
      saldría cada una, porque si no parece que la app no las lee. */
   const opcionales = [
     ['HON_BONO','se calcula con el tope y el bono, en Ajustes'],
-    ['COSTO_MATERIALES','sale del Excel de tapeados'],
-    ['MATERIALES','sale del Excel de tapeados'],
+    ['COSTO_MATERIALES','lo trae el maestro; si no, del Excel de tapeados'],
+    ['MANO_OBRA','lo trae el maestro, en su columna de gasto de mano de obra'],
+    ['MATERIALES','lo trae el maestro; si no, del Excel de tapeados'],
     ['CARPETA_MATERIALES','la columna de la carpeta de los tapeos, si el maestro ya la trae'],
     ['CARPETA_EVIDENCIAS','la columna de la carpeta de evidencias, si el maestro ya la trae'],
   ].filter(x => S.map[x[0]] === undefined);
@@ -2078,17 +2095,18 @@ const enJuego = rows => rows.filter(r => !S.etapaOff.has(etapaDe(r)));
 /* Suma lo que hay y cuenta lo que falta, por separado. Nunca se rellena un hueco
    con cero: una suma de 40 casas sobre 46 no es la suma de 46. */
 function totales(rows){
-  const t = { n: rows.length, convenio:0, hb:0, mat:0, inversion:0,
-              sinConvenio:0, sinHB:0, sinMat:0, calculados:0, completas:0 };
+  const t = { n: rows.length, convenio:0, hb:0, mat:0, obra:0, inversion:0,
+              sinConvenio:0, sinHB:0, sinMat:0, sinObra:0, calculados:0, completas:0 };
   for (const r of rows){
     const d = dineroDe(r);
     if (isNaN(d.convenio)) t.sinConvenio++; else t.convenio += d.convenio;
     if (isNaN(d.hb)) t.sinHB++; else t.hb += d.hb;
     if (isNaN(d.costoMat)) t.sinMat++; else t.mat += d.costoMat;
+    if (isNaN(d.manoObra)) t.sinObra++; else t.obra += d.manoObra;
     if (d.deHB === 'calculado') t.calculados++;
     if (d.completo) t.completas++;
   }
-  t.inversion = t.convenio + t.hb + t.mat;
+  t.inversion = t.convenio + t.hb + t.mat + t.obra;
   return t;
 }
 /* Cuando no hay ni una cifra capturada, la suma no es cero: es que no hay dato.
@@ -2361,11 +2379,12 @@ function pintarKPIs(){
     ['','Honorarios + bono', sumaT(t.hb, t.sinHB, t.n), deQuedan(t.sinHB, t.n) +
       (t.calculados ? ' · ' + t.calculados + ' calculadas' : '')],
     ['','Costo de materiales', sumaT(t.mat, t.sinMat, t.n), deQuedan(t.sinMat, t.n)],
-    ['oro','Inversión total', t.n && (t.sinConvenio + t.sinHB + t.sinMat) === t.n * 3
+    ['','Gasto de mano de obra', sumaT(t.obra, t.sinObra, t.n), deQuedan(t.sinObra, t.n)],
+    ['oro','Inversión total', t.n && (t.sinConvenio + t.sinHB + t.sinMat + t.sinObra) === t.n * 4
         ? 'sin capturar' : fmtCorto(t.inversion),
       t.completas === t.n && t.n
-        ? 'convenio + honorarios + materiales, completo'
-        : 'convenio + honorarios + materiales · <b style="color:var(--nar2)">' +
+        ? 'convenio + honorarios + material + mano de obra, completo'
+        : 'convenio + honorarios + material + mano de obra · <b style="color:var(--nar2)">' +
           (t.n - t.completas) + ' casas incompletas</b>'],
   ].map(k => '<div class="kpi ' + k[0] + '"><div class="r">' + k[1] + '</div>' +
              '<div class="v">' + k[2] + '</div><div class="n">' + k[3] + '</div></div>').join('');
@@ -2380,7 +2399,8 @@ function pintarKPIs(){
     '<div class="card"><h3>Por cartera</h3><p>Sólo las recuperadas. Cada cartera con lo suyo, ' +
     'y al final la suma.</p><div class="tablaBox"><table class="t"><thead><tr>' +
     '<th>Cartera</th><th style="text-align:right">Casas</th><th style="text-align:right">Monto de convenio</th>' +
-    '<th style="text-align:right">Honorarios + bono</th><th style="text-align:right">Costo de materiales</th>' +
+    '<th style="text-align:right">Honorarios + bono</th><th style="text-align:right">Material</th>' +
+    '<th style="text-align:right">Mano de obra</th>' +
     '<th style="text-align:right">Inversión</th></tr></thead><tbody>';
   if (grupos.length > 1) for (const k of grupos){
     const rows = g.rec.filter(r => grupoCartera(valor(r,'CARTERA')) === k);
@@ -2391,12 +2411,14 @@ function pintarKPIs(){
         esc(fuentes.join(' · ')) + '</span>' : '') + '</td>' +
       '<td class="n">' + s.n + '</td><td class="n">' + fmtMoney(s.convenio) + '</td>' +
       '<td class="n">' + fmtMoney(s.hb) + '</td><td class="n">' + fmtMoney(s.mat) + '</td>' +
+      '<td class="n">' + fmtMoney(s.obra) + '</td>' +
       '<td class="n" style="color:var(--nar2)">' + fmtMoney(s.inversion) + '</td></tr>';
   }
   if (grupos.length > 1)
     html += '</tbody><tfoot><tr><td>Total</td><td class="n">' + t.n + '</td><td class="n">' +
       fmtMoney(t.convenio) + '</td><td class="n">' + fmtMoney(t.hb) + '</td><td class="n">' +
-      fmtMoney(t.mat) + '</td><td class="n">' + fmtMoney(t.inversion) + '</td></tr></tfoot></table></div></div>';
+      fmtMoney(t.mat) + '</td><td class="n">' + fmtMoney(t.obra) + '</td><td class="n">' +
+      fmtMoney(t.inversion) + '</td></tr></tfoot></table></div></div>';
 
   /* Las próximas recuperaciones, aparte y con su aviso. */
   const p = totales(g.prox);
@@ -2409,6 +2431,7 @@ function pintarKPIs(){
           ['Monto de convenio', sumaT(p.convenio, p.sinConvenio, p.n)],
           ['Honorarios + bono', sumaT(p.hb, p.sinHB, p.n)],
           ['Costo de materiales', sumaT(p.mat, p.sinMat, p.n)],
+          ['Gasto de mano de obra', sumaT(p.obra, p.sinObra, p.n)],
         ].map(x => '<div><span class="rot">' + x[0] + '</span>' +
              '<div class="num" style="font-size:20px;font-weight:700">' + x[1] + '</div></div>').join('') + '</div>'
       : '<p style="margin:0;color:var(--tx3)">Ninguna con los filtros de arriba.</p>') + '</div>';
@@ -2450,6 +2473,7 @@ const COLS = [
   { k:'HON_BONO',   r:'Honorarios + bono', n:true },
   { k:'MATERIALES', r:'Materiales utilizados' },
   { k:'COSTO_MATERIALES', r:'Costo de materiales', n:true },
+  { k:'MANO_OBRA', r:'Mano de obra', n:true },
   { k:'CARPETAS',   r:'Carpetas' },
   { k:'AVANCE',     r:'Avance' },
 ];
@@ -2461,6 +2485,7 @@ function ordenar(rows){
       case 'MONTO_CONVENIO': return isNaN(d.convenio) ? -Infinity : d.convenio;
       case 'HON_BONO': return isNaN(d.hb) ? -Infinity : d.hb;
       case 'COSTO_MATERIALES': return isNaN(d.costoMat) ? -Infinity : d.costoMat;
+      case 'MANO_OBRA': return isNaN(d.manoObra) ? -Infinity : d.manoObra;
       case 'F_DESALOJO': { const f = fechaDe(r,'F_DESALOJO'); return f ? f.getTime() : -Infinity; }
       case 'AVANCE': return avanceDe(r, d).hechos;
       case 'MATERIALES': return d.materiales.lista.length;
@@ -2515,7 +2540,11 @@ function filaSubtotal(k, rows, cols, colsAntes, estiloTd){
     '<td class="n"' + e + '>' + sumaT(t.convenio, t.sinConvenio, t.n) + '</td>' +
     '<td class="n"' + e + '>' + sumaT(t.hb, t.sinHB, t.n) + '</td>' +
     '<td' + e + '></td><td class="n"' + e + '>' + sumaT(t.mat, t.sinMat, t.n) + '</td>' +
-    (cols - colsAntes - 4 > 0 ? '<td colspan="' + (cols - colsAntes - 4) + '"' + e + '></td>' : '') +
+    '<td class="n"' + e + '>' + sumaT(t.obra, t.sinObra, t.n) + '</td>' +
+    /* Cinco celdas van escritas arriba —convenio, honorarios, el hueco de los
+       materiales, el material y la mano de obra—, así que el relleno son las
+       que queden después de esas cinco. */
+    (cols - colsAntes - 5 > 0 ? '<td colspan="' + (cols - colsAntes - 5) + '"' + e + '></td>' : '') +
     '</tr>';
 }
 function chipsCarpetas(r){
@@ -2577,6 +2606,7 @@ function pintarTabla(){
           (mats.lista.length > 5 ? '<br><span style="color:var(--tx3)">y ' + (mats.lista.length-5) + ' más</span>' : '')
         : sinDato('sin tapeo capturado')) + '</td>' +
       '<td class="n">' + dinT(d.costoMat) + '</td>' +
+      '<td class="n">' + dinT(d.manoObra) + '</td>' +
       '<td style="min-width:170px">' + chipsCarpetas(r) + '</td>' +
       '<td style="min-width:110px"><div class="pasos" title="' +
         (a.falta.length ? esc('Falta: ' + a.falta.join(', ')) : 'completa') + '">' +
@@ -2603,7 +2633,7 @@ function tablaPlana(){
   const rows = ordenar(enJuego(filtradas()));
   const enc = ['Folio THIQA','Cartera','Fuente','Estatus','Cuadrilla','Domicilio','Liga del domicilio',
                'Fecha de desalojo','Monto de convenio','Honorarios + bono','Origen de honorarios',
-               'Materiales utilizados','Costo de materiales','Inversión','Carpeta del expediente digital',
+               'Materiales utilizados','Costo de materiales','Gasto de mano de obra','Inversión','Carpeta del expediente digital',
                'Carpeta de materiales de tapeo','Carpeta de evidencias','Avance'];
   const cuerpo = rows.map(r => {
     const d = dineroDe(r), a = avanceDe(r, d);
@@ -2612,6 +2642,7 @@ function tablaPlana(){
             valor(r,'F_DESALOJO'),
             isNaN(d.convenio) ? '' : d.convenio, isNaN(d.hb) ? '' : d.hb, d.deHB,
             d.materiales.texto, isNaN(d.costoMat) ? '' : d.costoMat,
+            isNaN(d.manoObra) ? '' : d.manoObra,
             isNaN(d.inversion) ? '' : d.inversion,
             carpeta(r,'CARPETA_EXP'), carpeta(r,'CARPETA_MATERIALES'), carpeta(r,'CARPETA_EVIDENCIAS'),
             a.hechos + '/' + a.total];
@@ -2692,6 +2723,7 @@ function pintarCasas(){
         '<div><div class="r">Monto de convenio</div><div class="v">' + dinT(d.convenio) + '</div></div>' +
         '<div><div class="r">Honorarios + bono</div><div class="v">' + dinT(d.hb) + '</div></div>' +
         '<div><div class="r">Costo de materiales</div><div class="v">' + dinT(d.costoMat) + '</div></div>' +
+        '<div><div class="r">Gasto de mano de obra</div><div class="v">' + dinT(d.manoObra) + '</div></div>' +
       '</div>' +
       '<div class="mats">' + (mats.lista.length
         ? '<b>Materiales:</b> ' + mats.lista.map(x => (x.cant ? esc(x.cant) + ' ' : '') +
@@ -2804,12 +2836,16 @@ function pieHoja(izq, der){
 const NOTA_REGLA = 'Sólo suman las casas en <b>Recuperada</b>. Las de <b>Prox. Recuperacion</b> van ' +
   'contadas aparte y los demás estatus no entran en ninguna suma.';
 
-const COLGROUP = '<colgroup><col style="width:76px"><col style="width:188px"><col style="width:58px">' +
-  '<col style="width:72px"><col style="width:72px"><col style="width:148px"><col style="width:66px">' +
-  '<col style="width:76px"></colgroup>';
+/* Los anchos suman exactamente 756px, que es la hoja (816) menos sus dos
+   márgenes de 30. Si se pasan, la última columna —la inversión, que es la que
+   se busca— se sale de la página y sale cortada. */
+const COLGROUP = '<colgroup><col style="width:72px"><col style="width:158px"><col style="width:58px">' +
+  '<col style="width:68px"><col style="width:72px"><col style="width:122px"><col style="width:62px">' +
+  '<col style="width:66px"><col style="width:76px"></colgroup>';
 const THEAD_CUENTA = '<thead><tr><th>Folio THIQA</th><th>Domicilio</th><th>Desalojo</th>' +
   '<th style="text-align:right">Convenio</th><th style="text-align:right">Honorarios + bono</th>' +
-  '<th>Materiales utilizados</th><th style="text-align:right">Costo mat.</th>' +
+  '<th>Materiales utilizados</th><th style="text-align:right">Material</th>' +
+  '<th style="text-align:right">Mano de obra</th>' +
   '<th style="text-align:right">Inversión</th></tr></thead>';
 
 function filaCuenta(r){
@@ -2825,10 +2861,11 @@ function filaCuenta(r){
       ? esc(m.lista.map(x => (x.cant ? x.cant + ' ' : '') + x.nombre.toLowerCase()).join(', '))
       : na) + '</td>' +
     '<td class="n">' + dinero(d.costoMat) + '</td>' +
+    '<td class="n">' + dinero(d.manoObra) + '</td>' +
     '<td class="n">' + dinero(d.inversion) + '</td></tr>';
 }
 function seccionCuenta(k, n){
-  return '<tr class="secFila"><td colspan="8" style="background:#EDF2F8;color:#1B3A5C;font-weight:700;' +
+  return '<tr class="secFila"><td colspan="9" style="background:#EDF2F8;color:#1B3A5C;font-weight:700;' +
     'font-size:8px;text-transform:uppercase;letter-spacing:.06em;padding:6px;' +
     'border-left:3px solid #E8892B;border-bottom:1px solid #CFDAE7">' +
     esc(ROT_ETAPA[k]) + ' · ' + n + (n === 1 ? ' casa · ' : ' casas · ') + esc(NOTA_ETAPA[k]) +
@@ -2843,11 +2880,12 @@ function cifrasCuenta(t, prox){
     c('Monto de convenio', sumaT(t.convenio, t.sinConvenio, t.n), t.sinConvenio ? t.sinConvenio + ' sin capturar' : 'completo') +
     c('Honorarios + bono', sumaT(t.hb, t.sinHB, t.n), t.sinHB ? t.sinHB + ' sin capturar' : 'completo') +
     c('Costo de materiales', sumaT(t.mat, t.sinMat, t.n), t.sinMat ? t.sinMat + ' sin capturar' : 'completo') +
+    c('Gasto de mano de obra', sumaT(t.obra, t.sinObra, t.n), t.sinObra ? t.sinObra + ' sin capturar' : 'completo') +
     /* La misma guardia que las otras tres cifras y que el KPI del tablero: con
        nada capturado esto imprimía $0, que se lee como "no costó nada" en una
        hoja que se manda a un inversionista. */
     c('Inversión total',
-      t.n && (t.sinConvenio + t.sinHB + t.sinMat) === t.n * 3 ? 'sin capturar' : fmtCorto(t.inversion),
+      t.n && (t.sinConvenio + t.sinHB + t.sinMat + t.sinObra) === t.n * 4 ? 'sin capturar' : fmtCorto(t.inversion),
       'de lo que sí está capturado', true) +
     '</div>' +
     (prox.n
@@ -2909,7 +2947,7 @@ function armarCuenta(rows){
       const it = items[i];
       tbody.insertAdjacentHTML('beforeend',
         it.sec ? seccionCuenta(it.sec, it.n)
-        : it.sub ? filaSubtotal(it.sub, it.rows, 8, 3,
+        : it.sub ? filaSubtotal(it.sub, it.rows, 9, 3,
             'background:#EDF2F8;border-top:2px solid #1B3A5C;font-weight:700;font-size:9px;padding:7px 6px')
         : filaCuenta(it.r));
       if (tabla.scrollHeight > zona.clientHeight){
@@ -2969,10 +3007,11 @@ function armarFichas(rows){
         dato('Ruta', esc(valor(r,'RUTA'))) + dato('Fuente', esc(valor(r,'CARTERA'))) + '</div></div>' +
 
       '<div class="sec">El dinero de la recuperación</div>' +
-      '<div class="r4">' +
+      '<div class="r5">' +
         dato('Monto de convenio', dinero(d.convenio), true) +
         dato('Honorarios + bono', dinero(d.hb), true) +
-        dato('Costo de materiales', dinero(d.costoMat)) +
+        dato('Gasto de material', dinero(d.costoMat)) +
+        dato('Gasto de mano de obra', dinero(d.manoObra)) +
         dato('Inversión total', dinero(d.inversion), true) +
       '</div>' +
       '<div class="r4">' +
