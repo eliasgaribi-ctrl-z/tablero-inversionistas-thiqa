@@ -133,7 +133,7 @@ function libroMaestro() {
  */
 const COLUMNAS = [
   'FOLIO THIQA',
-  'FUENTE',
+  'CARTERA',
   'ESTATUS RUTA',
   'CUADRILLA',
   'NO. RUTA',
@@ -142,19 +142,16 @@ const COLUMNAS = [
   'COLONIA',
   'CP',
   'MUNICIPIO',
-  'ENTIDAD',
-  'F. DESALOJO ACORDADA',
-  'F. CONVENIO FIRMADO',
+  'FECHA DESALOJO',
+  'FECHA CONVENIO',
   'MONTO ACORDADO',
   'CARTA PODER',
   'MONTO MAXIMO POR CASA',
   'EXP. DIGITAL',
-  'CARPETA MATERIALES DE TAPEO',
-  'CARPETA DE EVIDENCIAS',
 ];
 
 /** Las columnas de las que hay que sacar la URL de la liga, no sólo el texto. */
-const CON_LIGA = ['LINK', 'EXP. DIGITAL', 'CARPETA MATERIALES DE TAPEO', 'CARPETA DE EVIDENCIAS'];
+const CON_LIGA = ['LINK', 'EXP. DIGITAL'];
 
 /* ========================================================================= */
 
