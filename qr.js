@@ -279,7 +279,18 @@ function qrMatriz(texto){
    crispEdges evita que el navegador difumine los bordes en la vista previa. */
 function qrSvg(texto){
   const borde = 4;   // la zona muda que pide el estándar
-  const { tam, matriz } = qrMatriz(texto);
+  /* Un texto que no cabe no puede tumbar la página. qrMatriz sólo llega a la
+     versión 15 —520 bytes con corrección L— y Maps genera ligas de compartir
+     bastante más largas; como el QR se dibuja dentro del mismo intento que
+     carga el maestro, una sola celda con una URL así dejaba la app sin mostrar
+     ni una casa, con un mensaje que hablaba de versiones de QR. Ahora esa casa
+     se queda sin su código y las demás entran igual. */
+  let tam, matriz;
+  try {
+    ({ tam, matriz } = qrMatriz(texto));
+  } catch (e) {
+    return '';
+  }
   let d = '';
   for (let y = 0; y < tam; y++){
     let x = 0;

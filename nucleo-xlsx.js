@@ -74,7 +74,17 @@ const XLSXReader = (() => {
   }
 
   const BUILTIN_DATE = new Set([14,15,16,17,18,19,20,21,22,27,30,36,45,46,47,50,57]);
-  const serialToDate = v => new Date(Math.round((v - 25569) * 86400000));
+  /* El número de serie de Excel es un día del calendario, no un instante: el
+     45901 es "1 de septiembre", punto. Armar la fecha en UTC y luego leerla con
+     getDate() —que es hora local— la corría un día hacia atrás en cualquier huso
+     al oeste de Greenwich, México incluido: un desalojo del día 1 salía impreso
+     el último día del mes anterior. Se arma en local para que el día que se lee
+     sea el día que trae el archivo, en el huso que sea. */
+  const serialToDate = v => {
+    const u = new Date(Math.round((v - 25569) * 86400000));
+    return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate(),
+                    u.getUTCHours(), u.getUTCMinutes(), u.getUTCSeconds());
+  };
 
   async function parse(buffer){
     const zip = await unzip(buffer);
@@ -97,6 +107,11 @@ const XLSXReader = (() => {
     }
     if (!sheets.length) zip.names.filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n))
       .forEach((n,i) => sheets.push({ name:'Hoja ' + (i+1), path:n }));
+    /* Un ZIP que se abre pero no trae hojas no es un .xlsx: es un .ods o un .zip
+       con otra cosa adentro, renombrado. Sin esto reventaba más adelante con
+       "Cannot read properties of undefined (reading 'path')" —un mensaje de
+       programador— en lugar de la guía que la app ya tiene escrita para NO_ZIP. */
+    if (!sheets.length) throw new Error('NO_ZIP');
 
     const ssTxt = await zip.text('xl/sharedStrings.xml');
     const shared = [];
@@ -110,7 +125,15 @@ const XLSXReader = (() => {
     const isDateStyle = [];
     if (stTxt){
       const d = xml(stTxt), custom = {};
-      for (const nf of d.getElementsByTagName('numFmt')){
+      /* Sólo los del bloque <numFmts>, que son los que las celdas usan de veras.
+         Barrer todo styles.xml metía también los <numFmt> de <dxfs> —los del
+         formato condicional y los estilos de tabla—, que traen su propio
+         numFmtId y, al leerse después, pisaban el mapa. Con un dxf que declare
+         un formato de fecha bajo un id que ya usan las celdas normales, la
+         columna de MONTO ACORDADO se pintaba como fechas y las sumas se iban a
+         cero sin un solo aviso. */
+      const nfs = d.getElementsByTagName('numFmts')[0];
+      if (nfs) for (const nf of nfs.getElementsByTagName('numFmt')){
         const code = nf.getAttribute('formatCode') || '';
         custom[nf.getAttribute('numFmtId')] =
           /[dmyhs]/i.test(code.replace(/\[[^\]]*\]/g,'').replace(/"[^"]*"/g,''));
@@ -208,23 +231,59 @@ const XLSXReader = (() => {
   return { parse };
 })();
 
-function parseCSV(text){
-  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-  const first = text.split(/\r?\n/)[0] || '';
-  const sep = first.split(';').length > first.split(',').length ? ';' : ',';
+/* Un solo recorrido, con el separador ya decidido. Se saca aparte para poder
+   correrlo dos veces —con coma y con punto y coma— y quedarse con el que de
+   veras parte el archivo en columnas. */
+function recorreCSV(text, sep){
   const rows = []; let row = [], cell = '', q = false;
   for (let i = 0; i < text.length; i++){
     const ch = text[i];
     if (q){
-      if (ch === '"'){ if (text[i+1] === '"'){ cell += '"'; i++; } else q = false; }
-      else cell += ch;
-    } else if (ch === '"') q = true;
+      if (ch === '"'){
+        /* Comilla doble = comilla literal. Una sola cierra el campo, pero si
+           lo que sigue no es separador ni fin de renglón, la celda traía la
+           comilla a media palabra ("LOTE 12\" NORTE") y hay que seguirla
+           acumulando como texto en lugar de partir la fila ahí. */
+        if (text[i+1] === '"'){ cell += '"'; i++; }
+        else q = false;
+      } else cell += ch;
+    }
+    /* Las comillas sólo abren al principio del campo. Antes, una comilla suelta
+       a media celda —una medida, unas pulgadas— abría modo entrecomillado y ya
+       no se cerraba nunca: el resto del archivo entero se metía en esa celda y
+       las casas de abajo desaparecían sin error ni aviso. */
+    else if (ch === '"' && cell === '') q = true;
     else if (ch === sep){ row.push(cell); cell = ''; }
     else if (ch === '\n'){ row.push(cell); rows.push(row); row = []; cell = ''; }
     else if (ch !== '\r') cell += ch;
   }
   if (cell !== '' || row.length){ row.push(cell); rows.push(row); }
   return rows;
+}
+
+function parseCSV(text){
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  /* El separador no se adivina contando en la primera línea: esa línea puede
+     ser un título ("Reporte de casas; corte al 30 de junio") o parte de un
+     campo de varios renglones, y un solo punto y coma ahí hacía que un archivo
+     de comas se leyera con punto y coma — con lo que cada fila entera quedaba
+     en una sola columna y el emparejador no encontraba nada.
+
+     Se parte de verdad con los dos y gana el que dé más columnas de forma
+     consistente en las primeras filas. */
+  const puntaje = sep => {
+    const r = recorreCSV(text, sep).slice(0, 6).filter(f => f.length);
+    if (!r.length) return 0;
+    const anchos = r.map(f => f.length);
+    const max = Math.max(...anchos);
+    if (max < 2) return 0;
+    /* Cuántas de las primeras filas coinciden con el ancho más común: un
+       separador correcto parte parejo, uno equivocado deja anchos dispares. */
+    const iguales = anchos.filter(n => n === max).length;
+    return max * 100 + iguales;
+  };
+  const sep = puntaje(';') > puntaje(',') ? ';' : ',';
+  return recorreCSV(text, sep);
 }
 
 window.XLSXReader = XLSXReader;

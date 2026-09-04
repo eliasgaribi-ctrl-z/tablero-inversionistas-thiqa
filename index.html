@@ -134,6 +134,29 @@ main{margin-left:var(--side);flex:1;min-width:0;padding:34px 40px 96px}
 .btn.pri:hover{background:var(--nar2);border-color:var(--nar2);color:#fff}
 .btn.pri:disabled{background:var(--brd2);border-color:var(--brd2);box-shadow:none;color:var(--tx3)}
 .btn.gh{background:transparent}
+/* El botón que trae las casas es el único que se pica en la pantalla de datos.
+   Que se note que es ése y no otro. */
+.btn.grande{min-height:52px;padding:0 26px;font-size:15px;font-weight:700;border-radius:14px}
+
+/* La carga a mano queda de respaldo, plegada: sigue ahí completa para el día
+   que el script no conteste, pero no compite con el botón. */
+/* La barra de imprimir está fija abajo y tapaba el final de la última tarjeta
+   en pantallas cortas. Se le deja su alto de aire al contenido. */
+main{padding-bottom:96px}
+@media print{ main{padding-bottom:0} }
+
+#aMano{margin:0 0 18px}
+#aMano>summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;align-items:baseline;
+  gap:4px 10px;padding:13px 17px;border:1px dashed var(--brd2);border-radius:14px;
+  background:var(--surf2);color:var(--tx2);font-size:13.5px;font-weight:600;
+  transition:border-color .16s, color .16s}
+#aMano>summary::-webkit-details-marker{display:none}
+#aMano>summary:hover{border-color:var(--nar);color:var(--nar2)}
+#aMano>summary .pista{font-weight:400;font-size:12.5px;color:var(--tx3)}
+#aMano[open]>summary{margin-bottom:18px;border-style:solid}
+#aMano[open]>summary::after{content:'Ocultar'}
+#aMano:not([open])>summary::after{content:'Mostrar'}
+#aMano>summary::after{margin-left:auto;font-size:12px;color:var(--tx3);font-weight:600}
 
 .aviso{border:1px solid var(--brd);border-left:4px solid var(--azul);background:var(--azulL);
   border-radius:12px;padding:14px 17px;font-size:13px;line-height:1.65;color:var(--tx2)}
@@ -161,6 +184,30 @@ main{margin-left:var(--side);flex:1;min-width:0;padding:34px 40px 96px}
   font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.1}
 .kpi .n{margin-top:5px;font-size:11.5px;color:var(--tx2);line-height:1.45}
 .kpi.oro .v{color:var(--nar2)}
+
+/* Los seis del Resumen van de tres en tres: dejarlos al ancho de los cinco del
+   tablero parte la fila en 5+1 y el último cuadro queda huérfano. */
+#resKpis{grid-template-columns:repeat(3,1fr)}
+@media (max-width:1080px){ #resKpis{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:560px){ #resKpis{grid-template-columns:1fr} }
+
+/* Las barras de avance del Resumen. Cuatro tramos, siempre en el mismo orden y
+   con el mismo color, para que dos carteras se comparen de un vistazo. */
+.barCart{padding:14px 0;border-top:1px solid var(--brd)}
+.barCart:first-of-type{border-top:0;padding-top:4px}
+.barCartTit{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-bottom:8px}
+.barCartTit b{font-family:var(--ttl);font-size:15px}
+.barCartTit span{font-size:12px;color:var(--tx3);margin-left:auto}
+.barra2{display:flex;height:13px;border-radius:7px;overflow:hidden;background:var(--surf2);
+  border:1px solid var(--brd)}
+.barra2 i{display:block;height:100%;transition:width .3s}
+.barCartPie{display:flex;flex-wrap:wrap;gap:5px 16px;margin-top:9px;font-size:11.5px;color:var(--tx2)}
+.barCartPie span{display:inline-flex;align-items:center;gap:6px}
+.barCartPie i{width:9px;height:9px;border-radius:3px;flex:none}
+.s-rec{background:var(--ok)}
+.s-prox{background:var(--nar)}
+.s-ruta{background:var(--azul2)}
+.s-otro{background:var(--brd2)}
 
 /* ---------- tablas ---------- */
 .tablaBox{overflow-x:auto;border:1px solid var(--brd);border-radius:14px;background:var(--surf)}
@@ -421,6 +468,10 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v5H4z"/><path d="M4 13h16v7H4z"/><path d="M8 4v5"/></svg>
       <span>Datos</span><span class="ct" id="ctFilas">0</span>
     </button>
+    <button class="navlink" data-v="resumen" disabled>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6.4 3.7"/></svg>
+      <span>Resumen</span><span class="ct" id="ctTodas">0</span>
+    </button>
     <button class="navlink" data-v="tablero" disabled>
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 9v9"/><path d="M17 5v13"/></svg>
       <span>Tablero</span><span class="ct" id="ctRec">0</span>
@@ -453,26 +504,31 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
 <section class="vista" id="vDatos" data-on="1">
   <div class="tit">
     <h1>Los datos</h1>
-    <p>Sube el Excel del maestro y, si lo tienes a mano, el de tapeados. Todo se queda en tu
-      navegador: ni el archivo ni las cifras salen de esta computadora.</p>
+    <p id="datosSub">Pícale al botón y las casas llegan del maestro. Nada se guarda en ningún
+      servidor: las cifras se arman en tu navegador y ahí se quedan.</p>
   </div>
 
-  <div class="card" id="cajaSync" style="border-left:4px solid var(--nar)">
-    <h3>Sincronizar con el maestro</h3>
-    <p>Trae las casas directo del Sheet, sin bajar el Excel. Necesita el
-      <code>Sincronizar.gs</code> publicado en el maestro una sola vez — las instrucciones están en
-      <b>Ajustes</b>, y en el archivo <code>apps-script/Sincronizar.gs</code> del repositorio.</p>
+  <div class="card" id="cajaSync">
+    <h3>Traer las casas del maestro</h3>
+    <p id="syncTxt">Un clic y el tablero se pone al día con la bitácora maestra de remates. Sirve
+      cuantas veces quieras: cada vez vuelve a leer el maestro tal como está en este momento.</p>
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
-      <button class="btn pri" id="syncBtn" type="button">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>
-        Sincronizar con el maestro
+      <button class="btn pri grande" id="syncBtn" type="button">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>
+        Traer las casas del maestro
       </button>
       <button class="btn gh" id="syncAjustes" type="button">Poner la liga y la clave</button>
+      <a class="btn gh" id="abrirMaestro" target="_blank" rel="noopener" style="display:none">Abrir el maestro</a>
     </div>
     <div id="estadoSync" style="margin-top:11px;font-size:13px;color:var(--tx3);line-height:1.6"></div>
     <div id="avisoSync"></div>
   </div>
 
+  <details id="aMano">
+    <summary>
+      <span>¿Prefieres subir los archivos a mano?</span>
+      <span class="pista">El Excel del maestro y el del control de obra</span>
+    </summary>
   <div class="card">
     <h3>1 · El maestro de remates, a mano</h3>
     <p>Bájalo del Sheet con <i>Archivo → Descargar → Microsoft Excel (.xlsx)</i>. Descárgalo, no lo
@@ -505,6 +561,7 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
     </div>
     <div id="estadoObra" style="margin-top:11px;font-size:13px;color:var(--tx3);line-height:1.6"></div>
   </div>
+  </details>
 
   <div class="card" id="cajaColumnas" style="display:none">
     <h3>3 · Revisar columnas</h3>
@@ -517,6 +574,21 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
       <button class="btn gh" id="olvidarEmpate" type="button">Olvidar lo guardado</button>
     </div>
   </div>
+</section>
+
+<!-- ══════════════════ RESUMEN ══════════════════ -->
+<section class="vista" id="vResumen">
+  <div class="tit">
+    <h1>Resumen del programa</h1>
+    <p>Todas las casas del maestro, contadas por cartera y por estatus de ruta. Es la foto
+      completa: aquí sí entran las que no suman dinero, porque la pregunta es cuántas hay y en
+      qué van, no cuánto se lleva gastado.</p>
+  </div>
+
+  <div id="resKpis" class="kpis"></div>
+  <div id="resMatriz"></div>
+  <div id="resCarteras"></div>
+  <div id="resNotas"></div>
 </section>
 
 <!-- ══════════════════ TABLERO ══════════════════ -->
@@ -639,7 +711,12 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
       maestro: <i>Extensiones → Apps Script</i>, pegas el archivo, cambias la clave y le das
       <i>Implementar → Nueva implementación → Aplicación web</i>, con <b>Ejecutar como: Yo</b> y
       <b>Quién tiene acceso: Cualquier usuario</b>. Copias la dirección que termina en
-      <code>/exec</code> y la pegas aquí con la misma clave.</p>
+      <code>/exec</code>.</p>
+    <div class="aviso ojo" id="avisoConfig" style="margin-bottom:14px"><b>Lo de aquí abajo es sólo
+      para este navegador.</b> Si quieres que el tablero sea un botón <b>para todos</b>, esa
+      dirección va en el archivo <code>config.js</code> del repositorio, en <code>SYNC_URL</code>,
+      con su clave en <code>SYNC_KEY</code>. Se pone una vez y nadie más vuelve a capturar
+      nada.</div>
     <div class="g2">
       <label><span class="rot">Dirección que termina en /exec</span>
         <input type="text" id="ajSync" placeholder="https://script.google.com/macros/s/…/exec"></label>
@@ -705,6 +782,7 @@ html[data-theme="oscuro"] .cartTab[data-on="1"] b{background:rgba(0,0,0,.22);col
 <div id="toasts"></div>
 <div id="impresion"></div>
 
+<script src="config.js"></script>
 <script src="nucleo-xlsx.js"></script>
 <script src="qr.js"></script>
 <script>
@@ -864,6 +942,20 @@ function fmt(v, campo){
    3 · Estado y ajustes
    ============================================================ */
 const LSKEY = 'thiqa_tablero_v1';
+
+/* Lo que viene de config.js. Se lee con valores por omisión para que el tablero
+   siga abriendo aunque el archivo falte o alguien lo deje a medias: sin liga
+   configurada vuelve solo al camino de antes —pedirla una vez por navegador—,
+   que es exactamente lo que hacía. */
+const CFG = Object.assign({
+  SYNC_URL:'', SYNC_KEY:'', SHEET_ID:'', SHEET_HOJA:'', CARTERAS_OCULTAS:[]
+}, window.THIQA_CONFIG || {});
+/* Trae la liga puesta en el repositorio = el inversionista no captura nada. */
+const SYNC_DE_FABRICA = !!String(CFG.SYNC_URL || '').trim();
+const OCULTAS = new Set((CFG.CARTERAS_OCULTAS || []).map(k => String(k).toUpperCase()));
+const URL_MAESTRO = CFG.SHEET_ID
+  ? 'https://docs.google.com/spreadsheets/d/' + CFG.SHEET_ID + '/edit' : '';
+
 const AJ_DEF = { tope:40000, topeCP:80000, bonoPct:10, honorario:null, grupos:{},
                  sync:'', syncKey:'' };
 const S = { wb:null, rows:[], headers:[], todas:[], map:{}, obra:[], obraHoja:'', obraArchivo:'',
@@ -1014,6 +1106,58 @@ function grupoCartera(fuente){
 const ROT_GRUPO = { PIC:'PIC', INFONAVIT:'Infonavit', BANCARIA:'Bancaria',
                     OTRAS:'Otras carteras', SIN:'Sin cartera' };
 const ORDEN_GRUPO = ['PIC','INFONAVIT','BANCARIA','OTRAS','SIN'];
+
+/* Carteras que config.js dejó fuera del tablero. Se quitan al construir, no al
+   pintar, para que no haya manera de que una cifra las incluya por descuido:
+   si no están en S.todas, no están en ninguna suma, tabla ni documento. Lo que
+   se quitó se cuenta aparte y el Resumen lo dice — ocultar no es desaparecer. */
+function carteraOculta(fuente){ return OCULTAS.has(grupoCartera(fuente)); }
+const S_OCULTAS = { n:0, grupos:{} };
+
+/* ------------------------------------------------------------
+   El catálogo completo de ESTATUS RUTA del maestro, ocho valores.
+   El tablero de dinero sólo distingue tres (recuperada, próxima y
+   el resto), y así se queda: la regla del programa no cambia. Esto
+   es para el Resumen, que sí tiene que contar las 214 casas una por
+   una y decir en qué va cada cartera.
+
+   Lo que no reconoce cae en "otro", visible y con su nombre tal como
+   viene escrito, no descartado en silencio.
+   ------------------------------------------------------------ */
+const ESTATUS_CAT = [
+  { k:'rec',      r:'Recuperadas',        c:'ok',  n:'la casa ya se entregó',
+    re:/^recupera(?:d[ao]s?|cion(?:es)?)$/ },
+  { k:'prox',     r:'Próximas',           c:'nar', n:'convenio firmado, todavía sin entregar',
+    re:/^(?:prox|proximas?) ?recupera(?:d[ao]s?|cion(?:es)?)$/ },
+  { k:'ruta',     r:'En ruta',            c:'azul',n:'asignada a una cuadrilla y en calle',
+    s:'En ruta', re:/^en ruta$/ },
+  { k:'porasig',  r:'Pendiente por asignar', c:'', n:'todavía sin cuadrilla',
+    s:'Por asignar', re:/^pendiente por asignar$/ },
+  { k:'negacion', r:'Negación del ocupante', c:'', n:'el ocupante no quiso negociar',
+    s:'Negación', re:/^negacion(?: del?)? ocupante$/ },
+  { k:'oposicion',r:'Oposición de 3ero',  c:'',    n:'un tercero interesado se opuso',
+    s:'Oposición', re:/^oposicion (?:3er|3ero|tercer(?:o)?) interesado$/ },
+  { k:'reciclada',r:'Recicladas',         c:'',    n:'regresó a la cartera para volver a intentarse',
+    s:'Recicl.', re:/^reciclada?s?$/ },
+  { k:'bloqueada',r:'Cartera bloqueada',  c:'',    n:'la cartera está detenida',
+    s:'Bloqueada', re:/^cartera bloqueada$/ },
+  { k:'otro',     r:'Otro estatus',       c:'',    n:'no está en el catálogo de ocho',
+    s:'Otro', re:null },
+];
+function estatusDe(r){
+  const n = norm(valor(r,'ESTATUS'));
+  if (!n) return 'otro';
+  for (const e of ESTATUS_CAT) if (e.re && e.re.test(n)) return e.k;
+  return 'otro';
+}
+/* "Asignadas a ruta" es la pregunta de operación, no de estatus: una casa está
+   asignada cuando trae cuadrilla o número de ruta escrito, sin importar en qué
+   estatus vaya. Se cuenta así y no por el estatus "En ruta" porque una casa
+   recuperada también estuvo asignada, y contarla como no asignada haría ver la
+   operación más chica de lo que fue. Las dos cifras salen en el Resumen. */
+function tieneRuta(r){
+  return !!(String(valor(r,'CUADRILLA') ?? '').trim() || String(valor(r,'RUTA') ?? '').trim());
+}
 
 /* ============================================================
    5 · Control de obra (tapeados)
@@ -1252,8 +1396,11 @@ function dirCompleta(r){
 function mapaUrl(r){
   const propio = String(crudo(r,'MAPA') || '').trim();
   if (esUrl(propio)) return propio;
+  /* La liga que trae la celda se revisa igual que el texto: un .xlsx puede
+     guardar cualquier cosa en el hipervínculo, y "javascript:…" metido en un
+     href se ejecuta al picarle. Sólo pasan http y https, como en carpeta(). */
   const l = liga(r,'MAPA');
-  if (l) return l;
+  if (esUrl(l)) return l;
   const txt = dirCompleta(r);
   return txt ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(txt) : '';
 }
@@ -1393,10 +1540,15 @@ function avanceDe(r, d){
    por el mismo camino que el Excel: se arma un S.rows igual al que
    devolvería el lector, con sus __links, y de ahí todo sigue igual.
    ============================================================ */
+/* La liga de config.js manda; la de Ajustes es el respaldo. Así el inversionista
+   abre la página y le pica al botón, y quien esté probando otra implementación
+   puede sobrescribirla en su navegador sin tocar el repositorio. */
+function ligaBase(){ return String(AJ.sync || CFG.SYNC_URL || '').trim(); }
+function claveBase(){ return String(AJ.sync ? (AJ.syncKey || '') : (CFG.SYNC_KEY || '')); }
 function ligaSync(){
-  const u = String(AJ.sync || '').trim();
+  const u = ligaBase();
   if (!u) return '';
-  return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'k=' + encodeURIComponent(AJ.syncKey || '');
+  return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'k=' + encodeURIComponent(claveBase());
 }
 /* Los errores se traducen a lo que hay que ir a arreglar. "Failed to fetch" no
    le dice nada a nadie; "la implementación no está en Cualquier usuario" sí. */
@@ -1446,17 +1598,23 @@ function desdeMaestro(j){
   construir(1);
 }
 function pintarEstadoSync(){
-  const listo = !!String(AJ.sync || '').trim();
+  const listo = !!ligaBase();
   $('syncBtn').disabled = !listo;
+  /* Con la liga de fábrica no hay nada que capturar: el botón de Ajustes deja de
+     ser el paso 1 y se vuelve el escape para quien apunte a otra implementación. */
+  $('syncAjustes').textContent = listo ? 'Apuntar a otra implementación' : 'Poner la liga y la clave';
   if (!listo){
-    $('estadoSync').innerHTML = 'Todavía no está puesta la liga. Pícale a ' +
-      '<b style="color:var(--tx)">Poner la liga y la clave</b> y sigue los tres pasos.';
+    $('estadoSync').innerHTML = 'Todavía no está puesta la liga. Ponla una sola vez en ' +
+      '<code>config.js</code> y el tablero queda en un botón para todos; o pícale a ' +
+      '<b style="color:var(--tx)">Poner la liga y la clave</b> para dejarla nada más en este navegador.';
     return;
   }
   $('estadoSync').innerHTML = S.sync
     ? '<b style="color:var(--tx)">' + S.sync.n + (S.sync.n === 1 ? ' casa' : ' casas') +
       '</b> del maestro, de la pestaña <b style="color:var(--tx)">' + esc(S.sync.hoja) +
       '</b>. Sincronizado a las ' + S.sync.hora + '.' +
+      (S.sync.ocultas ? ' En el tablero se ven <b style="color:var(--tx)">' + S.sync.vistas +
+        '</b>: ' + S.sync.ocultas + ' son de una cartera apagada.' : '') +
       (S.sync.faltan && S.sync.faltan.length
         ? '<br><span style="color:var(--nar2)">El script no encontró estas columnas en el maestro: ' +
           esc(S.sync.faltan.join(' · ')) + '.</span>'
@@ -1475,6 +1633,11 @@ async function sincronizar(){
       const t = j.error === 'clave'
         ? '<b>La clave no coincide.</b><br>Tiene que ser la misma que pusiste en <code>CLAVE</code> ' +
           'dentro del script. Si la cambiaste allá, acuérdate de publicar una nueva versión.'
+        : j.error === 'clave_de_fabrica'
+        ? '<b>El script sigue con la clave de fábrica.</b><br>Esa clave viene escrita en el ' +
+          'repositorio, así que la sabe cualquiera y el script se niega a contestar con ella. ' +
+          'Cámbiala en la constante <code>CLAVE</code> del script, publica una <b>nueva versión</b> ' +
+          'y ponla igual en <code>config.js</code>.'
         : '<b>El script contestó, pero no pudo leer el maestro.</b><br>' +
           esc(j.mensaje || j.error || '') ;
       aviso('avisoSync','mal',t);
@@ -1483,14 +1646,21 @@ async function sincronizar(){
     }
     desdeMaestro(j);
     const d = new Date();
-    S.sync = { n: S.todas.length, hoja: j.hoja || '', faltan: j.faltan || [],
+    /* El número que se dice es el que mandó el maestro, no el que quedó después
+       de apagar carteras: si dijera 174 cuando el maestro tiene 214, la cifra
+       del tablero y la del Sheet no cuadrarían y no habría dónde ver por qué. */
+    const trajo = (j.filas || []).length;
+    S.sync = { n: trajo, vistas: S.todas.length, ocultas: S_OCULTAS.n,
+               hoja: j.hoja || '', faltan: j.faltan || [],
                hora: pad(d.getHours()) + ':' + pad(d.getMinutes()) };
     pintarEstadoSync();
-    aviso('avisoSync','ok','<b>Listo: traje ' + S.todas.length +
-      (S.todas.length === 1 ? ' casa' : ' casas') + ' del maestro.</b>' +
+    aviso('avisoSync','ok','<b>Listo: traje ' + trajo +
+      (trajo === 1 ? ' casa' : ' casas') + ' del maestro.</b>' +
       (j.renglonesVacios ? ' Salté ' + j.renglonesVacios + ' renglones vacíos.' : '') +
-      '<br>Si el control de obra cambió, vuelve a subir el Excel de tapeados aquí abajo — ese no ' +
-      'viene del maestro.');
+      (S_OCULTAS.n ? '<br>De ésas, <b>' + S_OCULTAS.n + '</b> no se muestran: son de una cartera ' +
+        'apagada en <code>config.js</code>. El Resumen lo dice con nombre y apellido.' : '') +
+      '<br>Si el control de obra cambió, vuelve a subir el Excel de tapeados en ' +
+      '<b>¿Prefieres subir los archivos a mano?</b>, aquí abajo — ese no viene del maestro.');
     toast('Sincronizado: ' + S.todas.length + ' casas.');
   } catch(e){
     if (String(e.message) === 'SIN_LIGA'){
@@ -1536,11 +1706,14 @@ async function cargar(f){
       $('cajaHoja').style.display = 'none';
       $('estadoArchivo').textContent = f.name + ' · ' + (f.size/1024).toFixed(0) + ' KB · CSV, una sola hoja';
       /* Un CSV no trae hipervínculos: la liga vive fuera de la celda y ese
-         formato no la guarda. Vale decirlo, porque es justo lo que se pierde. */
-      construir(mejorEncabezado(S.rows).hr);
-      aviso('avisoCarga','ojo','<b>Es un CSV, así que no trae las ligas.</b><br>' +
-        'Las carpetas de Drive y los mapas cuelgan de la celda, y ese formato no las guarda. ' +
-        'Para que salgan las carpetas hay que bajar el Sheet como <b>.xlsx</b>.');
+         formato no la guarda. Vale decirlo, porque es justo lo que se pierde.
+         Pero sólo si el archivo entró: aviso() reemplaza la caja entera, así que
+         escribir esto encima de un error de construir() borraba la única señal
+         de que el CSV no se pudo leer y la carga parecía exitosa. */
+      if (construir(mejorEncabezado(S.rows).hr))
+        aviso('avisoCarga','ojo','<b>Es un CSV, así que no trae las ligas.</b><br>' +
+          'Las carpetas de Drive y los mapas cuelgan de la celda, y ese formato no las guarda. ' +
+          'Para que salgan las carpetas hay que bajar el Sheet como <b>.xlsx</b>.');
       return;
     }
     S.wb = await window.XLSXReader.parse(await f.arrayBuffer());
@@ -1624,7 +1797,7 @@ function construir(hr){
   while (head.length && head[head.length-1] === '') head.pop();
   if (!head.length){
     aviso('avisoCarga','ojo','<b>La fila ' + hr + ' está vacía.</b> Prueba con otra fila de encabezados.');
-    return;
+    return false;
   }
   S.headers = head;
   S.todas = [];
@@ -1643,8 +1816,13 @@ function construir(hr){
     }
   }
   if (!S.todas.length){
+    /* Se repinta antes de salir. Sin esto la pantalla se quedaba con las cifras
+       del archivo anterior mientras el aviso decía que este no trajo nada: dos
+       cosas que se contradicen, y la que se cree es la que trae números. */
+    S.map = {}; S.obra = S.obra || [];
+    refrescarTodo();
     aviso('avisoCarga','ojo','<b>No encontré filas de datos debajo del encabezado.</b>');
-    return;
+    return false;
   }
 
   /* El empate: primero el que se guardó a mano la vez pasada, por nombre de
@@ -1657,10 +1835,24 @@ function construir(hr){
     const i = head.findIndex(h => h === guardado[k]);
     if (i >= 0){ S.map[k] = i; restauradas++; }
   }
+  /* Y hasta aquí, con el empate ya resuelto —antes no se sabe cuál columna es
+     la cartera—, se van las carteras que config.js dejó fuera. */
+  S_OCULTAS.n = 0; S_OCULTAS.grupos = {};
+  if (OCULTAS.size){
+    const quedan = [];
+    for (const r of S.todas){
+      const g = grupoCartera(valor(r,'CARTERA'));
+      if (OCULTAS.has(g)){ S_OCULTAS.n++; S_OCULTAS.grupos[g] = (S_OCULTAS.grupos[g] || 0) + 1; }
+      else quedan.push(r);
+    }
+    S.todas = quedan;
+  }
+
   S.carpetasExtra = detectarCarpetasExtra();
   pintarColumnas(restauradas);
   refrescarTodo();
-  irA('tablero', true);
+  irA('resumen', true);
+  return true;
 }
 
 /* Cualquier otra columna del archivo que traiga ligas y que no se haya empatado
@@ -1883,7 +2075,19 @@ function pintarCarteras(){
     '<button class="cartTab" data-cart="' + k + '"' + (S.cartera === k ? ' data-on="1"' : '') + '>' +
     esc(rot) + '<b>' + cuenta(k) + '</b></button>').join('');
   for (const b of $('carteras').querySelectorAll('[data-cart]'))
-    b.onclick = () => { S.cartera = b.dataset.cart; refrescarTodo(); window.scrollTo({top:0,behavior:'smooth'}); };
+    b.onclick = () => {
+      S.cartera = b.dataset.cart;
+      /* Lo palomeado se poda a las casas que siguen en pantalla. Sin esto, al
+         cambiar de cartera la selección de la anterior seguía puesta y
+         paraReporte() la intersectaba con casas que ya no están: el reporte se
+         quedaba en cero, la barra de imprimir se escondía sola y el contador
+         seguía diciendo "69 palomeadas" de una lista de 27. No se vacía del
+         todo a propósito — quien palomeó dentro de esta cartera no tiene por
+         qué perder su trabajo por ir a asomarse a la de al lado y volver. */
+      podarSeleccion();
+      refrescarTodo();
+      window.scrollTo({top:0,behavior:'smooth'});
+    };
 
   /* El aviso sólo aparece cuando NO estás en PIC. Es la salvaguarda de que
      nadie mande por correo un estado de cuenta creyendo que es de PIC. */
@@ -1901,7 +2105,11 @@ function pintarFiltros(){
   const cua = [...new Set(S.todas.map(r => valor(r,'CUADRILLA')).filter(Boolean))].sort();
   const antesCua = $('filtroCuadrilla').value;
   $('filtroCuadrilla').innerHTML = '<option value="">Todas</option>' +
-    cua.map(v => '<option>'+esc(v)+'</option>').join('');
+    /* Con value explícito: sin él el navegador toma el texto del <option>, y el
+       texto colapsa los espacios dobles que a veces trae el nombre de la
+       cuadrilla. Entonces el value guardado no empataba con ninguna opción y el
+       desplegable se regresaba solo a "Todas" en cada repintado. */
+    cua.map(v => '<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');
   if (cua.indexOf(antesCua) >= 0) $('filtroCuadrilla').value = antesCua;
 
   pintarChips();
@@ -1922,6 +2130,177 @@ function pintarChips(){
       if (S.etapaOff.has(k)) S.etapaOff.delete(k); else S.etapaOff.add(k);
       refrescarTodo();
     };
+}
+
+/* ============================================================
+   El Resumen
+   ------------------------------------------------------------
+   El tablero de abajo contesta "cuánto llevamos invertido"; ése vive
+   filtrado por cartera y por la regla de dinero. Éste contesta otra
+   pregunta, la de dirección: cuántas casas hay en total, de qué
+   cartera son y en qué va cada una.
+
+   Por eso NO respeta los filtros de la pantalla de Tablero —ni la
+   pestaña de cartera ni el buscador ni las casillas de estatus—: si
+   los respetara, el "total" cambiaría según dónde se quedó el clic y
+   dejaría de ser un total. Cuenta S.todas, siempre.
+   ============================================================ */
+function pintarResumen(){
+  const todas = S.todas;
+  const N = todas.length;
+
+  /* Cada casa cae en exactamente un estatus, así que las columnas suman el
+     total y no hay manera de contar una casa dos veces. */
+  const porEst = {};
+  for (const e of ESTATUS_CAT) porEst[e.k] = 0;
+  const grupos = {};
+  for (const r of todas){
+    const g = grupoCartera(valor(r,'CARTERA'));
+    const e = estatusDe(r);
+    porEst[e]++;
+    if (!grupos[g]) grupos[g] = { n:0, ruta:0, est:{}, fuentes:new Set() };
+    const G = grupos[g];
+    G.n++;
+    G.est[e] = (G.est[e] || 0) + 1;
+    if (tieneRuta(r)) G.ruta++;
+    const f = valor(r,'CARTERA');
+    if (f) G.fuentes.add(String(f).trim());
+  }
+  const conRuta = todas.filter(tieneRuta).length;
+  const orden = Object.keys(grupos).sort((a,b) => ORDEN_GRUPO.indexOf(a) - ORDEN_GRUPO.indexOf(b));
+  /* Sólo las columnas que de veras traen casas: una tabla con cinco columnas en
+     cero no informa, estorba. */
+  const cols = ESTATUS_CAT.filter(e => porEst[e.k] > 0);
+  const pct = n => N ? Math.round(n * 1000 / N) / 10 : 0;
+  const verRuta = conRuta < N;
+
+  const kpi = (c, rot, val, nota) =>
+    '<div class="kpi ' + c + '"><div class="r">' + rot + '</div><div class="v">' + val +
+    '</div><div class="n">' + nota + '</div></div>';
+  /* Detenidas: los cuatro estatus que hoy no avanzan. Van juntos porque para
+     dirección son la misma pregunta —"¿cuántas están atoradas?"— y el desglose
+     de cuál es cuál está en la tabla de abajo. */
+  const detenidas = porEst.negacion + porEst.oposicion + porEst.reciclada + porEst.bloqueada;
+  $('resKpis').innerHTML =
+    kpi('', 'Casas en el programa', String(N),
+        (orden.length === 1 ? 'de una sola cartera' : orden.length + ' carteras') +
+        (S_OCULTAS.n ? ' · ' + S_OCULTAS.n + ' ocultas aparte' : '')) +
+    kpi('verde', 'Recuperadas', String(porEst.rec),
+        N ? pct(porEst.rec) + '% del programa · ya entregadas' : '—') +
+    kpi('oro', 'Próximas a recuperar', String(porEst.prox),
+        N ? pct(porEst.prox) + '% · convenio firmado, sin entregar' : '—') +
+    kpi('', 'En ruta', String(porEst.ruta),
+        'asignadas a cuadrilla y en calle') +
+    kpi('', 'Pendientes por asignar', String(porEst.porasig),
+        'todavía sin cuadrilla') +
+    kpi('', 'Detenidas', String(detenidas),
+        detenidas
+          ? [['negacion','negación'],['oposicion','oposición'],['reciclada','recicladas'],
+             ['bloqueada','bloqueadas']].filter(x => porEst[x[0]])
+              .map(x => porEst[x[0]] + ' ' + x[1]).join(' · ')
+          : 'ninguna atorada');
+
+  /* La matriz: una casa por renglón de cartera y una columna por estatus. Es la
+     tabla que contesta de un vistazo "¿cuántas de PIC están en ruta?". */
+  if (!N){ $('resMatriz').innerHTML = ''; $('resCarteras').innerHTML = ''; }
+  else {
+    let h = '<div class="card"><h3>Cartera por estatus</h3>' +
+      '<p>Cada casa cuenta una sola vez. Los renglones suman el total de su cartera y las columnas ' +
+      'el total del programa.</p><div class="tablaBox"><table class="t"><thead><tr><th>Cartera</th>' +
+      /* Encabezado corto: la tabla trae nueve columnas y con los nombres
+         completos el total se sale de la pantalla, que es justo la cifra que se
+         busca. El nombre largo queda en el título, al pasar el ratón. */
+      cols.map(c => '<th style="text-align:right" title="' + esc(c.r + ' — ' + c.n) + '">' +
+        esc(c.s || c.r) + '</th>').join('') +
+      '<th style="text-align:right">Total</th>' +
+      /* La columna de cuadrilla sale nada más si hay algo que mirar: en el
+         maestro casi todas traen cuadrilla escrita, y una columna que repite el
+         total en cada renglón es ruido. */
+      (verRuta ? '<th style="text-align:right">Con cuadrilla</th>' : '') +
+      '</tr></thead><tbody>';
+    for (const k of orden){
+      const G = grupos[k];
+      const fu = [...G.fuentes];
+      h += '<tr><td><b>' + esc(ROT_GRUPO[k] || k) + '</b>' +
+        (fu.length ? '<br><span style="font-size:11px;color:var(--tx3)">' + esc(fu.join(' · ')) + '</span>' : '') +
+        '</td>' +
+        cols.map(c => '<td class="n"' + (c.c === 'ok' ? ' style="color:var(--ok);font-weight:700"'
+                                       : c.c === 'nar' ? ' style="color:var(--nar2);font-weight:700"' : '') +
+          '>' + (G.est[c.k] || 0) + '</td>').join('') +
+        '<td class="n"><b>' + G.n + '</b></td>' +
+        (verRuta ? '<td class="n">' + G.ruta + '</td>' : '') + '</tr>';
+    }
+    h += '</tbody><tfoot><tr><td>Total</td>' +
+      cols.map(c => '<td class="n">' + porEst[c.k] + '</td>').join('') +
+      '<td class="n">' + N + '</td>' +
+      (verRuta ? '<td class="n">' + conRuta + '</td>' : '') + '</tr></tfoot></table></div></div>';
+    $('resMatriz').innerHTML = h;
+
+    /* Y la misma información leída al revés: cartera por cartera, con su barra,
+       para el que quiere ver el avance y no la cifra. */
+    $('resCarteras').innerHTML = '<div class="card"><h3>Avance por cartera</h3>' +
+      '<p>Qué tanto de cada cartera ya está recuperado, qué tanto está por entregarse y qué tanto ' +
+      'sigue en calle o detenido.</p>' +
+      orden.map(k => {
+        const G = grupos[k];
+        const rec = G.est.rec || 0, prox = G.est.prox || 0;
+        const ruta = (G.est.ruta || 0) + (G.est.porasig || 0);
+        const resto = G.n - rec - prox - ruta;
+        const p = n => G.n ? (n * 100 / G.n) : 0;
+        return '<div class="barCart">' +
+          '<div class="barCartTit"><b>' + esc(ROT_GRUPO[k] || k) + '</b>' +
+          '<span>' + G.n + (G.n === 1 ? ' casa' : ' casas') + ' · ' +
+          (G.n ? Math.round(rec * 100 / G.n) : 0) + '% recuperado</span></div>' +
+          '<div class="barra2">' +
+            '<i class="s-rec"  style="width:' + p(rec)   + '%" title="Recuperadas: ' + rec + '"></i>' +
+            '<i class="s-prox" style="width:' + p(prox)  + '%" title="Próximas: ' + prox + '"></i>' +
+            '<i class="s-ruta" style="width:' + p(ruta)  + '%" title="En ruta o por asignar: ' + ruta + '"></i>' +
+            '<i class="s-otro" style="width:' + p(resto) + '%" title="Los demás estatus: ' + resto + '"></i>' +
+          '</div>' +
+          '<div class="barCartPie">' +
+            '<span><i class="s-rec"></i>Recuperadas ' + rec + '</span>' +
+            '<span><i class="s-prox"></i>Próximas ' + prox + '</span>' +
+            '<span><i class="s-ruta"></i>En ruta o por asignar ' + ruta + '</span>' +
+            '<span><i class="s-otro"></i>Los demás ' + resto + '</span>' +
+          '</div></div>';
+      }).join('') + '</div>';
+  }
+
+  /* Las notas al pie: lo que se dejó fuera y lo que no se reconoció. Van dichas,
+     no escondidas — un total al que le faltan casas sin avisar es un total
+     equivocado. */
+  let notas = '';
+  if (S_OCULTAS.n){
+    const q = Object.keys(S_OCULTAS.grupos)
+      .map(k => esc(ROT_GRUPO[k] || k) + ' (' + S_OCULTAS.grupos[k] + ')').join(' · ');
+    notas += '<div class="aviso" style="margin-bottom:14px"><b>' + S_OCULTAS.n +
+      (S_OCULTAS.n === 1 ? ' casa del maestro no se está mostrando' : ' casas del maestro no se están mostrando') +
+      ':</b> ' + q + '.<br>Es a propósito: esa cartera está apagada en <code>config.js</code> y no ' +
+      'entra en ninguna cifra ni en los documentos. Para volver a prenderla, deja vacía la lista ' +
+      '<code>CARTERAS_OCULTAS</code>.</div>';
+  }
+  if (porEst.otro){
+    const cuenta = {};
+    for (const r of todas) if (estatusDe(r) === 'otro'){
+      const v = String(valor(r,'ESTATUS') ?? '').trim() || '(sin estatus)';
+      cuenta[v] = (cuenta[v] || 0) + 1;
+    }
+    notas += '<div class="aviso ojo"><b>' + porEst.otro +
+      (porEst.otro === 1 ? ' casa trae un estatus' : ' casas traen un estatus') +
+      ' que no está en el catálogo de ocho del maestro:</b><br>' +
+      Object.keys(cuenta).sort().map(k => esc(k) + ' (' + cuenta[k] + ')').join(' · ') + '.<br>' +
+      'Se cuentan igual en el total, en la columna <i>Otro estatus</i>. Si es una falta de captura, ' +
+      'se corrige en el maestro y con volver a traer las casas se acomoda.</div>';
+  }
+  /* Sólo se explica el vacío cuando de veras llegó un archivo y quedó en cero.
+     Al abrir la página, antes de traer nada, no hay nada que explicar. */
+  if (!N && (S.rows.length || S_OCULTAS.n))
+    notas = '<div class="aviso ojo"><b>No quedó ni una casa que mostrar.</b><br>' +
+      (S_OCULTAS.n
+        ? 'Las ' + S_OCULTAS.n + ' que trajo el maestro son de una cartera apagada en ' +
+          '<code>config.js</code>. Deja vacía la lista <code>CARTERAS_OCULTAS</code> para verlas.'
+        : 'El archivo no trajo renglones con datos.') + '</div>' + notas;
+  $('resNotas').innerHTML = notas;
 }
 
 function pintarKPIs(){
@@ -2226,6 +2605,14 @@ function paraReporte(){
   if (!S.sel.size) return ordenar(base);
   return ordenar(base.filter(r => S.sel.has(llave(r))));
 }
+/* Deja en la selección nada más las casas que de veras están en pantalla. Se
+   llama al cambiar de cartera; el resto de los filtros no la tocan, porque ahí
+   sí se espera que buscar y volver a borrar el buscador devuelva lo palomeado. */
+function podarSeleccion(){
+  if (!S.sel.size) return;
+  const vivas = new Set(enJuego(filtradas()).map(llave));
+  for (const k of [...S.sel]) if (!vivas.has(k)) S.sel.delete(k);
+}
 function pintarCasas(){
   const rows = ordenar(enJuego(filtradas()));
   $('casas').innerHTML = rows.length ? rows.map(r => {
@@ -2409,7 +2796,12 @@ function cifrasCuenta(t, prox){
     c('Monto de convenio', sumaT(t.convenio, t.sinConvenio, t.n), t.sinConvenio ? t.sinConvenio + ' sin capturar' : 'completo') +
     c('Honorarios + bono', sumaT(t.hb, t.sinHB, t.n), t.sinHB ? t.sinHB + ' sin capturar' : 'completo') +
     c('Costo de materiales', sumaT(t.mat, t.sinMat, t.n), t.sinMat ? t.sinMat + ' sin capturar' : 'completo') +
-    c('Inversión total', fmtCorto(t.inversion), 'de lo que sí está capturado', true) +
+    /* La misma guardia que las otras tres cifras y que el KPI del tablero: con
+       nada capturado esto imprimía $0, que se lee como "no costó nada" en una
+       hoja que se manda a un inversionista. */
+    c('Inversión total',
+      t.n && (t.sinConvenio + t.sinHB + t.sinMat) === t.n * 3 ? 'sin capturar' : fmtCorto(t.inversion),
+      'de lo que sí está capturado', true) +
     '</div>' +
     (prox.n
       ? '<div class="nota" style="flex:none">Aparte de éstas hay <b>' + prox.n +
@@ -2731,7 +3123,11 @@ $('probarSync').onclick = async () => {
   AJ.syncKey = $('ajSyncKey').value.trim();
   guardar();
   const el = $('pruebaSync');
-  if (!AJ.sync){ el.innerHTML = '<span style="color:var(--nar2)">Falta la dirección.</span>'; return; }
+  /* Se prueba la liga que de veras se va a usar: la del campo si la pusieron, y
+     si no la de config.js. Decir "falta la dirección" con una liga de fábrica
+     funcionando manda a buscar un problema que no existe. */
+  if (!ligaBase()){ el.innerHTML = '<span style="color:var(--nar2)">Falta la dirección: ni aquí ' +
+    'ni en <code>config.js</code> hay una.</span>'; return; }
   el.textContent = 'Probando…';
   try {
     const j = await pedirMaestro();
@@ -2743,6 +3139,9 @@ $('probarSync').onclick = async () => {
     else if (j.error === 'clave')
       el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero la clave no ' +
         'coincide.</span>';
+    else if (j.error === 'clave_de_fabrica')
+      el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero el script sigue ' +
+        'con la clave de fábrica y por eso no manda datos.</span>';
     else
       el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero: ' +
         esc(j.mensaje || j.error || '') + '</span>';
@@ -2765,8 +3164,18 @@ function pintarGrupos(){
       'Sube el maestro y aquí aparecen las fuentes que trae.</p>';
     return;
   }
-  const ops = ORDEN_GRUPO.filter(k => k !== 'SIN');
-  $('grupos').innerHTML = fuentes.map(f => {
+  /* Las carteras apagadas no salen en el desplegable a propósito: mandar una
+     fuente a un grupo oculto la borraría del tablero y desde aquí ya no habría
+     manera de traerla de vuelta, porque la lista se arma con lo que quedó. */
+  const ops = ORDEN_GRUPO.filter(k => k !== 'SIN' && !OCULTAS.has(k));
+  const nota = S_OCULTAS.n
+    ? '<div class="aviso" style="margin-bottom:14px">Hay ' + S_OCULTAS.n +
+      (S_OCULTAS.n === 1 ? ' casa' : ' casas') + ' de ' +
+      Object.keys(S_OCULTAS.grupos).map(k => '<b>' + esc(ROT_GRUPO[k] || k) + '</b>').join(' y ') +
+      ' que no entran al tablero, y por eso su fuente no aparece en esta lista. Se prende y se ' +
+      'apaga en <code>config.js</code>, con la lista <code>CARTERAS_OCULTAS</code>.</div>'
+    : '';
+  $('grupos').innerHTML = nota + fuentes.map(f => {
     const n = norm(f), g = grupoCartera(f);
     const cuantas = S.todas.filter(r => valor(r,'CARTERA') === f).length;
     return '<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:10px 0;' +
@@ -2814,8 +3223,9 @@ window.addEventListener('resize', () => {
 
 function actualizarContadores(){
   $('ctFilas').textContent = S.todas.length;
-  $('ctRec').textContent = porEtapa(filtradas()).rec.length;
-  $('ctSel').textContent = S.sel.size || enJuego(filtradas()).length;
+  $('ctTodas').textContent = S.todas.length;
+  $('ctRec').textContent = S.todas.length ? porEtapa(filtradas()).rec.length : 0;
+  $('ctSel').textContent = S.todas.length ? (S.sel.size || enJuego(filtradas()).length) : 0;
 }
 function actualizarBarra(){
   const rows = paraReporte();
@@ -2831,10 +3241,16 @@ function actualizarBarra(){
     (g.fuera.length ? ' · ' + g.fuera.length + ' fuera de toda suma' : '');
 }
 function refrescarTodo(){
+  /* El Resumen se prende en cuanto llegó algo del maestro, aunque las carteras
+     ocultas hayan dejado la lista en cero: es la pantalla que explica por qué. */
+  const llego = S.todas.length > 0 || S_OCULTAS.n > 0;
   const hay = S.todas.length > 0;
-  for (const b of links)
-    if (['tablero','casas','reporte'].indexOf(b.dataset.v) >= 0) b.disabled = !hay;
-  if (!hay){ actualizarContadores(); actualizarBarra(); return; }
+  for (const b of links){
+    if (b.dataset.v === 'resumen') b.disabled = !llego;
+    else if (['tablero','casas','reporte'].indexOf(b.dataset.v) >= 0) b.disabled = !hay;
+  }
+  if (!hay){ pintarResumen(); actualizarContadores(); actualizarBarra(); return; }
+  pintarResumen();
   pintarCarteras();
   pintarFiltros();
   pintarKPIs();
@@ -2877,6 +3293,34 @@ $('temaBtn').onclick = () =>
         (n === 1 ? ' foto de domicilio' : ' fotos de domicilios') + ' de la última vez.</b><br>' +
         'Vuelve a subir el maestro y reaparecen solas, atadas a su casa: no hay que volver a ponerlas.');
   });
+  /* Con la liga puesta en config.js la pantalla de datos es un botón: la carga a
+     mano se pliega y el texto deja de hablar de archivos. Sin liga, todo queda
+     como estaba y la carga a mano se abre sola, que es el único camino. */
+  if (URL_MAESTRO){
+    const a = $('abrirMaestro');
+    a.href = URL_MAESTRO;
+    a.style.display = '';
+  }
+  if (SYNC_DE_FABRICA){
+    $('aMano').open = false;
+    /* Con la liga de fábrica, en la pantalla de datos queda un botón y nada
+       más. Apuntar a otra implementación es cosa de quien prueba el script, y
+       para eso está Ajustes: aquí sólo estorbaría al que viene a un clic. */
+    $('syncAjustes').style.display = 'none';
+    $('avisoConfig').className = 'aviso';
+    $('avisoConfig').innerHTML = '<b>La liga ya viene puesta en <code>config.js</code>,</b> así que ' +
+      'el tablero funciona con un botón y no hay nada que capturar aquí. Lo de abajo sólo sirve si ' +
+      'quieres apuntar <b>este navegador</b> a otra implementación —para probar una versión nueva ' +
+      'del script sin tocar lo que ve todo el mundo—. Déjalo vacío para volver a la de siempre.';
+  } else {
+    $('aMano').open = true;
+    $('datosSub').textContent = 'Sube el Excel del maestro y, si lo tienes a mano, el de tapeados. ' +
+      'Todo se queda en tu navegador: ni el archivo ni las cifras salen de esta computadora.';
+    $('syncTxt').innerHTML = 'Trae las casas directo del Sheet, sin bajar el Excel. Necesita el ' +
+      '<code>Sincronizar.gs</code> publicado en el maestro una sola vez — las instrucciones están en ' +
+      '<b>Ajustes</b>, y en el archivo <code>apps-script/Sincronizar.gs</code> del repositorio.';
+  }
+
   pintarAjustes();
   pintarEstadoSync();
   pintarGrupos();

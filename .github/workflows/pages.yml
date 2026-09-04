@@ -1,0 +1,46 @@
+# Publica el tablero en GitHub Pages.
+#
+# El repositorio es un sitio estático: no hay nada que compilar, así que este
+# flujo nada más toma los archivos tal como están y los sube. Existe porque la
+# página no se publica sola — hay que decirle a GitHub que lo haga, una vez.
+#
+# La primera vez, en Ajustes del repositorio → Pages → Source, hay que elegir
+# "GitHub Actions". De ahí en adelante cada push a main vuelve a publicar.
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Si se empalman dos publicaciones, gana la última: el sitio no se queda a medias.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Traer el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empaquetar el sitio
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Publicar
+        id: despliegue
+        uses: actions/deploy-pages@v4
