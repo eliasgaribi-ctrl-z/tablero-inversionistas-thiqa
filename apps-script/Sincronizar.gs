@@ -28,6 +28,13 @@
  * no salen del Sheet ni por accidente. Si algún día hace falta agregar una
  * columna, se agrega ahí y en ningún otro lado.
  *
+ * Y sólo salen las casas que le tocan a quien pregunta. Ésa es la otra mitad,
+ * y es la importante desde que el repositorio se comparte con los
+ * inversionistas: la lista ACCESOS dice quién entra, y de cada acceso, qué
+ * carteras se lleva. **La cartera bancaria no sale para un inversionista**, y
+ * no porque el tablero la esconda al dibujar —eso se ve en las herramientas del
+ * navegador— sino porque no viaja: se queda aquí.
+ *
  * SE LEE POR NOMBRE DE ENCABEZADO, NO POR POSICIÓN
  *
  * A propósito, y es la diferencia más importante contra el otro Apps Script del
@@ -56,8 +63,10 @@
  *    tiene acceso al maestro (remates@thiqa.mx). No pases por el maestro.
  * 2. Ponle de nombre `RMV — Sincronizar tablero` y pega todo este archivo,
  *    reemplazando lo que traiga.
- * 3. Cambia la CLAVE de abajo por una tuya, larga y que no sea una palabra.
- *    Mientras no la cambies el script no contesta nada, a propósito.
+ * 3. Da de alta los accesos en la lista ACCESOS de abajo: una clave larga y un
+ *    nombre por cada persona que va a entrar al tablero. **Las claves se
+ *    escriben aquí y en ningún otro lado** — no en el repositorio, que es
+ *    público. Mientras la lista esté vacía el script no contesta nada.
  * 4. Guarda, y corre una vez la función `probar` para autorizarlo: Google va a
  *    pedir permiso para leer tus hojas de cálculo y hay que dárselo. La primera
  *    vez sale una pantalla de "Google no ha verificado esta aplicación" →
@@ -67,49 +76,166 @@
  *        Ejecutar como:      Yo (remates@thiqa.mx)
  *        Quién tiene acceso: Cualquier usuario
  *    Copia la dirección que termina en `/exec`.
- * 6. Pega esa dirección y la clave en el archivo `config.js` del repositorio,
- *    en `SYNC_URL` y `SYNC_KEY`. Ahí es donde el tablero se vuelve un botón:
- *    lo pones una vez y ningún inversionista vuelve a capturar nada.
- *
- *    (Si prefieres no dejarlas en el repositorio, se pueden pegar en Ajustes
- *    dentro del tablero, pero entonces hay que hacerlo una vez en cada
- *    navegador que lo abra. Lo que hay que saber para decidir está escrito
- *    en `config.js`.)
+ * 6. Pega esa dirección en el archivo `config.js` del repositorio, en
+ *    `SYNC_URL`. **La clave no va ahí.** La escribe cada persona en la pantalla
+ *    de bloqueo del tablero, y se queda guardada en su navegador.
+ * 7. Reparte una clave por persona, por un medio donde no quede a la vista de
+ *    otros. Cada quien la escribe una vez y ya no vuelve a capturar nada.
  *
  * **Guardar no es publicar.** Cada vez que cambies este archivo hay que hacer
  * Implementar → Administrar implementaciones → editar → Nueva versión. Sin eso,
  * el tablero sigue recibiendo la versión vieja y parece que el cambio no sirvió.
  *
  * ---------------------------------------------------------------------------
- * SOBRE "CUALQUIER USUARIO" Y LA CLAVE
+ * SOBRE "CUALQUIER USUARIO" Y LAS CLAVES
  *
  * "Cualquier usuario" es la única opción que sirve, porque una página estática
- * no puede firmarse con Google. Eso significa que **quien tenga la dirección y
- * la clave puede leer esas columnas**. Por eso:
+ * no puede firmarse con Google. La dirección, entonces, la puede abrir
+ * cualquiera — y está bien, porque sin una clave de la lista no contesta un solo
+ * dato. Lo que hay que cuidar es esto:
  *
- *   · La clave no es adorno: sin ella el script no contesta nada.
- *   · Del Sheet sale lo mínimo, nunca datos de personas.
- *   · En cuanto la dirección y la clave se pongan en `config.js` para que el
- *     tablero sea un botón, quedan a la vista de quien abra el código de la
- *     página. Es el precio de que el inversionista no capture nada, y por eso
- *     importa que lo que sale de aquí sea lo mínimo. Con las carpetas de Drive
- *     compartidas como "sólo personas invitadas", la liga no le sirve de nada
- *     a un extraño.
- *   · Si se te sale de las manos, cambia la CLAVE aquí, publica nueva versión y
- *     la anterior deja de servir en ese momento. Acuérdate de actualizarla
- *     también en `config.js`.
+ *   · **Las claves no se escriben en el repositorio.** Ni aquí en la copia que
+ *     se sube, ni en `config.js`. Se capturan en el editor de Apps Script, que
+ *     vive en tu cuenta. Una clave commiteada queda en el historial de Git para
+ *     siempre, aunque después se borre del archivo.
+ *   · Una clave por persona. Así se quita el acceso de una sin tocar los demás:
+ *     borras su renglón y publicas una nueva versión.
+ *   · Del Sheet sale lo mínimo, nunca datos de personas, y nunca casas de una
+ *     cartera que no le toque a ese acceso.
+ *   · Las carpetas de Drive del expediente deben estar compartidas como **"sólo
+ *     personas invitadas"**. Si estuvieran como "cualquiera con el enlace", la
+ *     liga que sale de aquí abriría los PDFs a quien la tenga.
+ *   · Si una clave se sale de las manos: borra su renglón, publica una nueva
+ *     versión y dale una nueva a esa persona. La anterior muere en ese momento.
  */
 
+/* ═════════════════════════════════════════════════════════════════════════
+   LOS ACCESOS — quién entra al tablero y qué le toca ver
+   ═════════════════════════════════════════════════════════════════════════
+
+   ESTA LISTA ES EL CANDADO. La pantalla de bloqueo del tablero no decide nada:
+   nada más pregunta la clave y se la manda aquí. Quien no aparezca en esta
+   lista no recibe una sola casa, por más que abra el código de la página o le
+   pegue directo a esta dirección.
+
+   LAS CLAVES DE VERDAD NO SE ESCRIBEN EN EL REPOSITORIO. Este archivo es
+   público y lo van a poder leer los mismos inversionistas. Las claves se
+   capturan **nada más aquí, en el editor de Apps Script**, que vive en tu
+   cuenta de Google. Lo que se sube al repositorio se queda con la lista vacía y
+   el renglón de ejemplo comentado.
+
+   PARA DAR UN ACCESO: agrega un renglón con una clave larga —de veras larga,
+   veinte caracteres o más, que no sea una palabra— y el nombre de a quién se la
+   diste. Publica una nueva versión y pásale la clave a esa persona.
+
+   PARA QUITARLO: borra su renglón y publica una nueva versión. Ese acceso muere
+   en ese momento, y los demás no se enteran.
+
+   LO QUE ESTE CANDADO **NO** PUEDE TAPAR, Y HAY QUE SABERLO:
+
+   El folio del maestro es el prefijo de la cartera más un consecutivo que corre
+   por TODO el archivo, no por cartera: PIC_TLAJO_001, BNC_HSBC_002,
+   PIC_TLAJO_003… Cuando el filtro deja fuera una casa, su número se queda vacío
+   en la lista del que sí entró. Contar los huecos es contar las casas que no se
+   llevó, y restarle a su folio más alto el número de casas que recibió da lo
+   mismo de un jalón.
+
+   O sea: un inversionista no puede ver la cartera bancaria, pero sí puede
+   deducir CUÁNTAS casas hay que no está viendo. Ver los datos y saber que
+   existen no es lo mismo, y esto es lo segundo. Desde el script no se arregla:
+   el folio tiene que viajar tal cual porque es el nombre de la carpeta de Drive
+   de la casa y el que va escrito en los papeles; mandarlo cambiado dejaría las
+   carpetas sin encontrar. Se arregla en el maestro, el día que el consecutivo
+   corra por cartera. Mientras tanto, `probar` lo dice en el registro.
+
+   QUÉ VE CADA QUIEN:
+     · Sin `carteras`, el acceso ve todo menos las carteras RESERVADAS de abajo
+       —que es lo que le toca a un inversionista—.
+     · Con `carteras: ['PIC']`, ve nada más las que traigan eso en su nombre.
+     · Con `carteras: 'todas'`, ve el maestro completo, la bancaria incluida.
+       Ése es tu propio acceso, no el de nadie más.
+
+   Ejemplo de cómo se ve la lista ya con accesos puestos:
+
+     const ACCESOS = [
+       { clave: 'una-clave-larga-que-nadie-adivina-01', nombre: 'Elías (THIQA)', carteras: 'todas' },
+       { clave: 'otra-clave-larga-y-distinta-02',       nombre: 'Inversionista PIC' },
+       { clave: 'la-tercera-igual-de-larga-03',         nombre: 'Inversionista Infonavit',
+         carteras: ['PRV_INFVT', 'CART_SOJI'] },
+     ];
+   ───────────────────────────────────────────────────────────────────────── */
+const ACCESOS = [
+  // { clave: 'pon-aquí-una-clave-larga', nombre: 'A quién se la diste' },
+];
+
 /**
- * La clave. Cámbiala por una tuya antes de publicar.
+ * Las carteras que NO salen del Sheet, salvo que un acceso las pida por su
+ * nombre. La bancaria va aquí: este tablero es de las casas que se recuperan
+ * para los inversionistas, y esa cartera no es de ellos.
  *
- * Mientras siga siendo ésta, el script no contesta datos aunque la pidan bien.
- * Es a propósito: este archivo vive en un repositorio público, así que la clave
- * de fábrica la conoce cualquiera, y una implementación publicada con ella
- * estaría abierta de par en par sin que se notara.
+ * Van pedazos del nombre, no el nombre completo, y a propósito: si un día en el
+ * Sheet le cambian `BNC_HSBC-TLAJO` por `BNC_HSBC_TLAJO` o por `HSBC`, el
+ * candado tiene que seguir cerrado. Un nombre exacto se abriría solo con el
+ * cambio de nombre, y nadie se daría cuenta hasta que un inversionista viera
+ * casas que no son suyas.
  */
-const CLAVE = 'cambia-esta-clave-por-una-tuya-larga';
-const CLAVE_DE_FABRICA = 'cambia-esta-clave-por-una-tuya-larga';
+const RESERVADAS = ['bnc', 'hsbc'];
+
+/**
+ * El largo mínimo de una clave. Esta dirección es pública —tiene que serlo,
+ * porque una página estática no puede firmarse con Google—, así que una clave
+ * corta se adivina a fuerza de intentos. El script se niega a aceptar claves
+ * cortas en lugar de dejarte creer que estás protegido.
+ */
+const LARGO_MINIMO = 16;
+
+/** La clave que viene escrita en el repositorio: nunca puede dar acceso. */
+const CLAVE_DE_FABRICA = 'pon-aquí-una-clave-larga';
+
+/**
+ * Busca la clave en la lista. Devuelve el acceso, o null.
+ *
+ * Se compara siempre contra TODOS los renglones, sin cortar en el primero que
+ * empate, para que el tiempo que tarda no delate cuántos accesos hay ni cuál
+ * empató.
+ */
+function buscaAcceso(clave) {
+  const c = String(clave || '');
+  if (c.length < LARGO_MINIMO) return null;
+  if (c === CLAVE_DE_FABRICA) return null;
+  let hallado = null;
+  for (let i = 0; i < ACCESOS.length; i++) {
+    const a = ACCESOS[i];
+    const k = String((a && a.clave) || '');
+    if (k.length >= LARGO_MINIMO && k !== CLAVE_DE_FABRICA && k === c) hallado = a;
+  }
+  return hallado;
+}
+
+/** ¿Este acceso puede ver una casa de esta cartera? */
+function puedeVer(acceso, fuente) {
+  const f = norm(fuente);
+  if (acceso.carteras === 'todas') return true;
+  /* Lo reservado NO se abre con una lista de carteras: sólo con 'todas', dicho
+     con todas sus letras. Es a propósito. Alguien que escriba
+     `carteras: ['TLAJO']` pensando en "las de Tlajomulco" se llevaría el maestro
+     entero, porque las cuatro carteras traen TLAJO en el nombre — la bancaria
+     incluida— y ni siquiera se daría cuenta. Una lista se escribe para acotar,
+     nunca para abrir. */
+  if (RESERVADAS.some(function (r) { return f.indexOf(norm(r)) >= 0; })) return false;
+  if (Object.prototype.toString.call(acceso.carteras) === '[object Array]' && acceso.carteras.length)
+    return acceso.carteras.some(function (c) { return f.indexOf(norm(c)) >= 0; });
+  return true;
+}
+
+/**
+ * El número con el que termina un folio: `PIC_TLAJO_007` → 7. Si no termina en
+ * número, 0.
+ */
+function numeroDeFolio(folio) {
+  const m = /(\d+)\s*$/.exec(String(folio == null ? '' : folio));
+  return m ? Number(m[1]) : 0;
+}
 
 /** La pestaña de trabajo del maestro. */
 const HOJA = 'Base_Carteras_Asignadas';
@@ -202,15 +328,25 @@ const CON_LIGA = ['LINK', 'EXP. DIGITAL',
 function doGet(e) {
   try {
     const p = (e && e.parameter) || {};
-    if (CLAVE === CLAVE_DE_FABRICA) {
-      return responde({ ok: false, error: 'clave_de_fabrica',
-        mensaje: 'Este script sigue con la clave de fábrica, que es pública. ' +
-                 'Cámbiala en la constante CLAVE y publica una nueva versión.' });
+    if (!ACCESOS.length) {
+      return responde({ ok: false, error: 'sin_accesos',
+        mensaje: 'Este script todavía no tiene ningún acceso dado de alta. Agrega un renglón a ' +
+                 'la lista ACCESOS y publica una nueva versión.' });
     }
-    if (String(p.k || '') !== CLAVE) {
-      return responde({ ok: false, error: 'clave', mensaje: 'La clave no coincide.' });
+    const acceso = buscaAcceso(p.k);
+    /* Una sola respuesta para clave equivocada, clave corta y clave de fábrica.
+       Decir cuál de las tres fue le iría diciendo a quien prueba claves qué tan
+       cerca va. */
+    if (!acceso) {
+      return responde({ ok: false, error: 'clave',
+        mensaje: 'Esa clave no da acceso al tablero.' });
     }
-    return responde(leerMaestro());
+    const r = leerMaestro(acceso);
+    /* Cuántas casas dejó fuera el acceso NO viaja al navegador: ese número le
+       diría al inversionista cuántas casas hay que no está viendo. Se calcula
+       para que la función `probar` lo revise en el editor, y se quita aquí. */
+    delete r.fueraDeAcceso;
+    return responde(r);
   } catch (err) {
     return responde({ ok: false, error: 'falla', mensaje: String((err && err.message) || err) });
   }
@@ -228,13 +364,22 @@ function norm(s) {
     .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-function leerMaestro() {
+function leerMaestro(acceso) {
+  /* Sin acceso no se lee nada. Es el cinturón por si algún día alguien llama a
+     esta función desde otro lado del script y se le olvida pasarlo: mejor que
+     truene aquí a que devuelva el maestro completo. */
+  if (!acceso) return { ok: false, error: 'clave', mensaje: 'Falta el acceso.' };
   const libro = libroMaestro();
   const hoja = libro.getSheetByName(HOJA);
   if (!hoja) {
+    /* Los nombres de las demás pestañas NO se mandan en la respuesta: eso le
+       enumeraría el maestro a cualquiera con una clave. Quedan en el registro,
+       que sólo ve quien abre el editor. */
+    Logger.log('No encontré la pestaña "' + HOJA + '". Las que hay: ' +
+               libro.getSheets().map(function (h) { return h.getName(); }).join(', '));
     return { ok: false, error: 'hoja',
-             mensaje: 'No encontré la pestaña "' + HOJA + '". Pestañas: ' +
-                      libro.getSheets().map(function (h) { return h.getName(); }).join(', ') };
+             mensaje: 'No encontré la pestaña "' + HOJA + '" en el maestro. Corre la función ' +
+                      'probar en el editor: ahí sale la lista de pestañas que sí existen.' };
   }
 
   const rango = hoja.getDataRange();
@@ -284,6 +429,21 @@ function leerMaestro() {
   if (!cols.length) {
     return { ok: false, error: 'columnas',
              mensaje: 'Ninguna de las columnas que busco está en la fila ' + (hr + 1) + '.' };
+  }
+
+  /* La columna de la cartera es la que decide qué casa le toca ver a cada
+     acceso. Si no aparece —porque la renombraron en el Sheet a algo que no
+     está en los alias— no se manda NADA. Es la decisión importante de todo
+     este archivo: sin poder separar, lo seguro es no contestar, no contestar
+     de más. Un error visible se arregla en diez minutos; un maestro completo
+     mandado por error no se puede recoger. */
+  const cCartera = cols.filter(function (x) { return x.nombre === 'CARTERA'; })[0];
+  if (!cCartera) {
+    return { ok: false, error: 'sin_cartera',
+             mensaje: 'No encontré la columna de la cartera en la fila ' + (hr + 1) + '. ' +
+                      'Sin ella no puedo separar lo que le toca ver a cada acceso, así que no ' +
+                      'mando ninguna casa. Revisa cómo se llama esa columna en el Sheet y ' +
+                      'agrégale el nombre a los alias de CARTERA en la lista COLUMNAS.' };
   }
 
   /* Las URLs de las ligas. Se piden nada más de las columnas que las traen, y de
@@ -337,7 +497,7 @@ function leerMaestro() {
   const tz = libro.getSpreadsheetTimeZone() || 'America/Mexico_City';
   const encabezados = cols.map(function (c) { return c.nombre; });
   const filas = [], ligas = {};
-  let saltadas = 0;
+  let saltadas = 0, fuera = 0;
 
   for (let n = 0; n < alto; n++) {
     const cruda = valores[hr + 1 + n];
@@ -346,6 +506,12 @@ function leerMaestro() {
        hay 212 casas seguidas y dos más cientos de renglones abajo. Pero un
        renglón enteramente vacío no se manda. */
     if (fila.every(function (v) { return v === '' || v === null; })) { saltadas++; continue; }
+
+    /* El filtro por acceso, antes de que la casa entre a la respuesta. Va aquí y
+       no en el navegador a propósito: escondida en la página, la casa igual
+       viajó y se ve en las herramientas del navegador. Lo que no sale de aquí
+       no existe para quien está del otro lado. */
+    if (!puedeVer(acceso, cruda[cCartera.i])) { fuera++; continue; }
 
     const iSalida = filas.length;
     filas.push(fila);
@@ -358,9 +524,13 @@ function leerMaestro() {
     });
   }
 
+  /* `fueraDeAcceso` sale de aquí pero NO llega al navegador: doGet lo borra
+     antes de contestar. Existe para que `probar` lo revise en el editor. */
   return {
     ok: true,
     hoja: HOJA,
+    acceso: String((acceso && acceso.nombre) || ''),
+    fueraDeAcceso: fuera,
     filaEncabezados: hr + 1,
     actualizado: Utilities.formatDate(new Date(), tz, "yyyy-MM-dd'T'HH:mm:ssXXX"),
     encabezados: encabezados,
@@ -387,18 +557,75 @@ function limpia(v, tz) {
 }
 
 /**
- * Para probar sin salir del editor: córrela y mira el registro. Debe decir
- * cuántas casas leyó y cuántas ligas encontró. Si dice que faltan columnas, son
- * los nombres que hay que revisar en COLUMNAS.
+ * Para probar sin salir del editor: córrela y mira el registro.
+ *
+ * Corre CADA acceso de la lista y dice cuántas casas le tocan a cada uno. Ése
+ * es el número que hay que mirar antes de pasarle una clave a alguien: si un
+ * acceso de inversionista trae las 214 en lugar de las 174, la bancaria se está
+ * yendo con él.
  */
 function probar() {
-  const r = leerMaestro();
-  if (!r.ok) { Logger.log('FALLÓ: ' + r.error + ' — ' + r.mensaje); return; }
-  Logger.log('casas: ' + r.filas.length);
-  Logger.log('encabezados en la fila ' + r.filaEncabezados);
-  Logger.log('columnas que salen: ' + r.encabezados.join(' · '));
-  if (r.faltan.length) Logger.log('NO ENCONTRÉ estas columnas: ' + r.faltan.join(' · '));
-  Logger.log('renglones con al menos una liga: ' + Object.keys(r.ligas).length);
-  Logger.log('renglones vacíos saltados: ' + r.renglonesVacios);
-  if (r.filas.length) Logger.log('primera casa: ' + JSON.stringify(r.filas[0]));
+  if (!ACCESOS.length) {
+    Logger.log('No hay accesos dados de alta. Agrega un renglón a ACCESOS.');
+    return;
+  }
+  Logger.log('accesos dados de alta: ' + ACCESOS.length);
+
+  for (let i = 0; i < ACCESOS.length; i++) {
+    const a = ACCESOS[i];
+    const nombre = String((a && a.nombre) || '(sin nombre)');
+    const clave = String((a && a.clave) || '');
+    Logger.log('');
+    Logger.log('───── ' + nombre);
+
+    /* Las mismas puertas que cierra doGet, dichas aquí para que se vea por qué
+       una clave no va a servir ANTES de repartirla. */
+    if (clave.length < LARGO_MINIMO) {
+      Logger.log('  ¡OJO! Su clave tiene ' + clave.length + ' caracteres y el mínimo son ' +
+                 LARGO_MINIMO + '. Este acceso NO va a funcionar.');
+      continue;
+    }
+    if (clave === CLAVE_DE_FABRICA) {
+      Logger.log('  ¡OJO! Su clave es la que viene escrita en el repositorio, así que la sabe ' +
+                 'cualquiera. Este acceso NO va a funcionar.');
+      continue;
+    }
+    let repetida = 0;
+    for (let k = 0; k < ACCESOS.length; k++)
+      if (String((ACCESOS[k] && ACCESOS[k].clave) || '') === clave) repetida++;
+    if (repetida > 1) Logger.log('  ¡OJO! Esta misma clave está en ' + repetida + ' renglones.');
+
+    const r = leerMaestro(a);
+    if (!r.ok) { Logger.log('  FALLÓ: ' + r.error + ' — ' + r.mensaje); continue; }
+    Logger.log('  casas que se lleva: ' + r.filas.length);
+    Logger.log('  casas que NO se lleva, por su acceso: ' + r.fueraDeAcceso);
+
+    /* Lo que el candado no tapa: los huecos del folio. Se dice aquí, antes de
+       repartir la clave, porque es lo único que un inversionista podría deducir
+       —cuántas casas no está viendo— y más vale saberlo que enterarse después. */
+    const cFolio = r.encabezados.indexOf('FOLIO THIQA');
+    if (cFolio >= 0 && r.filas.length) {
+      let alto = 0;
+      const vistos = {};
+      for (let n = 0; n < r.filas.length; n++) {
+        const num = numeroDeFolio(r.filas[n][cFolio]);
+        if (num > 0) { vistos[num] = true; if (num > alto) alto = num; }
+      }
+      let huecos = 0;
+      for (let n = 1; n <= alto; n++) if (!vistos[n]) huecos++;
+      if (huecos > 0)
+        Logger.log('  OJO: sus folios llegan con ' + huecos + ' huecos, y el más alto es el ' +
+                   alto + '. De ahí se puede deducir cuántas casas no está viendo. ' +
+                   'Es el consecutivo del maestro, que corre por archivo y no por cartera; ' +
+                   'no se arregla desde aquí.');
+    }
+    Logger.log('  renglones con al menos una liga: ' + Object.keys(r.ligas).length);
+    if (r.faltan.length) Logger.log('  NO ENCONTRÉ estas columnas: ' + r.faltan.join(' · '));
+    if (i === 0) {
+      Logger.log('  encabezados en la fila ' + r.filaEncabezados);
+      Logger.log('  columnas que salen: ' + r.encabezados.join(' · '));
+      Logger.log('  renglones vacíos saltados: ' + r.renglonesVacios);
+    }
+    if (r.filas.length) Logger.log('  primera casa: ' + JSON.stringify(r.filas[0]));
+  }
 }

@@ -33,14 +33,40 @@ cifras tienen que aguantar que alguien las revise.
 No requiere servidor, cuenta ni instalación. **El archivo no sale de tu computadora**: se lee en el
 navegador y ahí se queda.
 
+## 🔐 Quién entra
+
+**El tablero es privado.** Al abrirlo pide una clave de acceso, y sin una que THIQA haya dado de
+alta no se ve una sola casa. La clave se escribe una vez y se queda guardada en ese navegador.
+
+La pantalla de bloqueo no es lo que protege: es la puerta, no el candado. El candado está en el
+Apps Script, en su lista `ACCESOS`, que sólo abre THIQA. Quien quitara la pantalla con las
+herramientas del navegador se quedaría viendo un tablero vacío, porque **los datos nunca salieron
+del maestro**. Ésa es la diferencia que hace que este repositorio se pueda compartir.
+
+De cada acceso, el script decide además **qué carteras se lleva**. Un inversionista no recibe la
+cartera bancaria: no es que se le esconda al dibujar, es que no viaja.
+
+| Para | Se hace en | Cómo |
+|---|---|---|
+| **Dar un acceso** | Apps Script → `ACCESOS` | Un renglón con una clave larga y el nombre de a quién se la diste, y publicar **nueva versión** |
+| **Quitar un acceso** | Apps Script → `ACCESOS` | Borrar su renglón y publicar **nueva versión**. Muere en ese momento; los demás no se enteran |
+| **Ver qué se lleva cada quien** | Apps Script → función `probar` | Escribe en el registro cuántas casas recibe cada acceso |
+| **Salir de un navegador** | Tablero → Ajustes | **Salir de este navegador**, y la clave se borra de ahí |
+
+> [!IMPORTANT]
+> **La clave que estuvo commiteada en `config.js` hasta septiembre de 2026 hay que darla por
+> quemada.** Este repositorio es público y esa clave quedó en el historial de Git, donde borrarla
+> del archivo ya no la borra. Dala de baja en el script y reparte claves nuevas.
+
 ## 🚀 Usar la app
 
-Para el inversionista son dos pasos:
+Para el inversionista son tres pasos, y sólo el primero se repite:
 
 1. Entra a **[eliasgaribi-ctrl-z.github.io/tablero-inversionistas-thiqa](https://eliasgaribi-ctrl-z.github.io/tablero-inversionistas-thiqa/)**
-2. Pícale a **Traer las casas del maestro**. Eso es todo: no hay nada que capturar, ni que bajar,
-   ni que subir. El botón sirve cuantas veces quieras y cada vez vuelve a leer el maestro tal como
-   está en ese momento — la sincronización pasa cuando alguien la pide, no en un horario.
+2. Escribe su clave de acceso. Se queda guardada en ese navegador y no se la vuelve a pedir.
+3. Pícale a **Traer las casas del maestro** cuando quiera ponerse al día. La primera vez lo hace
+   solo, al entrar. El botón sirve cuantas veces quieras y cada vez vuelve a leer el maestro tal
+   como está en ese momento — la sincronización pasa cuando alguien la pide, no en un horario.
 
 Se abre en el **Resumen**: cuántas casas hay, de qué cartera y en qué va cada una. De ahí,
 **Tablero** para las cifras de dinero y **Reporte** para imprimir o guardar el PDF (`Ctrl/Cmd + P`
@@ -173,21 +199,24 @@ Los ocho estatus del catálogo del maestro salen con su nombre: *Recuperada*, *P
 y *Cartera Bloqueada*. Si el maestro trae uno escrito de otra forma, cae en **Otro estatus** con su
 texto tal cual y el Resumen lo dice, en lugar de tragárselo.
 
-### La cartera de Bancarios está apagada
+### La cartera de Bancarios no sale del Sheet
 
-**BNC_HSBC-TLAJO no se muestra.** No tiene pestaña, no entra en ninguna suma y no sale en los
-documentos. Está apagada a propósito en [`config.js`](config.js), en la lista `CARTERAS_OCULTAS`,
-porque este tablero es de las casas que se recuperan para los inversionistas y esa cartera no va en
-ese reporte.
+**BNC_HSBC-TLAJO no le llega a un inversionista.** No tiene pestaña, no entra en ninguna suma, no
+sale en los documentos — y, lo importante, **no viaja**: el Apps Script no la manda.
 
-Apagada no es desaparecida: el Resumen dice cuántas casas se dejaron fuera y de qué cartera son, y
-el aviso de sincronizar también. Un total al que le faltan casas sin avisar es un total equivocado.
+Esa distinción es toda la diferencia. Antes se apagaba en el navegador, con la lista
+`CARTERAS_OCULTAS` de `config.js`: el script mandaba el maestro completo y la página nada más
+dejaba de dibujar una parte. Eso se ve en las herramientas del navegador en diez segundos. Ahora la
+decisión vive en el script, que sabe con qué clave entraron y filtra renglón por renglón antes de
+contestar. Lo que no sale de ahí no existe para quien está del otro lado.
 
-Para volver a prenderla, deja la lista vacía:
+En el script, la lista `RESERVADAS` es la que la deja fuera, y va escrita con **pedazos** del nombre
+(`'bnc'`, `'hsbc'`) y no con el nombre completo: si mañana en el Sheet le cambian
+`BNC_HSBC-TLAJO` por `HSBC`, el candado tiene que seguir cerrado. Un nombre exacto se abriría solo
+con el cambio de nombre y nadie se daría cuenta.
 
-```js
-CARTERAS_OCULTAS: [],
-```
+Un acceso puede pedirla explícitamente con `carteras: 'todas'`. Ése es el acceso de THIQA, no el de
+un inversionista.
 
 ## 🗂️ PIC al frente, Infonavit en su pestaña
 
@@ -233,8 +262,9 @@ archivo [`apps-script/Sincronizar.gs`](apps-script/Sincronizar.gs).
 1. En [script.google.com](https://script.google.com) → **Nuevo proyecto**, firmado con la cuenta
    que tiene acceso al maestro. Le pones de nombre `RMV — Sincronizar tablero` y pegas
    `Sincronizar.gs`.
-2. Cambias la `CLAVE` de arriba por una tuya, larga. **Mientras no la cambies el script no contesta
-   nada**, a propósito: la de fábrica está escrita en este repositorio y la sabe cualquiera.
+2. Das de alta los accesos en la lista `ACCESOS`: una clave larga y un nombre por cada persona que
+   va a entrar. **Las claves se escriben ahí y en ningún otro lado** — nunca en este repositorio,
+   que es público. Mientras la lista esté vacía el script no contesta nada, a propósito.
 3. Corres una vez la función `probar` para **autorizarlo**. Google pide permiso para leer tus hojas
    de cálculo y hay que dárselo; en la pantalla de *«Google no ha verificado esta aplicación»* vas a
    *Configuración avanzada → Ir a (nombre del proyecto)*. Es tu propio script: esa pantalla sale
@@ -242,17 +272,17 @@ archivo [`apps-script/Sincronizar.gs`](apps-script/Sincronizar.gs).
    implementación contesta una página de inicio de sesión en vez de datos.
 4. **Implementar → Nueva implementación → Aplicación web**, con *Ejecutar como: **Yo*** y *Quién
    tiene acceso: **Cualquier usuario***. Copias la dirección que termina en `/exec`.
-5. Pegas esa dirección y la clave en [`config.js`](config.js), en `SYNC_URL` y `SYNC_KEY`, y subes
-   el archivo. **Ese es el paso que vuelve el tablero un botón:** a partir de ahí nadie más captura
-   nada, en ningún navegador.
+5. Pegas esa dirección en [`config.js`](config.js), en `SYNC_URL`, y subes el archivo. **La clave
+   no va ahí.**
+6. Le pasas a cada persona su clave, por un medio donde no quede a la vista de otros. La escribe una
+   vez en la pantalla de bloqueo y ya no vuelve a capturar nada.
 
-Después de eso, sincronizar es un clic — y sirve cuantas veces se pida.
+Antes de repartir claves, corre `probar` en el editor: escribe en el registro **cuántas casas se
+lleva cada acceso y cuántas deja fuera**. Ése es el número que hay que mirar. Si un acceso de
+inversionista se lleva el maestro entero y no deja ninguna fuera, la bancaria se está yendo con él.
 
-> Si prefieres **no** dejar la liga en el repositorio, déjala vacía en `config.js` y pégala en
-> **Ajustes** dentro del tablero, donde el botón **Probar la liga** te dice de una vez si funciona
-> y cuántas casas ve, sin traerse nada. Lo que cambia es que entonces hay que hacerlo una vez en
-> cada navegador que abra la página, y deja de ser un botón para el que llega de fuera. Los pros y
-> los contras están escritos completos arriba de `config.js`.
+> Ese registro sólo lo ves tú, en el editor. La respuesta que le llega al tablero **no dice cuántas
+> casas quedaron fuera**: ese número es justo el que no le toca saber a un inversionista.
 
 > **Guardar no es publicar.** Si algún día editas el script, hay que hacer *Implementar →
 > Administrar implementaciones → editar → **Nueva versión***. Sin eso el tablero sigue recibiendo
@@ -298,26 +328,23 @@ día del mes anterior.
 
 ### Sobre «Cualquier usuario»
 
-Es la única opción que sirve, porque una página estática no puede firmarse con Google. Eso significa
-que **quien tenga la dirección y la clave puede leer esas columnas** — no el Sheet, sólo lo que el
-script manda.
+Es la única opción que sirve, porque una página estática no puede firmarse con Google. La dirección,
+entonces, la puede abrir cualquiera — y está bien: **sin una clave de la lista no contesta un solo
+dato.** Por eso la dirección sí puede ir en `config.js` y la clave no.
 
-Y aquí hay que ser claros, porque es una decisión y no un descuido: **para que el tablero sea un
-botón, la dirección y la clave tienen que ir en `config.js`, que es público.** No existe manera de
-esconder una contraseña en una página estática; si el inversionista no captura nada, es porque la
-página ya la trae. Lo que se puede hacer es que lo que quede expuesto sea lo mínimo, y eso ya está
-hecho:
+Lo que hay que cuidar:
 
-- Del maestro sale **sólo lo que el tablero usa**, nunca datos de personas.
-- Conviene revisar que las carpetas de Drive del expediente **no** estén compartidas como
-  *«cualquiera con el enlace»*. Con *«sólo personas invitadas»*, la liga le pide iniciar sesión a
-  quien no debe estar ahí y no le sirve de nada.
-- Si se te sale de las manos: cambias la `CLAVE`, publicas nueva versión y la actualizas en
-  `config.js`. La anterior deja de servir en ese momento.
-
-Si esa exposición no te acomoda, deja `SYNC_URL` vacío: el tablero vuelve a pedir la liga una vez
-por navegador y nada de esto queda en el repositorio. Es la misma app, con un paso más para quien
-la abre.
+- **Las claves nunca se escriben en el repositorio.** Ni en `config.js`, ni en la copia de
+  `Sincronizar.gs` que se sube. Se capturan en el editor de Apps Script, que vive en la cuenta de
+  Google de THIQA. Una clave commiteada se queda en el historial de Git para siempre, aunque
+  después se borre del archivo.
+- **Una clave por persona.** Así se quita un acceso sin tocar los demás: borras su renglón, publicas
+  nueva versión, y esa clave muere en ese momento.
+- Del maestro sale **sólo lo que el tablero usa**, nunca datos de personas, y **nunca casas de una
+  cartera que no le toque a ese acceso**.
+- Las carpetas de Drive del expediente deben estar compartidas como *«sólo personas invitadas»*.
+  Si estuvieran como *«cualquiera con el enlace»*, la liga que sale de aquí abriría los PDFs a quien
+  la tenga.
 
 ## 💰 La regla de dinero, en serio
 
@@ -512,7 +539,7 @@ Y abre `index.html` con Chrome o Edge. No hay nada que instalar ni que compilar.
 | Archivo | Qué es |
 |---|---|
 | `index.html` | la app entera: interfaz, resumen, tablero y los dos documentos |
-| `config.js` | **lo único que se toca a mano**: la liga del script, su clave y las carteras apagadas |
+| `config.js` | **lo único que se toca a mano**: la liga del script. Las claves no van aquí |
 | `nucleo-xlsx.js` | el lector de XLSX/CSV, copiado del generador de fichas |
 | `qr.js` | el generador de códigos QR, copiado sin cambios del generador de fichas |
 | `apps-script/Sincronizar.gs` | el script que le sirve las casas al botón, en su propio proyecto de Apps Script |

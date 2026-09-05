@@ -501,6 +501,33 @@ html[data-theme="oscuro"] .carpBtn.pri{color:var(--sideB)}
   #toasts{left:12px;right:12px;bottom:184px}
   #toasts div{max-width:none}
 }
+
+/* ---------- la pantalla de bloqueo ----------
+   Esto es la puerta, no el candado. El candado está en el Apps Script, que sin
+   una clave de su lista no manda una sola casa: quien quitara esta pantalla con
+   las herramientas del navegador se quedaría viendo un tablero vacío, porque no
+   habría dato que dibujar. Por eso la puerta puede ser nada más una pantalla.
+   Al imprimir no existe: lo que se imprime son las hojas, y a ésas se llega
+   habiendo entrado. */
+/* `auto` y no `center` en el eje vertical: en un celular acostado la caja es más
+   alta que la pantalla, y centrada se le cortan las orillas sin poder deslizar. */
+#candado{position:fixed;inset:0;z-index:200;display:flex;align-items:safe center;justify-content:center;
+  padding:24px;overflow:auto;background:linear-gradient(168deg,var(--sideA) 0%,var(--sideB) 100%)}
+#candado[hidden]{display:none}
+html.trabado,html.trabado body{overflow:hidden}
+#candadoCaja{width:100%;max-width:396px;background:var(--surf);border-radius:20px;
+  box-shadow:var(--sh2);padding:28px 26px 24px}
+#candadoCaja img{width:132px;height:auto;display:block;margin-bottom:20px}
+#candadoCaja h1{font-size:22px;margin-bottom:7px}
+#candadoCaja .pie{font-size:13px;color:var(--tx2);line-height:1.6;margin:0 0 18px}
+#candadoCaja label{display:block;margin-bottom:12px}
+#candadoCaja .rot{display:block;margin-bottom:6px}
+#candadoBtn{width:100%;min-height:46px;justify-content:center}
+#candadoAviso{margin-top:15px}
+#candadoAviso:empty{display:none}
+#candadoNota{margin-top:18px;padding-top:15px;border-top:1px solid var(--brd);
+  font-size:12px;color:var(--tx3);line-height:1.6}
+@media print{ #candado{display:none!important} }
 </style>
 
 <style>
@@ -630,6 +657,29 @@ html[data-theme="oscuro"] .carpBtn.pri{color:var(--sideB)}
 </head>
 <body>
 
+<!-- La puerta. Va antes que la aplicación y la tapa entera hasta que una clave
+     de la lista del script conteste. Si no hay dirección de sincronización
+     puesta en config.js no se muestra: ese es el camino de trabajar con el
+     Excel a mano, en local, donde no hay nada que proteger. -->
+<div id="candado" hidden>
+  <form id="candadoCaja" autocomplete="on">
+    <img src="img/thiqa-hoja.png" alt="THIQA" width="360" height="195">
+    <h1>Casas recuperadas</h1>
+    <p class="pie">Este tablero es privado. Escribe la clave de acceso que te dieron en THIQA;
+      se queda guardada en este navegador y no te la vuelve a pedir.</p>
+    <label>
+      <span class="rot">Clave de acceso</span>
+      <input type="password" id="claveAcceso" name="password" autocomplete="current-password"
+        autocapitalize="off" autocorrect="off" spellcheck="false" required>
+    </label>
+    <button class="btn pri grande" id="candadoBtn" type="submit">Entrar</button>
+    <div id="candadoAviso" role="alert" aria-live="polite"></div>
+    <div id="candadoNota">¿No tienes clave o dejó de servir? Pídela a THIQA
+      (<a href="mailto:remates@thiqa.mx">remates@thiqa.mx</a>). Cada acceso es de una persona:
+      compartirla no da más permisos, nada más quita el control de quién entró.</div>
+  </form>
+</div>
+
 <div id="app">
 
 <aside id="lado">
@@ -710,7 +760,6 @@ html[data-theme="oscuro"] .carpBtn.pri{color:var(--sideB)}
         Traer las casas del maestro
       </button>
       <button class="btn gh" id="syncAjustes" type="button">Poner la liga y la clave</button>
-      <a class="btn gh" id="abrirMaestro" target="_blank" rel="noopener" style="display:none">Abrir el maestro</a>
     </div>
     <div id="estadoSync" style="margin-top:11px;font-size:13px;color:var(--tx3);line-height:1.6"></div>
     <div id="avisoSync"></div>
@@ -903,31 +952,40 @@ html[data-theme="oscuro"] .carpBtn.pri{color:var(--sideB)}
   </div>
 
   <div class="card">
+    <h3>Tu acceso</h3>
+    <div id="sesion" class="aviso" style="margin-bottom:14px"></div>
+    <button class="btn gh" id="salirBtn" type="button" style="display:none">Salir de este navegador</button>
+    <div class="aviso" style="margin-top:14px"><b>Cada acceso es de una persona.</b> Quién entra y
+      qué carteras se lleva se decide en la lista <code>ACCESOS</code> del Apps Script, que sólo
+      abre THIQA. Ni esta pantalla ni el repositorio pueden dar permisos: lo que no manda el
+      script, no existe para el tablero.</div>
+  </div>
+
+  <div class="card">
     <h3>La liga para sincronizar</h3>
-    <p>Sale de publicar el archivo <code>apps-script/Sincronizar.gs</code> en el Apps Script del
-      maestro: <i>Extensiones → Apps Script</i>, pegas el archivo, cambias la clave y le das
+    <p>Sale de publicar el archivo <code>apps-script/Sincronizar.gs</code> desde
+      <i>script.google.com</i>, con la cuenta que tiene acceso al maestro, y darle
       <i>Implementar → Nueva implementación → Aplicación web</i>, con <b>Ejecutar como: Yo</b> y
       <b>Quién tiene acceso: Cualquier usuario</b>. Copias la dirección que termina en
       <code>/exec</code>.</p>
     <div class="aviso ojo" id="avisoConfig" style="margin-bottom:14px"><b>Lo de aquí abajo es sólo
-      para este navegador.</b> Si quieres que el tablero sea un botón <b>para todos</b>, esa
-      dirección va en el archivo <code>config.js</code> del repositorio, en <code>SYNC_URL</code>,
-      con su clave en <code>SYNC_KEY</code>. Se pone una vez y nadie más vuelve a capturar
-      nada.</div>
-    <div class="g2">
-      <label><span class="rot">Dirección que termina en /exec</span>
-        <input type="text" id="ajSync" placeholder="https://script.google.com/macros/s/…/exec"></label>
-      <label><span class="rot">La clave del script</span>
-        <input type="password" id="ajSyncKey" placeholder="la misma que pusiste en CLAVE"></label>
-    </div>
+      para este navegador.</b> La dirección para todo el mundo va en el archivo
+      <code>config.js</code> del repositorio, en <code>SYNC_URL</code>. <b>Las claves no van
+      ahí</b>: ese archivo es público y lo que se escriba en él se queda en el historial para
+      siempre.</div>
+    <label><span class="rot">Dirección que termina en /exec</span>
+      <input type="text" id="ajSync" placeholder="https://script.google.com/macros/s/…/exec"></label>
+    <p style="font-size:12.5px;color:var(--tx3);margin:8px 0 0">La clave no se captura aquí. Se
+      escribe en la pantalla de bloqueo, que es la que la va a comprobar contra el script. Si
+      apuntas este navegador a otra implementación, sal y vuelve a entrar con una clave de ésa.</p>
     <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
       <button class="btn" id="probarSync" type="button">Probar la liga</button>
       <span id="pruebaSync" style="font-size:12.5px;color:var(--tx3)"></span>
     </div>
     <div class="aviso" style="margin-top:14px"><b>Del Sheet sale lo mínimo.</b> El script manda nada
       más las columnas que el tablero usa: el nombre del acreditado, el crédito y el expediente
-      judicial no están en su lista, así que no salen del maestro ni por accidente. La liga y la
-      clave se guardan en este navegador, no en el repositorio.</div>
+      judicial no están en su lista, así que no salen del maestro ni por accidente. Y manda nada más
+      las casas de las carteras que le tocan a tu acceso — las demás no viajan, ni escondidas.</div>
   </div>
 
   <div class="card">
@@ -1165,20 +1223,16 @@ const LSKEY = 'thiqa_tablero_v1';
    configurada vuelve solo al camino de antes —pedirla una vez por navegador—,
    que es exactamente lo que hacía. */
 const CFG = Object.assign({
-  SYNC_URL:'', SYNC_KEY:'', SHEET_ID:'', SHEET_HOJA:'', CARTERAS_OCULTAS:[]
+  SYNC_URL:'', CARTERAS_OCULTAS:[]
 }, window.THIQA_CONFIG || {});
-/* Trae la liga puesta en el repositorio = el inversionista no captura nada. */
-const SYNC_DE_FABRICA = !!String(CFG.SYNC_URL || '').trim();
 const OCULTAS = new Set((CFG.CARTERAS_OCULTAS || []).map(k => String(k).toUpperCase()));
-const URL_MAESTRO = CFG.SHEET_ID
-  ? 'https://docs.google.com/spreadsheets/d/' + CFG.SHEET_ID + '/edit' : '';
 
 const AJ_DEF = { tope:40000, topeCP:80000, bonoPct:10, honorario:null, grupos:{},
                  sync:'', syncKey:'' };
 const S = { wb:null, rows:[], headers:[], todas:[], map:{}, obra:[], obraHoja:'', obraArchivo:'',
             etapaOff:new Set(), sel:new Set(), orden:{col:'FOLIO', dir:'asc'},
             doc:'cuenta', zoom:.62, carpetasExtra:[], fotos:{}, fotoActiva:'',
-            origen:'',
+            origen:'', acceso:'',
             cartera:'PIC', sync:null };
 let AJ = Object.assign({}, AJ_DEF);
 
@@ -1243,6 +1297,21 @@ async function ponFoto(k, uri){
     tx.oncomplete = ok;
     tx.onerror = () => mal(tx.error);
   });
+}
+/* Se borran todas de un jalón al salir. Las fotos van atadas a la casa por folio
+   y domicilio, así que las de un acceso no se dibujarían con las casas de otro
+   —pero ahí siguen, y con el folio y la calle escritos en la llave. Quien sale
+   de un navegador espera no dejar nada. */
+async function borrarTodasLasFotos(){
+  try {
+    const db = await abrirFotos();
+    await new Promise((ok, mal) => {
+      const tx = db.transaction('fotos', 'readwrite');
+      tx.objectStore('fotos').clear();
+      tx.oncomplete = ok;
+      tx.onerror = () => mal(tx.error);
+    });
+  } catch(e){ /* sin IndexedDB no hay nada que borrar */ }
 }
 /* Se guarda ya reducida a 900 px del lado largo, unos 90 KB: el hueco de la hoja
    mide poco más de tres pulgadas impresas, más resolución no se nota en papel y
@@ -1769,11 +1838,16 @@ function avanceDe(r, d){
    abre la página y le pica al botón, y quien esté probando otra implementación
    puede sobrescribirla en su navegador sin tocar el repositorio. */
 function ligaBase(){ return String(AJ.sync || CFG.SYNC_URL || '').trim(); }
-function claveBase(){ return String(AJ.sync ? (AJ.syncKey || '') : (CFG.SYNC_KEY || '')); }
-function ligaSync(){
+/* La clave NUNCA sale de config.js: la escribió una persona en la pantalla de
+   bloqueo y se guardó en su navegador, y en ningún otro lado. El repositorio es
+   público —lo van a leer los mismos inversionistas— y una clave escrita ahí se
+   queda además en el historial de Git para siempre. */
+function claveAcceso(){ return String(AJ.syncKey || ''); }
+function ligaSync(clave){
   const u = ligaBase();
   if (!u) return '';
-  return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'k=' + encodeURIComponent(claveBase());
+  const k = clave === undefined ? claveAcceso() : clave;
+  return u + (u.indexOf('?') >= 0 ? '&' : '?') + 'k=' + encodeURIComponent(k);
 }
 /* Los errores se traducen a lo que hay que ir a arreglar. "Failed to fetch" no
    le dice nada a nadie; "la implementación no está en Cualquier usuario" sí. */
@@ -1796,6 +1870,10 @@ function explicaSync(e){
           'para ver el error completo en el registro.'
         : 'Revisa que la dirección esté completa y termine en <code>/exec</code>.');
   }
+  if (m === 'TARDO')
+    return '<b>La dirección no contestó a tiempo.</b><br>Puede ser la red, o que la ' +
+      'implementación se haya quedado pensando. Vuelve a intentar; si sigue igual, abre la ' +
+      'dirección en una pestaña del navegador para ver qué contesta.';
   if (m === 'NO_JSON')
     return '<b>Esa dirección contestó una página, no datos.</b><br>Casi siempre es que la ' +
       'implementación está pidiendo iniciar sesión. En <i>Implementar → Administrar ' +
@@ -1803,10 +1881,22 @@ function explicaSync(e){
       'Cualquier usuario</b>, y publica una <b>nueva versión</b> — guardar no es publicar.';
   return '<b>No se pudo sincronizar.</b><br>Detalle: ' + esc(m);
 }
-async function pedirMaestro(){
-  const u = ligaSync();
+async function pedirMaestro(clave){
+  const u = ligaSync(clave);
   if (!u) throw new Error('SIN_LIGA');
-  const res = await fetch(u, { redirect:'follow', cache:'no-store' });
+  /* Con tope de espera. Una petición que se queda colgada —red mala, la
+     implementación sin contestar— dejaba la pantalla de bloqueo en «Entrando…»
+     para siempre, sin manera de reintentar. Treinta segundos es de sobra para
+     doscientas casas. */
+  const corta = new AbortController();
+  const reloj = setTimeout(() => corta.abort(), 30000);
+  let res;
+  try {
+    res = await fetch(u, { redirect:'follow', cache:'no-store', signal: corta.signal });
+  } catch(e){
+    if (e && e.name === 'AbortError') throw new Error('TARDO');
+    throw e;
+  } finally { clearTimeout(reloj); }
   const txt = await res.text();
   let j;
   try { j = JSON.parse(txt); }
@@ -1866,28 +1956,34 @@ function pintarEstadoSync(){
         : '')
     : 'Liga puesta. Pícale al botón para traer las casas.';
 }
-async function sincronizar(){
+/* Devuelve { ok } y, cuando algo salió mal, el texto ya escrito para que la
+   pantalla de bloqueo lo pueda enseñar tal cual. La pantalla de Datos sigue
+   recibiendo el mismo aviso de siempre. */
+async function sincronizar(clave){
   limpiaAviso('avisoSync');
   const b = $('syncBtn');
   const antes = b.innerHTML;
   b.disabled = true;
   b.innerHTML = 'Trayendo del maestro…';
   try {
-    const j = await pedirMaestro();
+    const j = await pedirMaestro(clave);
     if (!j.ok){
       const t = j.error === 'clave'
-        ? '<b>La clave no coincide.</b><br>Tiene que ser la misma que pusiste en <code>CLAVE</code> ' +
-          'dentro del script. Si la cambiaste allá, acuérdate de publicar una nueva versión.'
-        : j.error === 'clave_de_fabrica'
-        ? '<b>El script sigue con la clave de fábrica.</b><br>Esa clave viene escrita en el ' +
-          'repositorio, así que la sabe cualquiera y el script se niega a contestar con ella. ' +
-          'Cámbiala en la constante <code>CLAVE</code> del script, publica una <b>nueva versión</b> ' +
-          'y ponla igual en <code>config.js</code>.'
+        ? '<b>Esa clave no abre el tablero.</b><br>Revisa que esté completa y sin espacios de más. ' +
+          'Si antes servía, es que se dio de baja: pide una nueva a THIQA.'
+        : j.error === 'sin_accesos'
+        ? '<b>Todavía no hay ningún acceso dado de alta.</b><br>En el Apps Script hay que agregar ' +
+          'al menos un renglón a la lista <code>ACCESOS</code> y publicar una <b>nueva versión</b> ' +
+          '— guardar no es publicar.'
+        : j.error === 'sin_cartera'
+        ? '<b>El script no encontró la columna de la cartera y por seguridad no mandó nada.</b><br>' +
+          'Sin esa columna no puede separar lo que le toca ver a cada acceso, así que prefiere no ' +
+          'contestar a contestar de más. ' + esc(j.mensaje || '')
         : '<b>El script contestó, pero no pudo leer el maestro.</b><br>' +
           esc(j.mensaje || j.error || '') ;
       aviso('avisoSync','mal',t);
       toast('El maestro contestó con un error.', true);
-      return;
+      return { ok:false, error:j.error, html:t };
     }
     desdeMaestro(j);
     const d = new Date();
@@ -1909,6 +2005,7 @@ async function sincronizar(){
       const m = /T(\d{2}):(\d{2})/.exec(String(j.actualizado || ''));
       return m ? m[1] + ':' + m[2] : pad(d.getHours()) + ':' + pad(d.getMinutes());
     })();
+    S.acceso = String(j.acceso || '');
     S.sync = { n: trajo, vistas: S.todas.length, ocultas: S_OCULTAS.n,
                hoja: j.hoja || '', faltan: j.faltan || [], hora: hora };
     pintarEstadoSync();
@@ -1923,27 +2020,113 @@ async function sincronizar(){
           'Lo que salga de esas columnas va a llegar en blanco.<br>'
         : '') +
       '<b>Listo: traje ' + trajo +
-      (trajo === 1 ? ' casa' : ' casas') + ' del maestro.</b>' +
+      (trajo === 1 ? ' casa' : ' casas') +
+      (S.acceso ? ' del maestro, las de tu acceso.' : ' del maestro.') + '</b>' +
       (j.renglonesVacios ? ' Salté ' + j.renglonesVacios + ' renglones vacíos.' : '') +
       (S_OCULTAS.n ? '<br>De ésas, <b>' + S_OCULTAS.n + '</b> no se muestran: son de una cartera ' +
         'apagada en <code>config.js</code>. El Resumen lo dice con nombre y apellido.' : '') +
       '<br>Si el control de obra cambió, vuelve a subir el Excel de tapeados en ' +
       '<b>¿Prefieres subir los archivos a mano?</b>, aquí abajo — ese no viene del maestro.');
     toast('Sincronizado: ' + S.todas.length + ' casas.');
+    return { ok:true };
   } catch(e){
     if (String(e.message) === 'SIN_LIGA'){
-      aviso('avisoSync','ojo','<b>Falta la liga.</b><br>Ponla en Ajustes.');
-    } else {
-      aviso('avisoSync','mal', explicaSync(e));
-      toast('No se pudo sincronizar.', true);
+      const t = '<b>Falta la liga.</b><br>Ponla en Ajustes.';
+      aviso('avisoSync','ojo',t);
+      return { ok:false, error:'SIN_LIGA', html:t };
     }
+    const t = explicaSync(e);
+    aviso('avisoSync','mal', t);
+    toast('No se pudo sincronizar.', true);
+    return { ok:false, error:'red', html:t };
   } finally {
     b.innerHTML = antes;
     pintarEstadoSync();
   }
 }
-$('syncBtn').onclick = sincronizar;
+$('syncBtn').onclick = () => sincronizar();
 $('syncAjustes').onclick = () => { irA('ajustes'); setTimeout(() => $('ajSync').focus(), 380); };
+
+/* ============================================================
+   6b · La puerta
+   ------------------------------------------------------------
+   La clave no se compara aquí. Se le manda al script, que es el único que tiene
+   la lista de accesos, y lo que llega de vuelta son las casas que le tocan a esa
+   clave — o nada. Por eso esta pantalla puede ser nada más una pantalla: quien
+   la quitara con las herramientas del navegador se quedaría viendo un tablero
+   vacío, porque los datos nunca salieron del maestro.
+
+   Guardar la clave en este navegador es a propósito: el inversionista la
+   escribe una vez y de ahí en adelante abre la página y ya está adentro.
+   ============================================================ */
+/* Hay puerta siempre que haya a quién preguntarle la clave, venga la liga del
+   repositorio o de Ajustes. Es función y no constante porque la de Ajustes se
+   lee del navegador después de que este archivo termina de cargar. */
+function hayPuerta(){ return !!ligaBase(); }
+
+function trabar(pideClave){
+  $('candado').hidden = false;
+  document.documentElement.classList.add('trabado');
+  /* Lo de atrás queda fuera del alcance del teclado: sin esto, con Tab se llega
+     a los botones de una aplicación que todavía no tiene nada que enseñar. */
+  try { $('app').inert = true; } catch(e){}
+  /* El foco sólo cuando de veras estamos preguntando. Al entrar solo con la
+     clave guardada, poner el foco abre el teclado del celular para nada y lo
+     cierra medio segundo después. */
+  if (pideClave) setTimeout(() => { try { $('claveAcceso').focus(); } catch(e){} }, 80);
+}
+function destrabar(){
+  $('candado').hidden = true;
+  document.documentElement.classList.remove('trabado');
+  try { $('app').inert = false; } catch(e){}
+  /* La clave no se queda escrita en el campo después de entrar: el tablero se
+     proyecta en juntas y se abre en el celular de quien anda en la calle. */
+  $('claveAcceso').value = '';
+}
+/* Salir deja el navegador como si nadie hubiera entrado: la clave, el empate de
+   columnas y las fotos de los domicilios. Se recarga a propósito, para que no
+   quede una sola casa dibujada de la sesión anterior. */
+async function salir(){
+  const b = $('salirBtn');
+  if (b){ b.disabled = true; b.textContent = 'Saliendo…'; }
+  AJ.syncKey = '';
+  try { const g = leerGuardado(); delete g.byName; localStorage.setItem(LSKEY, JSON.stringify(g)); } catch(e){}
+  guardar();
+  await borrarTodasLasFotos();
+  location.reload();
+}
+async function entrar(clave, guardada){
+  const b = $('candadoBtn'), antes = b.textContent;
+  b.disabled = true; b.textContent = 'Entrando…';
+  limpiaAviso('candadoAviso');
+  try {
+    const r = await sincronizar(clave);
+    /* Si el intento automático falló por lo que sea —no nada más por la clave—,
+       la puerta se queda pidiendo, y ahí sí con el foco puesto. */
+    if (!r.ok && guardada) setTimeout(() => { try { $('claveAcceso').focus(); } catch(e){} }, 80);
+    if (r.ok){
+      AJ.syncKey = clave;
+      guardar();
+      pintarAjustes();
+      destrabar();
+      toast(S.acceso ? 'Entraste como ' + S.acceso + '.' : 'Listo, entraste.');
+      return true;
+    }
+    /* Una clave guardada que ya no sirve se borra sola. Si se quedara, la puerta
+       volvería a intentar con ella cada vez que se abre la página y quien la
+       tiene no tendría manera de escribir otra. */
+    if (r.error === 'clave'){ AJ.syncKey = ''; guardar(); pintarAjustes(); }
+    aviso('candadoAviso','mal', r.html || '<b>No se pudo entrar.</b>');
+    return false;
+  } finally {
+    b.disabled = false; b.textContent = antes;
+  }
+}
+$('candadoCaja').onsubmit = e => {
+  e.preventDefault();
+  const c = $('claveAcceso').value.trim();
+  if (c) entrar(c, false);
+};
 
 /* ============================================================
    7 · Carga del archivo
@@ -3460,7 +3643,18 @@ window.addEventListener('afterprint', () => {
    ============================================================ */
 function pintarAjustes(){
   $('ajSync').value = AJ.sync || '';
-  $('ajSyncKey').value = AJ.syncKey || '';
+  const caja = $('sesion');
+  if (caja){
+    caja.innerHTML = !hayPuerta()
+      ? '<b>Este tablero está corriendo sin puerta.</b> No hay dirección de sincronización puesta ' +
+        'en <code>config.js</code>, así que sólo funciona con los archivos que subas a mano.'
+      : claveAcceso()
+        ? '<b>Entraste' + (S.acceso ? ' como ' + esc(S.acceso) : '') + '.</b> Tu clave se quedó ' +
+          'guardada en este navegador. Si es una computadora que usa alguien más, sal al terminar.'
+        : '<b>Todavía no has entrado.</b>';
+    const b = $('salirBtn');
+    if (b) b.style.display = (hayPuerta() && claveAcceso()) ? '' : 'none';
+  }
   $('ajTope').value = AJ.tope;
   $('ajTopeCP').value = AJ.topeCP;
   $('ajBono').value = AJ.bonoPct;
@@ -3488,21 +3682,22 @@ function leerAjustes(){
   AJ.bonoPct = n('ajBono', AJ_DEF.bonoPct);
   const h = $('ajHonorario').value.trim();
   AJ.honorario = h === '' ? null : (isNaN(parseFloat(h)) ? null : parseFloat(h));
+  /* La clave no se toca aquí. Antes había un campo, y escribir cualquier cosa en
+     él pisaba la clave buena sin comprobar nada: quien se equivocara al teclear
+     se quedaba fuera la próxima vez que abriera la página, sin saber por qué. */
   AJ.sync = $('ajSync').value.trim();
-  AJ.syncKey = $('ajSyncKey').value.trim();
   guardar();
   pintarAjustes();
   pintarEstadoSync();
   refrescarTodo();
 }
-for (const id of ['ajTope','ajTopeCP','ajBono','ajHonorario','ajSync','ajSyncKey'])
+for (const id of ['ajTope','ajTopeCP','ajBono','ajHonorario','ajSync'])
   $(id).onchange = leerAjustes;
 
 /* Probar la liga sin traerse el maestro entero: contesta de una vez si la
    implementación y la clave están bien, que es donde se atora todo el mundo. */
 $('probarSync').onclick = async () => {
   AJ.sync = $('ajSync').value.trim();
-  AJ.syncKey = $('ajSyncKey').value.trim();
   guardar();
   const el = $('pruebaSync');
   /* Se prueba la liga que de veras se va a usar: la del campo si la pusieron, y
@@ -3519,11 +3714,11 @@ $('probarSync').onclick = async () => {
         ((j.faltan || []).length ? ' <span style="color:var(--nar2)">Le faltan columnas: ' +
           esc(j.faltan.join(', ')) + '.</span>' : '');
     else if (j.error === 'clave')
-      el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero la clave no ' +
+      el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero tu clave no ' +
         'coincide.</span>';
-    else if (j.error === 'clave_de_fabrica')
-      el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero el script sigue ' +
-        'con la clave de fábrica y por eso no manda datos.</span>';
+    else if (j.error === 'sin_accesos')
+      el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero el script no ' +
+        'tiene ningún acceso dado de alta.</span>';
     else
       el.innerHTML = '<span style="color:var(--al);font-weight:600">Contesta, pero: ' +
         esc(j.mensaje || j.error || '') + '</span>';
@@ -3694,12 +3889,7 @@ ponDensidad((() => { try { return localStorage.getItem('thiqaDensidad'); } catch
   /* Con la liga puesta en config.js la pantalla de datos es un botón: la carga a
      mano se pliega y el texto deja de hablar de archivos. Sin liga, todo queda
      como estaba y la carga a mano se abre sola, que es el único camino. */
-  if (URL_MAESTRO){
-    const a = $('abrirMaestro');
-    a.href = URL_MAESTRO;
-    a.style.display = '';
-  }
-  if (SYNC_DE_FABRICA){
+  if (hayPuerta()){
     $('aMano').open = false;
     /* Con la liga de fábrica, en la pantalla de datos queda un botón y nada
        más. Apuntar a otra implementación es cosa de quien prueba el script, y
@@ -3719,11 +3909,22 @@ ponDensidad((() => { try { return localStorage.getItem('thiqaDensidad'); } catch
       '<b>Ajustes</b>, y en el archivo <code>apps-script/Sincronizar.gs</code> del repositorio.';
   }
 
+  $('salirBtn').onclick = salir;
   pintarAjustes();
   pintarEstadoSync();
   pintarGrupos();
   refrescarTodo();
   irA('datos', true);
+
+  /* La puerta. Con la clave ya guardada se intenta sola y, si sirve, la pantalla
+     se quita antes de que a nadie le dé tiempo de leerla. Sin dirección de
+     sincronización no hay puerta: ese es el camino de trabajar con el Excel a
+     mano, en local, donde no hay nada del maestro que proteger. */
+  if (hayPuerta()){
+    const c = claveAcceso();
+    trabar(!c);
+    if (c) entrar(c, true);
+  }
   requestAnimationFrame(() => moverPill(links[0]));
   if (typeof DecompressionStream === 'undefined')
     aviso('avisoCarga','ojo','<b>Este navegador no puede abrir archivos .xlsx.</b><br>' +

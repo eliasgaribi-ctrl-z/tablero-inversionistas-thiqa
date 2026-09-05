@@ -41,16 +41,19 @@ colonia y a veces con la manzana pegada (`AV TEMUCO 100 M-1`).
 
 ## Cómo probarlo
 
+> El tablero pide clave al abrir. Estas pruebas son de la carga **a mano**, así que primero hay
+> que entrar; o, si estás trabajando en local, deja `SYNC_URL` vacío en `config.js` y la pantalla
+> de bloqueo no aparece.
+
 1. Sube `maestro-de-ejemplo.xlsx`. La app abre en el **Resumen**.
-2. En el Resumen deben salir **174 casas en el programa**, repartidas en PIC (124) e Infonavit
-   (50), y una nota abajo que dice que **40 casas de Bancaria no se están mostrando**. Ésas son
-   las 214 del archivo: 174 a la vista y 40 apagadas en `config.js`, que es como viene de fábrica.
-   Si quieres verlas todas, deja vacía la lista `CARTERAS_OCULTAS`.
+2. En el Resumen deben salir las **214 casas del archivo**, repartidas en PIC, Infonavit y
+   Bancaria. Un archivo que se sube a mano no pasa por el Apps Script, así que no hay filtro de
+   acceso: llega tal cual. El filtro por cartera vive en el script y se prueba desde allá, con la
+   función `probar`.
 3. Sube `tapeados-de-ejemplo.xlsx` desde *«¿Prefieres subir los archivos a mano?»*. Debe decir
    **14 viviendas con tapeo, de la pestaña Calendario de Obra** —si dice otra pestaña, algo se
    rompió—.
 4. En Ajustes, captura un honorario fijo (por ejemplo 6000). La columna *Honorarios + bono* se
    completa y el tablero marca las cifras como **calculadas**.
-5. En el Tablero, con la pestaña en **Todas**, deben salir **73 recuperadas** y, aparte, **23
-   próximas recuperaciones**. Nunca sumadas juntas. (Con Bancaria prendida serían 85 y 29: ésas
-   son las cifras del archivo completo.)
+5. En el Tablero, con la pestaña en **Todas**, deben salir **85 recuperadas** y, aparte, **29
+   próximas recuperaciones**. Nunca sumadas juntas: ésas son las cifras del archivo completo.
