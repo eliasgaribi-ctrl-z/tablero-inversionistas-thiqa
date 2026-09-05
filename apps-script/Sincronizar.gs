@@ -1,9 +1,9 @@
 /**
  * Sincronizar.gs — le sirve el maestro al Tablero de Inversionistas THIQA
  * ---------------------------------------------------------------------------
- * Este archivo va pegado al Google Sheet del maestro de remates. Publica una
- * dirección web que devuelve las casas en JSON, y el botón "Sincronizar con el
- * maestro" del tablero la consume. Así no hay que bajar el Excel a mano.
+ * Va en un proyecto de Apps Script APARTE, no pegado al Sheet (el porqué está
+ * más abajo). Publica una dirección web que devuelve las casas en JSON, y el
+ * tablero la consume. Así no hay que bajar el Excel a mano.
  *
  * POR QUÉ HACE FALTA ESTO Y NO SE PUEDE LEER EL SHEET DIRECTO
  *
@@ -73,6 +73,9 @@
  *    *Configuración avanzada* → *Ir a (nombre del proyecto)*. Es tu propio
  *    script; esa pantalla sale siempre con los que uno escribe.
  * 5. **Implementar → Nueva implementación** → tipo *Aplicación web*, con:
+ *    (Ésta es la ÚNICA vez que se usa "Nueva implementación". De aquí en
+ *    adelante, para cualquier cambio, es "Administrar implementaciones" — ver
+ *    abajo.)
  *        Ejecutar como:      Yo (remates@thiqa.mx)
  *        Quién tiene acceso: Cualquier usuario
  *    Copia la dirección que termina en `/exec`.
@@ -82,9 +85,15 @@
  * 7. Reparte una clave por persona, por un medio donde no quede a la vista de
  *    otros. Cada quien la escribe una vez y ya no vuelve a capturar nada.
  *
- * **Guardar no es publicar.** Cada vez que cambies este archivo hay que hacer
- * Implementar → Administrar implementaciones → editar → Nueva versión. Sin eso,
- * el tablero sigue recibiendo la versión vieja y parece que el cambio no sirvió.
+ * **Guardar no es publicar, y publicar no es "Nueva implementación".** Cada vez
+ * que cambies este archivo —sobre todo al dar de baja un acceso— hay que hacer:
+ *
+ *     Implementar → **Administrar implementaciones** → el lápiz de la que ya
+ *     existe → Versión: **Nueva versión** → Implementar.
+ *
+ * Si le das a "Nueva implementación" sale una dirección nueva que no le pega a
+ * nadie, y la de siempre se queda contestando con la lista vieja: el acceso que
+ * acabas de borrar sigue entrando. No avisa de ninguna manera.
  *
  * ---------------------------------------------------------------------------
  * SOBRE "CUALQUIER USUARIO" Y LAS CLAVES
@@ -125,11 +134,21 @@
    el renglón de ejemplo comentado.
 
    PARA DAR UN ACCESO: agrega un renglón con una clave larga —de veras larga,
-   veinte caracteres o más, que no sea una palabra— y el nombre de a quién se la
-   diste. Publica una nueva versión y pásale la clave a esa persona.
+   treinta caracteres o más, y que no se pueda adivinar sabiendo quién es la
+   persona— y el nombre de a quién se la diste. Publica (ver abajo) y pásale la
+   clave a esa persona.
 
-   PARA QUITARLO: borra su renglón y publica una nueva versión. Ese acceso muere
-   en ese momento, y los demás no se enteran.
+   PARA QUITARLO: borra su renglón y publica. Ese acceso muere en ese momento, y
+   los demás no se enteran.
+
+   PUBLICAR ES ESTE CAMINO Y NO OTRO:
+     Implementar → **Administrar implementaciones** → el lápiz de la que ya
+     existe → Versión: **Nueva versión** → Implementar.
+
+   NO es "Nueva implementación". Ése crea una dirección NUEVA que no le pega a
+   nadie, y deja la de siempre contestando con la lista vieja de accesos: el que
+   acabas de dar de baja sigue entrando, y tú creyendo que ya no. Es el error más
+   caro de este archivo y no avisa de ninguna manera.
 
    LO QUE ESTE CANDADO **NO** PUEDE TAPAR, Y HAY QUE SABERLO:
 
@@ -155,29 +174,61 @@
      · Con `carteras: 'todas'`, ve el maestro completo, la bancaria incluida.
        Ése es tu propio acceso, no el de nadie más.
 
-   Ejemplo de cómo se ve la lista ya con accesos puestos:
+   Ejemplo de cómo se ve la lista ya con accesos puestos. Las claves de abajo son
+   MARCADORES, no claves: están escritas en este archivo, así que el script las
+   rechaza a propósito. Invéntate una larga para cada quien.
 
      const ACCESOS = [
-       { clave: 'una-clave-larga-que-nadie-adivina-01', nombre: 'Elías (THIQA)', carteras: 'todas' },
-       { clave: 'otra-clave-larga-y-distinta-02',       nombre: 'Inversionista PIC' },
-       { clave: 'la-tercera-igual-de-larga-03',         nombre: 'Inversionista Infonavit',
+       { clave: 'AQUÍ-VA-LA-CLAVE-DE-THIQA',   nombre: 'Elías (THIQA)', carteras: 'todas' },
+       { clave: 'AQUÍ-VA-LA-CLAVE-DEL-UNO',    nombre: 'Inversionista PIC', carteras: ['PIC'] },
+       { clave: 'AQUÍ-VA-LA-CLAVE-DEL-DOS',    nombre: 'Inversionista Infonavit',
          carteras: ['PRV_INFVT', 'CART_SOJI'] },
      ];
+
+   PARA INVENTAR UNA CLAVE, sin pensarle: en el editor, pega esto en la consola
+   del navegador y usa lo que salga —
+     crypto.randomUUID() + crypto.randomUUID()
+   Cualquier cosa que se pueda adivinar sabiendo quién es la persona (su nombre
+   con el año, la cartera con el año) no sirve: la dirección es pública y quien
+   quiera probar claves puede hacerlo todo el día sin que nadie se entere.
    ───────────────────────────────────────────────────────────────────────── */
 const ACCESOS = [
   // { clave: 'pon-aquí-una-clave-larga', nombre: 'A quién se la diste' },
 ];
 
 /**
- * Las carteras que NO salen del Sheet, salvo que un acceso las pida por su
- * nombre. La bancaria va aquí: este tablero es de las casas que se recuperan
- * para los inversionistas, y esa cartera no es de ellos.
+ * Las carteras que un acceso SIN lista propia sí se puede llevar.
  *
- * Van pedazos del nombre, no el nombre completo, y a propósito: si un día en el
- * Sheet le cambian `BNC_HSBC-TLAJO` por `BNC_HSBC_TLAJO` o por `HSBC`, el
- * candado tiene que seguir cerrado. Un nombre exacto se abriría solo con el
- * cambio de nombre, y nadie se daría cuenta hasta que un inversionista viera
- * casas que no son suyas.
+ * Ojo con el sentido de esta lista, porque es lo contrario de lo que uno
+ * escribiría de primera intención: aquí NO se apunta lo que se esconde, se
+ * apunta lo que se deja pasar. Todo lo que no esté escrito aquí se queda en el
+ * Sheet.
+ *
+ * Es a propósito, y por dos casos que van a pasar:
+ *
+ *   · Una casa capturada con la columna de la cartera todavía en blanco. Con una
+ *     lista de lo prohibido, esa casa no empataba con nada prohibido y se iba
+ *     con todos. Con ésta, no empata con nada permitido y se queda.
+ *   · Una cartera nueva. El día que entre BANCO_SANTANDER-TLAJO —o la que sea—,
+ *     nadie va a acordarse de venir a este archivo a taparla. Con esta lista no
+ *     hace falta acordarse: no sale hasta que alguien la escriba aquí, que es
+ *     justo el momento de preguntarse si de veras le toca a los inversionistas.
+ *
+ * Van pedazos del nombre, no el nombre completo, para que renombrar la cartera
+ * en el Sheet no deje a nadie sin sus casas de un día para otro.
+ */
+const CARTERAS_DE_INVERSIONISTA = ['pic', 'prv_infvt', 'cart_soji'];
+
+/**
+ * Las carteras que NO salen del Sheet ni aunque un acceso las pida por su
+ * nombre. Sólo `carteras: 'todas'` las abre. La bancaria va aquí: este tablero
+ * es de las casas que se recuperan para los inversionistas, y esa cartera no es
+ * de ellos.
+ *
+ * Van pedazos del nombre a propósito: si un día en el Sheet le cambian
+ * `BNC_HSBC-TLAJO` por `BNC_HSBC_TLAJO` o por `HSBC`, el candado tiene que
+ * seguir cerrado. Un nombre exacto se abriría solo con el cambio de nombre, y
+ * nadie se daría cuenta hasta que un inversionista viera casas que no son suyas.
  */
 const RESERVADAS = ['bnc', 'hsbc'];
 
@@ -189,8 +240,33 @@ const RESERVADAS = ['bnc', 'hsbc'];
  */
 const LARGO_MINIMO = 16;
 
-/** La clave que viene escrita en el repositorio: nunca puede dar acceso. */
-const CLAVE_DE_FABRICA = 'pon-aquí-una-clave-larga';
+/**
+ * Las claves que NUNCA dan acceso, pase lo que pase.
+ *
+ * Aquí van dos cosas. Las de los ejemplos de este archivo, porque el archivo es
+ * público y lo van a leer los mismos inversionistas: si alguien copia el bloque
+ * de ejemplo y se le olvida cambiar una clave, lo que tiene que pasar es que ese
+ * acceso no funcione, no que le abra la puerta al primero que lea el archivo.
+ *
+ * Y la clave vieja del tablero, la que estuvo escrita en `config.js` hasta
+ * septiembre de 2026. Ésa quedó en el historial de Git de un repositorio
+ * público, o sea que la puede sacar cualquiera con un comando. Está apuntada
+ * aquí para que no pueda volver a servir ni por descuido: si se da de alta como
+ * acceso —porque era la que se usaba y funcionaba—, el script la rechaza.
+ */
+const CLAVES_DE_FABRICA = [
+  'pon-aquí-una-clave-larga',
+  'AQUÍ-VA-LA-CLAVE-DE-THIQA',
+  'AQUÍ-VA-LA-CLAVE-DEL-UNO',
+  'AQUÍ-VA-LA-CLAVE-DEL-DOS',
+  'cPwYCnOJ6SzJenL1mB9DrJSmCoEryPm4',
+];
+
+/** ¿Es una de las claves que vienen escritas en el repositorio? */
+function esDeFabrica(clave) {
+  const c = String(clave || '');
+  return CLAVES_DE_FABRICA.some(function (f) { return f === c; });
+}
 
 /**
  * Busca la clave en la lista. Devuelve el acceso, o null.
@@ -202,13 +278,19 @@ const CLAVE_DE_FABRICA = 'pon-aquí-una-clave-larga';
 function buscaAcceso(clave) {
   const c = String(clave || '');
   if (c.length < LARGO_MINIMO) return null;
-  if (c === CLAVE_DE_FABRICA) return null;
-  let hallado = null;
+  if (esDeFabrica(c)) return null;
+  let hallado = null, empates = 0;
   for (let i = 0; i < ACCESOS.length; i++) {
     const a = ACCESOS[i];
     const k = String((a && a.clave) || '');
-    if (k.length >= LARGO_MINIMO && k !== CLAVE_DE_FABRICA && k === c) hallado = a;
+    if (k.length >= LARGO_MINIMO && !esDeFabrica(k) && k === c) { hallado = a; empates++; }
   }
+  /* Si la misma clave está en dos renglones no se elige uno: no se abre. Pasa al
+     dar de alta a alguien copiando el renglón propio y olvidando cambiar la
+     clave — y entonces el que gana es el último escrito, que puede ser el de
+     `carteras: 'todas'`. Un empate es un error de captura, y ante un error de
+     captura lo seguro es no contestar. `probar` dice cuál renglón repetir. */
+  if (empates > 1) return null;
   return hallado;
 }
 
@@ -216,6 +298,9 @@ function buscaAcceso(clave) {
 function puedeVer(acceso, fuente) {
   const f = norm(fuente);
   if (acceso.carteras === 'todas') return true;
+  /* Una casa sin cartera capturada no se va con nadie. Antes pasaba: no empataba
+     con nada prohibido, así que se iba con todos los accesos. */
+  if (!f) return false;
   /* Lo reservado NO se abre con una lista de carteras: sólo con 'todas', dicho
      con todas sus letras. Es a propósito. Alguien que escriba
      `carteras: ['TLAJO']` pensando en "las de Tlajomulco" se llevaría el maestro
@@ -223,9 +308,26 @@ function puedeVer(acceso, fuente) {
      incluida— y ni siquiera se daría cuenta. Una lista se escribe para acotar,
      nunca para abrir. */
   if (RESERVADAS.some(function (r) { return f.indexOf(norm(r)) >= 0; })) return false;
-  if (Object.prototype.toString.call(acceso.carteras) === '[object Array]' && acceso.carteras.length)
-    return acceso.carteras.some(function (c) { return f.indexOf(norm(c)) >= 0; });
-  return true;
+  const lista = listaDeCarteras(acceso);
+  if (lista) return lista.some(function (c) { return f.indexOf(norm(c)) >= 0; });
+  /* Sin lista propia, lo que le toca a un inversionista: nada más las carteras
+     escritas arriba. Lo que el script no reconoce, no sale. */
+  return CARTERAS_DE_INVERSIONISTA.some(function (c) { return f.indexOf(norm(c)) >= 0; });
+}
+
+/**
+ * La lista de carteras de un acceso, o null si no tiene.
+ *
+ * Un texto suelto —`carteras: 'PIC'`— vale como lista de una. Escrito así no
+ * acotaba nada y el acceso se llevaba de más, que es lo contrario de lo que
+ * quiso quien lo escribió; y se parece demasiado a `carteras: 'todas'` como para
+ * confiar en que nadie lo va a escribir.
+ */
+function listaDeCarteras(acceso) {
+  const c = acceso && acceso.carteras;
+  if (Object.prototype.toString.call(c) === '[object Array]') return c.length ? c : null;
+  if (typeof c === 'string' && c && c !== 'todas') return [c];
+  return null;
 }
 
 /**
@@ -241,10 +343,11 @@ function numeroDeFolio(folio) {
 const HOJA = 'Base_Carteras_Asignadas';
 
 /**
- * El maestro, por si este archivo termina en un proyecto suelto en lugar de
- * pegado al Sheet. Pegado —que es como debe ir— no se usa: manda el archivo que
- * lo contiene. Suelto, es lo único que le dice a qué libro entrar, y sin esto
- * fallaría con un "no puedo leer la propiedad de null" que no explica nada.
+ * El maestro, por su ID. Este script va en un proyecto SUELTO —nunca pegado al
+ * Sheet, porque el maestro ya tiene su propio Apps Script con su propio doGet y
+ * dos no conviven—, así que esto es lo único que le dice a qué libro entrar.
+ * Sin esto fallaría con un "no puedo leer la propiedad de null" que no explica
+ * nada.
  */
 const SHEET_ID = '1J44hMg1grwYKQe13zvyxn5CTzadQ9H86vfR6pre8t3A';
 
@@ -571,6 +674,30 @@ function probar() {
   }
   Logger.log('accesos dados de alta: ' + ACCESOS.length);
 
+  /* Las carteras que hay en el maestro y que este archivo no conoce. Es el aviso
+     que evita la sorpresa: el día que entre una cartera nueva, aquí sale, y con
+     eso se decide si le toca o no a los inversionistas ANTES de que se vaya con
+     ellos. Mientras no esté escrita en CARTERAS_DE_INVERSIONISTA, no sale. */
+  const todo = leerMaestro({ nombre: '(revisión)', carteras: 'todas' });
+  if (todo.ok) {
+    const cCart = todo.encabezados.indexOf('CARTERA');
+    if (cCart >= 0) {
+      const vistas = {};
+      for (let n = 0; n < todo.filas.length; n++)
+        vistas[String(todo.filas[n][cCart] || '(sin cartera)')] = true;
+      const desconocidas = Object.keys(vistas).filter(function (c) {
+        const f = norm(c);
+        if (!f) return true;
+        if (RESERVADAS.some(function (r) { return f.indexOf(norm(r)) >= 0; })) return false;
+        return !CARTERAS_DE_INVERSIONISTA.some(function (k) { return f.indexOf(norm(k)) >= 0; });
+      });
+      if (desconocidas.length)
+        Logger.log('OJO: el maestro trae carteras que este script no conoce, y por eso NO se le ' +
+                   'mandan a nadie: ' + desconocidas.join(' · ') + '. Si a los inversionistas les ' +
+                   'toca verlas, agrégalas a CARTERAS_DE_INVERSIONISTA; si no, déjalas así.');
+    }
+  }
+
   for (let i = 0; i < ACCESOS.length; i++) {
     const a = ACCESOS[i];
     const nombre = String((a && a.nombre) || '(sin nombre)');
@@ -585,20 +712,51 @@ function probar() {
                  LARGO_MINIMO + '. Este acceso NO va a funcionar.');
       continue;
     }
-    if (clave === CLAVE_DE_FABRICA) {
-      Logger.log('  ¡OJO! Su clave es la que viene escrita en el repositorio, así que la sabe ' +
-                 'cualquiera. Este acceso NO va a funcionar.');
+    if (esDeFabrica(clave)) {
+      Logger.log('  ¡OJO! Su clave es una de las que vienen escritas en el repositorio, así que ' +
+                 'la sabe cualquiera que abra el archivo. Este acceso NO va a funcionar. ' +
+                 'Invéntale una larga.');
       continue;
     }
     let repetida = 0;
     for (let k = 0; k < ACCESOS.length; k++)
       if (String((ACCESOS[k] && ACCESOS[k].clave) || '') === clave) repetida++;
-    if (repetida > 1) Logger.log('  ¡OJO! Esta misma clave está en ' + repetida + ' renglones.');
+    if (repetida > 1) {
+      Logger.log('  ¡OJO! Esta misma clave está en ' + repetida + ' renglones, así que NO abre: ' +
+                 'con un empate el script no elige, se niega. Ponle una clave distinta a cada uno.');
+      continue;
+    }
+    if (typeof a.carteras === 'string' && a.carteras !== 'todas')
+      Logger.log('  Nota: su `carteras` está escrito como texto suelto. Se entiende como una lista ' +
+                 'de una, pero se lee mejor con corchetes: carteras: [\'' + a.carteras + '\']');
 
     const r = leerMaestro(a);
     if (!r.ok) { Logger.log('  FALLÓ: ' + r.error + ' — ' + r.mensaje); continue; }
     Logger.log('  casas que se lleva: ' + r.filas.length);
     Logger.log('  casas que NO se lleva, por su acceso: ' + r.fueraDeAcceso);
+
+    /* De qué carteras son. Es lo único que de veras delata a la bancaria: dos
+       números de tres dígitos se ven razonables aunque uno traiga lo que no
+       debe, y la palabra HSBC en este renglón no se puede confundir. */
+    const cCart = r.encabezados.indexOf('CARTERA');
+    if (cCart >= 0) {
+      const cuenta = {};
+      for (let n = 0; n < r.filas.length; n++) {
+        const c = String(r.filas[n][cCart] || '(sin cartera)');
+        cuenta[c] = (cuenta[c] || 0) + 1;
+      }
+      const nombres = Object.keys(cuenta).sort();
+      Logger.log('  de estas carteras: ' +
+                 (nombres.length ? nombres.map(function (c) { return c + ' (' + cuenta[c] + ')'; }).join(' · ')
+                                 : 'ninguna'));
+      const coladas = nombres.filter(function (c) {
+        const f = norm(c);
+        return RESERVADAS.some(function (rr) { return f.indexOf(norm(rr)) >= 0; });
+      });
+      if (coladas.length && a.carteras !== 'todas')
+        Logger.log('  ¡ALTO! Se le está yendo una cartera reservada: ' + coladas.join(' · ') +
+                   '. NO repartas esta clave hasta arreglarlo.');
+    }
 
     /* Lo que el candado no tapa: los huecos del folio. Se dice aquí, antes de
        repartir la clave, porque es lo único que un inversionista podría deducir

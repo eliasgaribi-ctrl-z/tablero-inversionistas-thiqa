@@ -676,7 +676,11 @@ html.trabado,html.trabado body{overflow:hidden}
     <div id="candadoAviso" role="alert" aria-live="polite"></div>
     <div id="candadoNota">¿No tienes clave o dejó de servir? Pídela a THIQA
       (<a href="mailto:remates@thiqa.mx">remates@thiqa.mx</a>). Cada acceso es de una persona:
-      compartirla no da más permisos, nada más quita el control de quién entró.</div>
+      compartirla no da más permisos, nada más quita el control de quién entró.
+      <span id="candadoMano" hidden><br><br><b>¿Ya tienes el Excel del maestro descargado?</b>
+      Mientras el maestro no contesta puedes
+      <a href="#" id="candadoManoLink">trabajar con el archivo a mano</a> — sólo lo que traiga
+      ese archivo, nada del Sheet.</span></div>
   </form>
 </div>
 
@@ -759,7 +763,7 @@ html.trabado,html.trabado body{overflow:hidden}
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v5h-5"/></svg>
         Traer las casas del maestro
       </button>
-      <button class="btn gh" id="syncAjustes" type="button">Poner la liga y la clave</button>
+      <button class="btn gh" id="syncAjustes" type="button">Poner la liga</button>
     </div>
     <div id="estadoSync" style="margin-top:11px;font-size:13px;color:var(--tx3);line-height:1.6"></div>
     <div id="avisoSync"></div>
@@ -955,6 +959,10 @@ html.trabado,html.trabado body{overflow:hidden}
     <h3>Tu acceso</h3>
     <div id="sesion" class="aviso" style="margin-bottom:14px"></div>
     <button class="btn gh" id="salirBtn" type="button" style="display:none">Salir de este navegador</button>
+    <p style="font-size:12.5px;color:var(--tx3);margin:10px 0 0">Salir borra de esta computadora tu
+      clave, las fotos de domicilio que hayas guardado y el empate de columnas. Lo que el navegador
+      guardó por su cuenta —si le dijiste que sí a «¿guardar la contraseña?»— eso lo tienes que
+      borrar tú, desde sus contraseñas guardadas.</p>
     <div class="aviso" style="margin-top:14px"><b>Cada acceso es de una persona.</b> Quién entra y
       qué carteras se lleva se decide en la lista <code>ACCESOS</code> del Apps Script, que sólo
       abre THIQA. Ni esta pantalla ni el repositorio pueden dar permisos: lo que no manda el
@@ -1937,11 +1945,12 @@ function pintarEstadoSync(){
   $('syncBtn').disabled = !listo;
   /* Con la liga de fábrica no hay nada que capturar: el botón de Ajustes deja de
      ser el paso 1 y se vuelve el escape para quien apunte a otra implementación. */
-  $('syncAjustes').textContent = listo ? 'Apuntar a otra implementación' : 'Poner la liga y la clave';
+  $('syncAjustes').textContent = listo ? 'Apuntar a otra implementación' : 'Poner la liga';
   if (!listo){
     $('estadoSync').innerHTML = 'Todavía no está puesta la liga. Ponla una sola vez en ' +
       '<code>config.js</code> y el tablero queda en un botón para todos; o pícale a ' +
-      '<b style="color:var(--tx)">Poner la liga y la clave</b> para dejarla nada más en este navegador.';
+      '<b style="color:var(--tx)">Poner la liga</b> para dejarla nada más en este navegador. La clave ' +
+      'se escribe después, en la pantalla de bloqueo.';
     return;
   }
   $('estadoSync').innerHTML = S.sync
@@ -1976,9 +1985,9 @@ async function sincronizar(clave){
           'al menos un renglón a la lista <code>ACCESOS</code> y publicar una <b>nueva versión</b> ' +
           '— guardar no es publicar.'
         : j.error === 'sin_cartera'
-        ? '<b>El script no encontró la columna de la cartera y por seguridad no mandó nada.</b><br>' +
-          'Sin esa columna no puede separar lo que le toca ver a cada acceso, así que prefiere no ' +
-          'contestar a contestar de más. ' + esc(j.mensaje || '')
+        ? '<b>El tablero no puede abrir ahorita: hay algo que arreglar en el maestro.</b><br>' +
+          'No es tu clave ni tu computadora. Avísale a THIQA (<a href="mailto:remates@thiqa.mx">' +
+          'remates@thiqa.mx</a>) y vuelve a intentar más tarde.'
         : '<b>El script contestó, pero no pudo leer el maestro.</b><br>' +
           esc(j.mensaje || j.error || '') ;
       aviso('avisoSync','mal',t);
@@ -1987,9 +1996,11 @@ async function sincronizar(clave){
     }
     desdeMaestro(j);
     const d = new Date();
-    /* El número que se dice es el que mandó el maestro, no el que quedó después
-       de apagar carteras: si dijera 174 cuando el maestro tiene 214, la cifra
-       del tablero y la del Sheet no cuadrarían y no habría dónde ver por qué. */
+    /* El número que se dice es el que mandó el script para ESTE acceso, no el que
+       tiene el maestro. Y así se queda: el total del maestro no se manda a
+       propósito, porque compararlo con lo que llegó es contar las casas que no
+       le tocan a quien está leyendo. Si algún día parece que "no cuadra con el
+       Sheet", eso es lo correcto, no un error que arreglar. */
     const trajo = (j.filas || []).length;
     /* La hora que manda el script, no la del navegador. El script la escribe
        con la zona horaria del Sheet; la máquina de quien abre el tablero puede
@@ -2087,13 +2098,35 @@ function destrabar(){
    columnas y las fotos de los domicilios. Se recarga a propósito, para que no
    quede una sola casa dibujada de la sesión anterior. */
 async function salir(){
+  /* Se pregunta porque las fotos son trabajo de meses y no se pueden recuperar.
+     Sólo cuando de veras hay algo que perder: si no hay fotos, salir es salir. */
+  const cuantas = Object.keys(S.fotos || {}).length;
+  if (cuantas && !confirm('Al salir se borran de esta computadora tu clave y las ' + cuantas +
+      (cuantas === 1 ? ' foto de domicilio que guardaste' : ' fotos de domicilios que guardaste') +
+      '. No se pueden recuperar.\n\n¿Salir de todas formas?')) return;
   const b = $('salirBtn');
   if (b){ b.disabled = true; b.textContent = 'Saliendo…'; }
   AJ.syncKey = '';
+  /* También la dirección de Ajustes. Si quedó apuntando a otra implementación,
+     la siguiente persona escribiría su clave contra la dirección que dejó el
+     anterior, y ni la puerta ni ella se enterarían. */
+  AJ.sync = '';
+  /* Y los grupos de cartera: ahí quedan escritos, con su nombre largo, los
+     nombres de cartera que vio el acceso anterior. */
+  AJ.grupos = {};
   try { const g = leerGuardado(); delete g.byName; localStorage.setItem(LSKEY, JSON.stringify(g)); } catch(e){}
   guardar();
   await borrarTodasLasFotos();
   location.reload();
+}
+/* Las fotos se leen HASTA que alguien entró, no al abrir la página.
+   Están atadas a la casa por folio y domicilio, y quien las puso pudo haber
+   entrado con otro acceso: leerlas antes de la puerta le enseñaba al que llega
+   —sin escribir una sola clave— cuántas hay y de qué casas son. */
+async function cargarFotos(){
+  const f = await leerFotos();
+  S.fotos = f;
+  if (Object.keys(f).length && S.todas.length) pintarCasas();
 }
 async function entrar(clave, guardada){
   const b = $('candadoBtn'), antes = b.textContent;
@@ -2109,13 +2142,26 @@ async function entrar(clave, guardada){
       guardar();
       pintarAjustes();
       destrabar();
+      cargarFotos();
       toast(S.acceso ? 'Entraste como ' + S.acceso + '.' : 'Listo, entraste.');
       return true;
     }
     /* Una clave guardada que ya no sirve se borra sola. Si se quedara, la puerta
        volvería a intentar con ella cada vez que se abre la página y quien la
        tiene no tendría manera de escribir otra. */
-    if (r.error === 'clave'){ AJ.syncKey = ''; guardar(); pintarAjustes(); }
+    /* Sólo se borra la guardada si la que falló ERA la guardada. Si alguien se
+       equivoca al teclear después de un intento automático que falló por la red,
+       la buena tiene que seguir ahí. */
+    /* Si el problema fue llegar —no la clave— se ofrece el archivo a mano. */
+    if (r.error === 'red' || r.error === 'SIN_LIGA') $('candadoMano').hidden = false;
+    if (r.error === 'clave' && clave === claveAcceso()){
+      AJ.syncKey = '';
+      guardar();
+      pintarAjustes();
+      /* Una clave que ya no sirve es un acceso que se acabó: lo que quedó
+         guardado de esa sesión se va con ella. */
+      if (guardada) borrarTodasLasFotos();
+    }
     aviso('candadoAviso','mal', r.html || '<b>No se pudo entrar.</b>');
     return false;
   } finally {
@@ -2126,6 +2172,22 @@ $('candadoCaja').onsubmit = e => {
   e.preventDefault();
   const c = $('claveAcceso').value.trim();
   if (c) entrar(c, false);
+};
+/* La salida de emergencia. Aparece nada más cuando el maestro no contestó —no
+   cuando la clave está mal—, porque entonces el tablero es inservible incluso
+   para quien tiene el Excel en el escritorio y una junta en veinte minutos. No
+   afloja el candado: del Sheet no sale nada por aquí, sólo se lee un archivo que
+   quien lo abre ya tenía. */
+$('candadoManoLink').onclick = e => {
+  e.preventDefault();
+  destrabar();
+  cargarFotos();
+  $('aMano').open = true;
+  irA('datos', true);
+  aviso('avisoCarga','ojo','<b>Entraste sin clave, con el maestro sin contestar.</b><br>' +
+    'Aquí sólo se ve lo que traiga el archivo que subas. Cuando el maestro vuelva, recarga la ' +
+    'página y entra con tu clave para tenerlo al día.');
+  setTimeout(() => { try { $('suelta').scrollIntoView({ block:'center' }); } catch(err){} }, 200);
 };
 
 /* ============================================================
@@ -3148,18 +3210,23 @@ function avisoCarpetas(rows){
       ? 'Es el formato: un CSV no guarda las ligas, viven fuera de la celda. ' +
         'Baja el Sheet como <b>.xlsx</b> y vuelve a soltarlo.'
       : S.origen === 'maestro'
-        ? 'El maestro sí puede traerlas: si en el Sheet ya están capturadas, es que el ' +
-          'sincronizador todavía no las manda. Se agregan a la lista <b>CON_LIGA</b> de ' +
-          '<code>Sincronizar.gs</code> y se publica una nueva versión del script — ' +
-          'guardar no es publicar.'
+        ? 'Puede ser que todavía no estén capturadas en el maestro, o que el sincronizador no las ' +
+          'esté mandando. Si crees que ya están, dile a THIQA que revise la lista ' +
+          '<b>CON_LIGA</b> del script.'
         : 'O no están capturadas en el maestro, o la descarga se hizo sin las ligas.';
-    h += '<div class="aviso ojo"><b>Ninguna de estas ' + rows.length + ' casas trae la liga de ' +
-      esc(y(sinLiga)) + '.</b><br>' + porQue + '</div>';
+    /* Se dice "de las que estás viendo" y no "de estas casas": con un filtro o
+       una búsqueda puesta, la frase de antes sonaba a que el archivo entero
+       venía sin ligas cuando lo que pasaba era que quedaban seis casas. */
+    h += '<div class="aviso ojo"><b>Ninguna de las ' + rows.length + ' casas que estás viendo trae ' +
+      'la liga de ' + esc(y(sinLiga)) + '.</b><br>' + porQue + '</div>';
   }
   if (sinColumna.length)
     h += '<div class="aviso"><b>El archivo no trae la columna de ' + esc(y(sinColumna)) + '.</b><br>' +
-      'Los botones salen punteados porque no hay de dónde sacar la carpeta. Si el maestro ya la ' +
-      'tiene, apúntala en <b>Revisar columnas</b>, en la pantalla de Datos.</div>';
+      'Los botones salen punteados porque no hay de dónde sacar la carpeta.' +
+      (S.origen === 'maestro'
+        ? ' Si el maestro ya la trae, dile a THIQA que revise cómo se llama esa columna en el Sheet.'
+        : ' Si tu archivo ya la trae, apúntala en <b>Revisar columnas</b>, en la pantalla de Datos.') +
+      '</div>';
   return h;
 }
 function pintarCasas(){
@@ -3877,15 +3944,6 @@ ponDensidad((() => { try { return localStorage.getItem('thiqaDensidad'); } catch
   if (g.aj) AJ = Object.assign({}, AJ_DEF, g.aj, { grupos: g.aj.grupos || {} });
   if (g.doc === 'cuenta' || g.doc === 'ficha') S.doc = g.doc;
   ponTema(g.tema === 'oscuro' ? 'oscuro' : 'claro');
-  leerFotos().then(f => {
-    S.fotos = f;
-    const n = Object.keys(f).length;
-    if (n && S.todas.length) pintarCasas();
-    if (n && !S.todas.length)
-      aviso('avisoCarga','info','<b>Tengo guardadas ' + n +
-        (n === 1 ? ' foto de domicilio' : ' fotos de domicilios') + ' de la última vez.</b><br>' +
-        'Vuelve a subir el maestro y reaparecen solas, atadas a su casa: no hay que volver a ponerlas.');
-  });
   /* Con la liga puesta en config.js la pantalla de datos es un botón: la carga a
      mano se pliega y el texto deja de hablar de archivos. Sin liga, todo queda
      como estaba y la carga a mano se abre sola, que es el único camino. */
